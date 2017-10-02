@@ -8,3 +8,5 @@ Project ideas:
  - Could make our own "password locker" app. Have it generate passwords and let your store them on your phone behind a single master password/email... Make a web database and be able to retrieve in browser as well... (Obviously this is not something we would put actual passwords in cause security)
  - Could make a maps / dashcam app.  Lets you navigate using maps, but at the same time activates your phones cameras in like a 3 minute loop or something.  Then on a detected impact its saves the clip.
  - "Event-day parking spot finder" App to let you rent out your parking spot when you dont need it. Set rates, location etc
+ - "Loop finder" A way to create and find routes of specific length for running / biking / etc
+ - "Hu-mon"

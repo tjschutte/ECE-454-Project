@@ -23,4 +23,18 @@ As a user walks a set interval of steps, they will have a random chance to battl
 To-Do: How to work on the app and be productive
 
 ## Server Development:
-To-Do: How to work on the server and be productive
+Requirements:
+* Eclipse IDE for java developers. (Other IDES may work, but have not been tested).
+* mySQL (version 5.7).  Note: Nothing but a connection is established presently.  SQL scripts for DB creation will be added soon.
+* Internet connection if testing server / client relationships non locally.
+
+
+Steps to import:
+1. Check out the ECE-454-Project git repository to your machine.
+2. Open Eclipse IDE and import a Maven project.
+</br> `File -> Import -> Maven -> Existing Maven project`
+3. Import only the `Server` folder from the git repository.
+4. Maven should build automatically and report any errors.  Assuming no errors, the server should be ready to start.
+
+## TestClient
+The test client provides a simple way of communication with the Server.  Simply import the project into Eclipse and run it.  You will be greeted with a Jpanel that will allow you to make a connection to the server and issue same commands along the socket.  The test client is mostly meant as a way to communicate with the server and debug messages to and from it, not as a fully featured application on its own.

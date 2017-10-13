@@ -20,7 +20,8 @@
         <activity android:name=".IndexActivity" />
         <activity android:name=".HumonInfoActivity" />
         <activity android:name=".PartyActivity" />
-        <activity android:name=".PartyInfoActivity"></activity>
+        <activity android:name=".PartyInfoActivity" />
+        <activity android:name=".FriendsListActivity"></activity>
     </application>
 
 </manifest>

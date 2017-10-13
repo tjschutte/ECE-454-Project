@@ -33,12 +33,12 @@ public class LoginActivity extends AppCompatActivity {
         EditText passwordText = (EditText) findViewById(R.id.passwordEditText);
 
         if(emailText.getText().toString().isEmpty() || passwordText.getText().toString().isEmpty()) {
-            Toast toast = Toast.makeText(getApplicationContext(), SIGN_IN_FAILURE, Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(this, SIGN_IN_FAILURE, Toast.LENGTH_SHORT);
             toast.show();
         }
         //TODO: Send email/password to server
         else {
-            Toast toast = Toast.makeText(getApplicationContext(), SIGN_IN_SUCCESS, Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(this, SIGN_IN_SUCCESS, Toast.LENGTH_SHORT);
             toast.show();
 
             //Send email to next activity to retrieve user info

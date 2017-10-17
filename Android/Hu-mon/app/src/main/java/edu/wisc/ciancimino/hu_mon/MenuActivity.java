@@ -70,6 +70,8 @@ public class MenuActivity extends AppCompatActivity {
                 startActivity(intent);
                 break;
             case FRIENDS_LIST:
+                intent = new Intent(this, FriendsListActivity.class);
+                startActivity(intent);
                 break;
             case MAP:
                 break;

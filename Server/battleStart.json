@@ -1,0 +1,19 @@
+{
+    "type" : "battleStart",
+    "contents" : {
+        "playerID" : "0123XYZ",
+        "playerName":"Tom Schutte",
+        "opponentID" : "1234WXY",
+        "humonID" : "2345XYZ",
+        "humonName" : "Michael Ciancimino", 
+        "humonStats" : {
+            "health" : 90,
+            "str" : 8,
+            "dex" : 11,
+            "con" : 10,
+            "int" : 15,
+            "wis" : 11,
+            "cha" : 12
+        }
+    }
+}

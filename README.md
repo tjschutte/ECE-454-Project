@@ -37,4 +37,4 @@ Steps to import:
 4. Maven should build automatically and report any errors.  Assuming no errors, the server should be ready to start.
 
 ## TestClient
-The test client provides a simple way of communication with the Server.  Simply import the project into Eclipse and run it.  You will be greeted with a Jpanel that will allow you to make a connection to the server and issue same commands along the socket.  The test client is mostly meant as a way to communicate with the server and debug messages to and from it, not as a fully featured application on its own.
+The test client provides a simple way of communication with the Server.  Simply import the project into Eclipse and run it.  You will be greeted with a Jpanel that will allow you to make a connection to the server and issue commands to it via the socket.  The test client is mostly meant as a way to communicate with the server and debug messages to and from it, not as a fully featured application on its own.

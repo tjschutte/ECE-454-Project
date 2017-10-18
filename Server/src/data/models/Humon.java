@@ -11,6 +11,11 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Humon {
+	/**
+	 * TODO: Make sure constructors sanitize data.
+	 * TODO: Flesh out this object to spec
+	 * TODO: toSQLValueString
+	 */
 	ObjectMapper mapper;
 	private String name; 			// humon name
 	private String image;			// image of humon (Base64 representation for serialization purposes)

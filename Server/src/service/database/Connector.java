@@ -97,4 +97,8 @@ public class Connector {
 			return null;
 		}
 	}
+
+	public PreparedStatement prepareStatement(String sql) throws SQLException {
+		return connection.prepareStatement(sql);
+	}
 }

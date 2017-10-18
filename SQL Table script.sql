@@ -1,11 +1,12 @@
-
+## User table, will store information about a user
+## 
+##
 CREATE TABLE users (
     userid int auto_increment,
-    email varchar(20) unique not null,
-    password text not null,
+    username varchar(20) unique not null,
+    passwordhash text not null,
     party blob, # list of instanceids
     encountered_humons blob, # list of humonids
-    hcount int, #number of humons this player has captured.  used in generating instance ids
     
     PRIMARY KEY (userid)
 );
@@ -15,6 +16,12 @@ CREATE TABLE humons (
 	image blob,
 
     PRIMARY KEY(humonid)
+);
+
+CREATE TABLE images (
+	humonid int primary key auto_increment,
+    image mediumblob#,
+    #foreign key (humonid) REFERENCES humons(humonid)
 );
 
 CREATE TABLE playerhumons (

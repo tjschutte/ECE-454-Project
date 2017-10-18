@@ -11,28 +11,35 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class User {
+	/**
+	 * TODO: Make sure constructors sanitize data.
+	 */
+	
 	ObjectMapper mapper;
 
-	private String userName;
-	private String passHash;
+	private String email;
+	private String password;
 	private ArrayList<Integer> party;
 	private ArrayList<Integer> encounteredHumons;
+	private int hCount;
 
 	/**
 	 * 
 	 * @param mapper
-	 * @param userName - username
-	 * @param passHash - password
+	 * @param email - email
+	 * @param password - password
 	 * @param party - list of instanceIDs
 	 * @param encounteredHumons - list of hIDs
+	 * @param hCount - number of humons encountered
 	 */
-	public User(ObjectMapper mapper, String userName, String passHash, ArrayList<Integer> party,
-			ArrayList<Integer> encounteredHumons) {
+	public User(ObjectMapper mapper, String email, String password, ArrayList<Integer> party,
+			ArrayList<Integer> encounteredHumons, int hCount) {
 		this.mapper = mapper;
-		this.userName = userName;
-		this.passHash = passHash;
+		this.email = email;
+		this.password = password;
 		this.party = party; 
 		this.encounteredHumons = encounteredHumons;
+		this.hCount = hCount;
 	}
 
 	public User(ObjectMapper mapper, String json) throws JsonParseException, IOException {
@@ -49,16 +56,17 @@ public class User {
 			if (token == null) {
 				break;
 			}
+			
 			// get userID
-			if (JsonToken.FIELD_NAME.equals(token) && "userName".equals(parser.getCurrentName())) {
+			if (JsonToken.FIELD_NAME.equals(token) && "email".equals(parser.getCurrentName())) {
 				token = parser.nextToken();
-				userName = parser.getText();
+				email = parser.getText();
 			}
 
 			// get passHash
-			if (JsonToken.FIELD_NAME.equals(token) && "passHash".equals(parser.getCurrentName())) {
+			if (JsonToken.FIELD_NAME.equals(token) && "password".equals(parser.getCurrentName())) {
 				token = parser.nextToken();
-				passHash = parser.getText();
+				password = parser.getText();
 			}
 
 			// get Party
@@ -82,16 +90,22 @@ public class User {
 					encounteredHumons.add(new Integer(parser.getIntValue()));
 				}
 			}
+			
+			if (JsonToken.FIELD_NAME.equals(token) && "hCount".equals(parser.getCurrentName())) {
+				token = parser.nextToken();
+				hCount = Integer.parseInt(parser.getText());
+				
+			}
 
 		}
 	}
 
-	public String getUserName() {
-		return userName;
+	public String getEmail() {
+		return email;
 	}
 
-	public String getPassHash() {
-		return passHash;
+	public String getPassword() {
+		return password;
 	}
 
 	public ArrayList<Integer> getParty() {
@@ -102,13 +116,23 @@ public class User {
 		return encounteredHumons;
 	}
 
+	public int getHcount(int hCount) {
+		return hCount;
+	}
+
 	public String toJson() throws JsonProcessingException {
 		return mapper.writeValueAsString(this);
 	}
 
-	public String toString() {
-		return "[userID: " + userName + ", passHash: " + passHash
-				+ ", probably some other stuff at some point as well....]";
+	public String toSqlValueString() {
+		String obj = "";
+		obj += "'" + email + "',";
+		obj += "'" + password + "',";
+		obj += "'" + party + "',";
+		obj += "'" + encounteredHumons + "',";
+		obj += "'" + hCount + "'";
+		
+		return obj;
 	}
 
 }

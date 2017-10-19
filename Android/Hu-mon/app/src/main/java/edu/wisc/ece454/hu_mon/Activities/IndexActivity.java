@@ -1,4 +1,4 @@
-package edu.wisc.ciancimino.hu_mon;
+package edu.wisc.ece454.hu_mon.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,18 +10,20 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 
-public class PartyActivity extends AppCompatActivity {
+import edu.wisc.ece454.hu_mon.R;
 
-    private final String ACTIVITY_TITLE = "Party";
+public class IndexActivity extends AppCompatActivity {
+
+    private final String ACTIVITY_TITLE = "Hu-mon Index";
     private String HUMON_NAME_KEY;
 
     private ArrayList<String> humonList;
-    private ListView partyListView;
+    private ListView indexListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.party_layout);
+        setContentView(R.layout.index_layout);
         setTitle(ACTIVITY_TITLE);
 
         HUMON_NAME_KEY = getString(R.string.humonNameKey);
@@ -29,12 +31,12 @@ public class PartyActivity extends AppCompatActivity {
         humonList = new ArrayList<String>();
 
 
-        partyListView = (ListView) findViewById(R.id.partyListView);
-        ArrayAdapter<String> partyAdapter = new ArrayAdapter<String>(this,
+        indexListView = (ListView) findViewById(R.id.indexListView);
+        ArrayAdapter<String> indexAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1, humonList);
-        partyListView.setAdapter(partyAdapter);
+        indexListView.setAdapter(indexAdapter);
 
-        partyListView.setOnItemClickListener(
+        indexListView.setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -67,7 +69,7 @@ public class PartyActivity extends AppCompatActivity {
 
     //go to humon info activity to view particular humon
     private void viewHumon(String humonName) {
-        Intent intent = new Intent(this, PartyInfoActivity.class);
+        Intent intent = new Intent(this, HumonInfoActivity.class);
         intent.putExtra(HUMON_NAME_KEY, humonName);
         startActivity(intent);
     }

@@ -1,4 +1,4 @@
-package edu.wisc.ciancimino.hu_mon;
+package edu.wisc.ece454.hu_mon.Activities;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -14,6 +14,8 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+
+import edu.wisc.ece454.hu_mon.R;
 
 public class FriendsListActivity extends AppCompatActivity {
 

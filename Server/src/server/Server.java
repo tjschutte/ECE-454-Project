@@ -34,9 +34,9 @@ public class Server extends Thread {
 	public Server(Socket socket, int clientNumber) throws IOException {
 		this.socket = socket;
 		this.clientNumber = clientNumber;
-		log(" connected at " + socket);
+		log("connected at " + socket);
 		mapper = new ObjectMapper();
-		databaseConnection = new Connector("jdbc:mysql://localhost:3306", "humon-test", "ece454", "zYFqzVgW3t2Y", "5");
+		databaseConnection = new Connector("jdbc:mysql://localhost:3306/", "humon-test", "ece454", "zYFqzVgW3t2Y", "5");
 		// Connect to the database and table
 		databaseConnection.startConnection();
 		// Decorate the streams so we can send characters and not just bytes. Ensure output is flushed
@@ -132,7 +132,7 @@ public class Server extends Thread {
 				throw new SQLException();
 			}
 			
-			sendResponse(Commands.SUCCESS);
+			sendResponse(Commands.SUCCESS, "");
 
 		} catch (JsonParseException e) {
 			log("Recieved malformed data packet");
@@ -157,7 +157,7 @@ public class Server extends Thread {
 					+ "' and password='" + u.getPassword() + "';");
 
 			if (!resultSet.next()) {
-				sendResponse(Commands.ERROR + Errors.BAD_CREDENTIALS);
+				sendResponse(Commands.ERROR, Errors.BAD_CREDENTIALS);
 				log("Invalid login creditials for user: " + u.getEmail());
 				log("Does user exist?");
 				return;
@@ -177,11 +177,11 @@ public class Server extends Thread {
 					String columnValue = resultSet.getString(i);
 					object += (rsmd.getColumnName(i) + " " + columnValue);
 				}
-				log("Found in user");
+				log("Found user");
 				log(object);
 			}
 			
-			sendResponse(Commands.SUCCESS);
+			sendResponse(Commands.SUCCESS, "");
 
 		} catch (JsonParseException e) {
 			log("Recieved malformed data packet");
@@ -190,7 +190,7 @@ public class Server extends Thread {
 			log("Bad sql " + e);
 			error(Errors.SERVER_ERROR_RETRY);
 		} catch (IOException e) {
-			log("Something went wrong mapping user to object" + e);
+			log("Something went wrong mapping user to object " + e);
 			error(Errors.SERVER_ERROR_RETRY);
 		}
 
@@ -200,13 +200,15 @@ public class Server extends Thread {
 	 * Sends error message to client.
 	 */
 	private void error(String msg) {
-		clientOut.println(Commands.ERROR + msg);
+		clientOut.println(Commands.ERROR + ":" + msg);
 		clientOut.flush();
+		log("Client was sent error [" + Commands.ERROR + ":" + msg + "]");
 	}
 	
-	private void sendResponse(String msg) {
-		clientOut.println(msg);
+	private void sendResponse(String cmd, String msg) {
+		clientOut.println(cmd + ":" + msg);
 		clientOut.flush();
+		log("Client was sent cmd:msg [" + cmd + ":" + msg + "]");
 	}
 
 	/**

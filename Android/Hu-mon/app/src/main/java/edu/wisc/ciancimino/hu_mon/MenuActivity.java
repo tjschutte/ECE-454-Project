@@ -76,6 +76,8 @@ public class MenuActivity extends AppCompatActivity {
             case MAP:
                 break;
             case CREATE_HUMON:
+                intent = new Intent(this, CreateHumonImageActivity.class);
+                startActivity(intent);
                 break;
             default:
                 toast.setText("Error: Bad Menu Item");

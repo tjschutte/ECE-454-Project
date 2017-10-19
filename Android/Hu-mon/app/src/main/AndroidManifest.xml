@@ -2,6 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="edu.wisc.ciancimino.hu_mon">
 
+    <uses-permission android:name="android.permission.CAMERA"
+        android:required="true"/>
+    <uses-feature android:name="android.hardware.camera"
+        android:required="true" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -21,6 +26,8 @@
         <activity android:name=".HumonInfoActivity" />
         <activity android:name=".PartyActivity" />
         <activity android:name=".PartyInfoActivity" />
+        <activity android:name=".CreateHumonActivity" />
+        <activity android:name=".CreateHumonImageActivity" />
         <activity android:name=".FriendsListActivity"></activity>
     </application>
 

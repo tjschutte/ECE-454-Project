@@ -2,6 +2,8 @@ package edu.wisc.ciancimino.hu_mon;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
@@ -9,6 +11,7 @@ import android.widget.ImageView;
 public class CreateHumonActivity extends AppCompatActivity {
 
     private final String ACTIVITY_TITLE = "Create Hu-mon";
+    private String tempImagePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,10 +21,19 @@ public class CreateHumonActivity extends AppCompatActivity {
 
         String HUMON_IMAGE_KEY = getString(R.string.humonImageKey);
         Intent incomingIntent = getIntent();
-        Bitmap humonImage = (Bitmap) incomingIntent.getParcelableExtra(HUMON_IMAGE_KEY);
 
+        //load the image from previous activity
+        String tempImagePath =  incomingIntent.getStringExtra(HUMON_IMAGE_KEY);
+        Bitmap rawHumonImage = BitmapFactory.decodeFile(tempImagePath);
+
+        //Change the image to the correct size and orientation
+        Matrix m = new Matrix();
+        m.postRotate(-90);
+        Bitmap humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, rawHumonImage.getWidth(), rawHumonImage.getHeight(), m, true);
+
+
+        //display the image
         ImageView humonImageView = (ImageView) findViewById(R.id.humonImageView);
-
         humonImageView.setImageBitmap(humonImage);
 
     }

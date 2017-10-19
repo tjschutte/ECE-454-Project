@@ -1,9 +1,0 @@
-{
-    "type" : "title to tell server/client what to expect in the contents section",
-    "contents" : {
-        "item1" : "Here are things that we can expect based on the type given",
-        "item2" : "A battle command might just have a move name, and damage",
-        "item3" : "A battle initiation would have the identifying info of your hu-mon, its stats and the id of the player you're facing,"
-        
-    }
-}

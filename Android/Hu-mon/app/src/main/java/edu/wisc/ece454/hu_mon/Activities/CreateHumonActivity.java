@@ -1,4 +1,4 @@
-package edu.wisc.ciancimino.hu_mon;
+package edu.wisc.ece454.hu_mon.Activities;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -7,6 +7,8 @@ import android.graphics.Matrix;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
+
+import edu.wisc.ece454.hu_mon.R;
 
 public class CreateHumonActivity extends AppCompatActivity {
 

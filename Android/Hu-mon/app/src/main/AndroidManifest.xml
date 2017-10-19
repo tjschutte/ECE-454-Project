@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="edu.wisc.ciancimino.hu_mon">
+    package="edu.wisc.ece454.hu_mon">
 
     <uses-permission android:name="android.permission.CAMERA"
         android:required="true"/>
@@ -14,21 +14,21 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".LoginActivity">
+        <activity android:name="edu.wisc.ece454.hu_mon.Activities.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MenuActivity" />
-        <activity android:name=".IndexActivity" />
-        <activity android:name=".HumonInfoActivity" />
-        <activity android:name=".PartyActivity" />
-        <activity android:name=".PartyInfoActivity" />
-        <activity android:name=".CreateHumonActivity" />
-        <activity android:name=".CreateHumonImageActivity" />
-        <activity android:name=".FriendsListActivity"></activity>
+        <activity android:name="edu.wisc.ece454.hu_mon.Activities.MenuActivity" />
+        <activity android:name="edu.wisc.ece454.hu_mon.Activities.IndexActivity" />
+        <activity android:name="edu.wisc.ece454.hu_mon.Activities.HumonInfoActivity" />
+        <activity android:name="edu.wisc.ece454.hu_mon.Activities.PartyActivity" />
+        <activity android:name="edu.wisc.ece454.hu_mon.Activities.PartyInfoActivity" />
+        <activity android:name="edu.wisc.ece454.hu_mon.Activities.CreateHumonActivity" />
+        <activity android:name="edu.wisc.ece454.hu_mon.Activities.CreateHumonImageActivity" />
+        <activity android:name="edu.wisc.ece454.hu_mon.Activities.FriendsListActivity"></activity>
 
         <provider
             android:name="android.support.v4.content.FileProvider"

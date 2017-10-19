@@ -3,6 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="edu.wisc.ciancimino.hu_mon.CreateHumonImageActivity">
+    tools:context="edu.wisc.ece454.hu_mon.Activities.CreateHumonImageActivity">
 
 </android.support.constraint.ConstraintLayout>

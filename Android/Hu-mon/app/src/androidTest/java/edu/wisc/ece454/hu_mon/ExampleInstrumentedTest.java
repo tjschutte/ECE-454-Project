@@ -1,4 +1,4 @@
-package edu.wisc.ciancimino.hu_mon;
+package edu.wisc.ece454.hu_mon;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

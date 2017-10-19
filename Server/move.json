@@ -1,8 +1,0 @@
-{
-    "type" : "battleAttack",
-    "contents" : {
-        "attackerID" : "0123XYZ",
-        "moveName" : "Surprise Exam",
-        "damage" : 1000000
-    }
-}

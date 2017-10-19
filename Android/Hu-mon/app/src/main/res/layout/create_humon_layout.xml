@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,7 +8,296 @@
 
     <ImageView
         android:id="@+id/humonImageView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_width="200dp"
+        android:layout_height="200dp" />
 
-</android.support.constraint.ConstraintLayout>
+    <EditText
+        android:id="@+id/humonNameEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/humonImageView"
+        android:hint="Hu-mon Name"
+        android:textSize="22dp"/>
+
+    <EditText
+        android:id="@+id/humonDescriptionEditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/humonNameEditText"
+        android:layout_toRightOf="@id/humonImageView"
+        android:hint="Hu-mon Description"
+        android:textSize="16dp"/>
+
+    <TextView
+        android:id="@+id/statTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/humonImageView"
+        android:text="Points Remaining: "
+        android:textSize="22dp"/>
+
+    <TextView
+        android:id="@+id/statValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/humonImageView"
+        android:layout_toRightOf="@id/statTitle"
+        android:text="20"
+        android:textSize="22dp"/>
+
+    <TextView
+        android:id="@+id/healthTitle"
+        android:tag="health"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/statTitle"
+        android:gravity="center_vertical"
+        android:text="HEALTH"
+        android:textSize="22dp"
+        />
+
+    <ImageButton
+        android:id="@+id/healthDecButton"
+        android:tag="health"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/statTitle"
+        android:layout_centerHorizontal="true"
+        android:src="@android:drawable/arrow_down_float"
+        android:tint="@android:color/holo_red_light"
+        android:onClick="decrementStat"/>
+
+    <TextView
+        android:id="@+id/healthValue"
+        android:tag="health"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/statTitle"
+        android:layout_toRightOf="@+id/healthDecButton"
+        android:gravity="center_vertical"
+        android:text="1"
+        android:textSize="22dp"/>
+
+    <ImageButton
+        android:id="@+id/healthIncButton"
+        android:tag="health"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/statTitle"
+        android:layout_toRightOf="@+id/healthValue"
+        android:src="@android:drawable/arrow_up_float"
+        android:tint="@android:color/holo_green_light"
+        android:onClick="incrementStat"/>
+
+    <TextView
+        android:id="@+id/attackTitle"
+        android:tag="attack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/healthTitle"
+        android:gravity="center_vertical"
+        android:text="ATTACK"
+        android:textSize="22dp"
+        />
+
+    <ImageButton
+        android:id="@+id/attackDecButton"
+        android:tag="attack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/healthTitle"
+        android:layout_centerHorizontal="true"
+        android:src="@android:drawable/arrow_down_float"
+        android:tint="@android:color/holo_red_light"
+        android:onClick="decrementStat"/>
+
+    <TextView
+        android:id="@+id/attackValue"
+        android:tag="attack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/healthTitle"
+        android:layout_toRightOf="@+id/attackDecButton"
+        android:gravity="center_vertical"
+        android:text="1"
+        android:textSize="22dp"/>
+
+    <ImageButton
+        android:id="@+id/attackIncButton"
+        android:tag="attack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/healthTitle"
+        android:layout_toRightOf="@+id/attackValue"
+        android:src="@android:drawable/arrow_up_float"
+        android:tint="@android:color/holo_green_light"
+        android:onClick="incrementStat"/>
+
+    <TextView
+        android:id="@+id/defenseTitle"
+        android:tag="defense"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/attackTitle"
+        android:gravity="center_vertical"
+        android:text="DEFENSE"
+        android:textSize="22dp"
+        />
+
+    <ImageButton
+        android:id="@+id/defenseDecButton"
+        android:tag="defense"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/attackTitle"
+        android:layout_centerHorizontal="true"
+        android:src="@android:drawable/arrow_down_float"
+        android:tint="@android:color/holo_red_light"
+        android:onClick="decrementStat"/>
+
+    <TextView
+        android:id="@+id/defenseValue"
+        android:tag="defense"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/attackTitle"
+        android:layout_toRightOf="@+id/defenseDecButton"
+        android:gravity="center_vertical"
+        android:text="1"
+        android:textSize="22dp"/>
+
+    <ImageButton
+        android:id="@+id/defenseIncButton"
+        android:tag="defense"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/attackTitle"
+        android:layout_toRightOf="@+id/defenseValue"
+        android:src="@android:drawable/arrow_up_float"
+        android:tint="@android:color/holo_green_light"
+        android:onClick="incrementStat"/>
+
+    <TextView
+        android:id="@+id/speedTitle"
+        android:tag="speed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/defenseTitle"
+        android:gravity="center_vertical"
+        android:text="SPEED"
+        android:textSize="22dp"
+        />
+
+    <ImageButton
+        android:id="@+id/speedDecButton"
+        android:tag="speed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/defenseTitle"
+        android:layout_centerHorizontal="true"
+        android:src="@android:drawable/arrow_down_float"
+        android:tint="@android:color/holo_red_light"
+        android:onClick="decrementStat"/>
+
+    <TextView
+        android:id="@+id/speedValue"
+        android:tag="speed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/defenseTitle"
+        android:layout_toRightOf="@+id/speedDecButton"
+        android:gravity="center_vertical"
+        android:text="1"
+        android:textSize="22dp"/>
+
+    <ImageButton
+        android:id="@+id/speedIncButton"
+        android:tag="speed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/defenseTitle"
+        android:layout_toRightOf="@+id/speedValue"
+        android:src="@android:drawable/arrow_up_float"
+        android:tint="@android:color/holo_green_light"
+        android:onClick="incrementStat"/>
+
+    <TextView
+        android:id="@+id/luckTitle"
+        android:tag="luck"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/speedTitle"
+        android:gravity="center_vertical"
+        android:text="LUCK"
+        android:textSize="22dp"
+        />
+
+    <ImageButton
+        android:id="@+id/luckDecButton"
+        android:tag="luck"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/speedTitle"
+        android:layout_centerHorizontal="true"
+        android:src="@android:drawable/arrow_down_float"
+        android:tint="@android:color/holo_red_light"
+        android:onClick="decrementStat"/>
+
+    <TextView
+        android:id="@+id/luckValue"
+        android:tag="luck"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/speedTitle"
+        android:layout_toRightOf="@+id/luckDecButton"
+        android:gravity="center_vertical"
+        android:text="1"
+        android:textSize="22dp"/>
+
+    <ImageButton
+        android:id="@+id/luckIncButton"
+        android:tag="luck"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/speedTitle"
+        android:layout_toRightOf="@+id/luckValue"
+        android:src="@android:drawable/arrow_up_float"
+        android:tint="@android:color/holo_green_light"
+        android:onClick="incrementStat"/>
+
+    <TextView
+        android:id="@+id/moveTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/luckTitle"
+        android:layout_centerHorizontal="true"
+        android:text="Moves"
+        android:textSize="22dp"/>
+
+    <GridView
+        android:id="@+id/moveGridView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/moveTitle"
+        android:columnWidth="90dp"
+        android:numColumns="2"
+        android:gravity="center"
+        android:background="@color/colorPrimary"
+        android:verticalSpacing="10dp"
+        android:horizontalSpacing="10dp"
+        />
+
+    <Button
+        android:id="@+id/doneButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/moveGridView"
+        android:layout_centerHorizontal="true"
+        android:text="Done"
+        android:textSize="22dp"
+        android:onClick="createHumon"
+        />
+
+
+
+</RelativeLayout>

@@ -70,6 +70,7 @@ public class CreateHumonImageActivity extends AppCompatActivity {
             String HUMON_IMAGE_KEY = getString(R.string.humonImageKey);
             Intent intent = new Intent(this, CreateHumonActivity.class);
             intent.putExtra(HUMON_IMAGE_KEY, imagePath);
+            finish();
             startActivity(intent);
         }
     }

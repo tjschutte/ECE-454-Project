@@ -2,9 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="edu.wisc.ece454.hu_mon">
 
-    <uses-permission android:name="android.permission.CAMERA"
-        android:required="true"/>
-    <uses-feature android:name="android.hardware.camera"
+    <uses-permission
+        android:name="android.permission.CAMERA"
+        android:required="true" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
         android:required="true" />
 
     <application
@@ -14,21 +17,21 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="edu.wisc.ece454.hu_mon.Activities.LoginActivity">
+        <activity android:name=".Activities.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="edu.wisc.ece454.hu_mon.Activities.MenuActivity" />
-        <activity android:name="edu.wisc.ece454.hu_mon.Activities.IndexActivity" />
-        <activity android:name="edu.wisc.ece454.hu_mon.Activities.HumonInfoActivity" />
-        <activity android:name="edu.wisc.ece454.hu_mon.Activities.PartyActivity" />
-        <activity android:name="edu.wisc.ece454.hu_mon.Activities.PartyInfoActivity" />
-        <activity android:name="edu.wisc.ece454.hu_mon.Activities.CreateHumonActivity" />
-        <activity android:name="edu.wisc.ece454.hu_mon.Activities.CreateHumonImageActivity" />
-        <activity android:name="edu.wisc.ece454.hu_mon.Activities.FriendsListActivity"></activity>
+        <activity android:name=".Activities.MenuActivity" />
+        <activity android:name=".Activities.IndexActivity" />
+        <activity android:name=".Activities.HumonInfoActivity" />
+        <activity android:name=".Activities.PartyActivity" />
+        <activity android:name=".Activities.PartyInfoActivity" />
+        <activity android:name=".Activities.CreateHumonActivity" />
+        <activity android:name=".Activities.CreateHumonImageActivity" />
+        <activity android:name=".Activities.FriendsListActivity" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -37,8 +40,10 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+                android:resource="@xml/file_paths" />
         </provider>
+
+        <activity android:name=".Activities.MoveListActivity"></activity>
     </application>
 
 </manifest>

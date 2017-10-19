@@ -2,5 +2,6 @@
     <string name="app_name">Hu-mon</string>
     <string name="editTextSize">32dp</string>
     <string name="humonNameKey">humon name</string>
+    <string name="humonImageKey">humon image</string>
     <string name="emailKey">email</string>
 </resources>

@@ -1,4 +1,4 @@
-package edu.wisc.ciancimino.hu_mon;
+package edu.wisc.ece454.hu_mon.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,6 +8,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import edu.wisc.ece454.hu_mon.R;
 
 public class MenuActivity extends AppCompatActivity {
 
@@ -76,6 +78,8 @@ public class MenuActivity extends AppCompatActivity {
             case MAP:
                 break;
             case CREATE_HUMON:
+                intent = new Intent(this, CreateHumonImageActivity.class);
+                startActivity(intent);
                 break;
             default:
                 toast.setText("Error: Bad Menu Item");

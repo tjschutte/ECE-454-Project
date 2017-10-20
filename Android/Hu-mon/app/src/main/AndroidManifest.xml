@@ -10,6 +10,11 @@
         android:name="android.hardware.camera"
         android:required="true" />
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -20,7 +25,6 @@
         <activity android:name=".Activities.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -32,7 +36,7 @@
         <activity android:name=".Activities.CreateHumonActivity" />
         <activity android:name=".Activities.CreateHumonImageActivity" />
         <activity android:name=".Activities.FriendsListActivity" />
-
+        <activity android:name=".Activities.MoveListActivity"></activity>
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="com.example.android.fileprovider"
@@ -43,7 +47,11 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <activity android:name=".Activities.MoveListActivity"></activity>
+        <service
+            android:name=".Services.ServerConnection"
+            android:enabled="true"
+            android:exported="true">
+        </service>
     </application>
 
 </manifest>

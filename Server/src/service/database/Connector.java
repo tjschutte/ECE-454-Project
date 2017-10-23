@@ -54,11 +54,9 @@ public class Connector {
 	 */
 	public void startConnection() {
 	    if (connection == null) {
-	    	System.out.println("Attempting to connect to database....");
 	        try {
 	            Class.forName(DATABASE_DRIVER);
 	            connection = DriverManager.getConnection(this.url + this.database, getProperties());
-	            System.out.println("Connected to databse!");
 	        } catch (ClassNotFoundException | SQLException e) {
 	            e.printStackTrace();
 	        }

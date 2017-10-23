@@ -1,45 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
+    android:paddingTop="56dp"
     tools:context="edu.wisc.ece454.hu_mon.Activities.LoginActivity">
+
+
+    <TextView
+        android:id="@+id/logoTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:ems="10"
+        android:text="@string/app_name"
+        android:textSize="10mm" />
 
     <EditText
         android:id="@+id/emailEditText"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:textSize="32dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:hint="Email Address"
         android:inputType="textWebEmailAddress"
-        android:hint="Email Address"/>
+        android:textSize="3mm" />
 
     <EditText
         android:id="@+id/passwordEditText"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:textSize="32dp"
-        android:layout_below="@id/emailEditText"
+        android:layout_below="@+id/emailEditText"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:hint="Password"
         android:inputType="textPassword"
-        android:hint="Password"/>
+        android:textSize="3mm" />
 
     <Button
         android:id="@+id/signInButton"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/passwordEditText"
         android:layout_centerHorizontal="true"
-        android:text="Sign In"
-        android:onClick="signInAccount"/>
+        android:layout_marginBottom="24dp"
+        android:layout_marginTop="24dp"
+        android:onClick="signInAccount"
+        android:padding="12dp"
+        android:text="Sign In" />
 
     <Button
         android:id="@+id/registerButton"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/signInButton"
         android:layout_centerHorizontal="true"
-        android:text="Register"
-        android:onClick="registerAccount"/>
+        android:layout_marginBottom="24dp"
+        android:onClick="registerAccount"
+        android:text="Register" />
 
-</RelativeLayout>
+</LinearLayout>

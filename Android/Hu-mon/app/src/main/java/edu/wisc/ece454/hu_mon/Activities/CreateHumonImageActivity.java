@@ -66,6 +66,7 @@ public class CreateHumonImageActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //Image returned, continue to humon creation
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             String HUMON_IMAGE_KEY = getString(R.string.humonImageKey);
 
@@ -74,8 +75,10 @@ public class CreateHumonImageActivity extends AppCompatActivity {
             finish();
             startActivity(intent);
         }
+        //Bad result returned (most likely canceled), return to menu
+        else {
+            finish();
+        }
     }
-    
-
 
 }

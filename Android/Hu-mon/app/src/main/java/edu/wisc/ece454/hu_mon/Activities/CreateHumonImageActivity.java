@@ -68,6 +68,7 @@ public class CreateHumonImageActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             String HUMON_IMAGE_KEY = getString(R.string.humonImageKey);
+
             Intent intent = new Intent(this, CreateHumonActivity.class);
             intent.putExtra(HUMON_IMAGE_KEY, imagePath);
             finish();

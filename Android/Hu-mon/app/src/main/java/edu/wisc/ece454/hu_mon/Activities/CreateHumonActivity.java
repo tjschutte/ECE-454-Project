@@ -29,6 +29,12 @@ public class CreateHumonActivity extends AppCompatActivity {
     private String[] moveList;
     ArrayAdapter<String> moveAdapter;
 
+    //image data
+    Bitmap rawHumonImage;
+    Bitmap humonImage;
+    int imageOrientation;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,12 +48,13 @@ public class CreateHumonActivity extends AppCompatActivity {
 
         //load the image from previous activity
         String tempImagePath =  incomingIntent.getStringExtra(HUMON_IMAGE_KEY);
-        Bitmap rawHumonImage = BitmapFactory.decodeFile(tempImagePath);
+        rawHumonImage = BitmapFactory.decodeFile(tempImagePath);
 
         //Change the image to the correct size and orientation
         Matrix m = new Matrix();
-        m.postRotate(-90);
-        Bitmap humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, rawHumonImage.getWidth(), rawHumonImage.getHeight(), m, true);
+        imageOrientation = -90;
+        m.postRotate(imageOrientation);
+        humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, rawHumonImage.getWidth(), rawHumonImage.getHeight(), m, true);
 
 
         //display the image
@@ -188,6 +195,27 @@ public class CreateHumonActivity extends AppCompatActivity {
                 statTextView.setText("" + statPoints);
             }
         }
+
+    }
+
+    //rotates the humon image
+    public void rotateImageRight(View view) {
+        imageOrientation += 90;
+        Matrix m = new Matrix();
+        m.postRotate(imageOrientation);
+        humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, rawHumonImage.getWidth(), rawHumonImage.getHeight(), m, true);
+        ImageView humonImageView = (ImageView) findViewById(R.id.humonImageView);
+        humonImageView.setImageBitmap(humonImage);
+
+    }
+
+    public void rotateImageLeft(View view) {
+        imageOrientation -= 90;
+        Matrix m = new Matrix();
+        m.postRotate(imageOrientation);
+        humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, rawHumonImage.getWidth(), rawHumonImage.getHeight(), m, true);
+        ImageView humonImageView = (ImageView) findViewById(R.id.humonImageView);
+        humonImageView.setImageBitmap(humonImage);
 
     }
 

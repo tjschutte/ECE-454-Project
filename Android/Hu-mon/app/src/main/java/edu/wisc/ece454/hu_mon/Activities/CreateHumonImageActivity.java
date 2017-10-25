@@ -75,6 +75,7 @@ public class CreateHumonImageActivity extends AppCompatActivity {
             startActivity(intent);
         }
     }
+    
 
 
 }

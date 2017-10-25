@@ -24,6 +24,7 @@ public class CreateHumonActivity extends AppCompatActivity {
     private final String MOVE_DEFAULT_VALUE = "Add Move";
     private String MOVE_POSITION_KEY;
     private String MOVE_KEY;
+    private final int MAX_RESOLUTION = 4096;
 
     private TextView statTextView;
     private String[] moveList;
@@ -33,6 +34,8 @@ public class CreateHumonActivity extends AppCompatActivity {
     Bitmap rawHumonImage;
     Bitmap humonImage;
     int imageOrientation;
+    int imageWidth;
+    int imageHeight;
 
 
     @Override
@@ -50,11 +53,15 @@ public class CreateHumonActivity extends AppCompatActivity {
         String tempImagePath =  incomingIntent.getStringExtra(HUMON_IMAGE_KEY);
         rawHumonImage = BitmapFactory.decodeFile(tempImagePath);
 
+        //obtain dimensions of the image
+        imageWidth = Math.min(rawHumonImage.getWidth(), MAX_RESOLUTION);
+        imageHeight = Math.min(rawHumonImage.getHeight(), MAX_RESOLUTION);
+
         //Change the image to the correct size and orientation
         Matrix m = new Matrix();
         imageOrientation = -90;
         m.postRotate(imageOrientation);
-        humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, rawHumonImage.getWidth(), rawHumonImage.getHeight(), m, true);
+        humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, imageWidth, imageHeight, m, true);
 
 
         //display the image
@@ -203,7 +210,7 @@ public class CreateHumonActivity extends AppCompatActivity {
         imageOrientation += 90;
         Matrix m = new Matrix();
         m.postRotate(imageOrientation);
-        humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, rawHumonImage.getWidth(), rawHumonImage.getHeight(), m, true);
+        humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, imageWidth, imageHeight, m, true);
         ImageView humonImageView = (ImageView) findViewById(R.id.humonImageView);
         humonImageView.setImageBitmap(humonImage);
 
@@ -213,7 +220,7 @@ public class CreateHumonActivity extends AppCompatActivity {
         imageOrientation -= 90;
         Matrix m = new Matrix();
         m.postRotate(imageOrientation);
-        humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, rawHumonImage.getWidth(), rawHumonImage.getHeight(), m, true);
+        humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, imageWidth, imageHeight, m, true);
         ImageView humonImageView = (ImageView) findViewById(R.id.humonImageView);
         humonImageView.setImageBitmap(humonImage);
 

@@ -1,4 +1,4 @@
-package edu.wisc.ece454.hu_mon;
+package edu.wisc.ece454.hu_mon.Activities;
 
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -9,6 +9,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import edu.wisc.ece454.hu_mon.R;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 

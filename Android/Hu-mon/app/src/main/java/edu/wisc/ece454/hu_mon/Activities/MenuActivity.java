@@ -9,7 +9,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import edu.wisc.ece454.hu_mon.MapsActivity;
 import edu.wisc.ece454.hu_mon.R;
 
 public class MenuActivity extends AppCompatActivity {

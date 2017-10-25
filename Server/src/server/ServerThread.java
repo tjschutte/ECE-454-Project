@@ -76,7 +76,14 @@ public class ServerThread extends Thread {
 
 				// Note: this line is blocking
 				input = clientIn.readLine();
-				if (input == null || input.length() == 0 || input.indexOf(':') == -1) {
+				
+				// Fast input checking. Error on bad command, check to see if they 
+				// wanted to close the connection otherwise
+				if (input == null || input.length() == 0 || input.equals(".")) {
+					log("Saving any dirty data and disconnecting from server.");
+					save();
+					break;
+				} else if (input.indexOf(':') == -1) {
 					error("empty or unrecognized command was issued");
 					continue;
 				}
@@ -97,12 +104,6 @@ public class ServerThread extends Thread {
 					break;
 				default:
 					error("empty or unrecognized command was issued");
-					break;
-				}
-
-				if (command == null || command.equals(".")) {
-					log("Saving any dirty data and disconnecting from server.");
-					save();
 					break;
 				}
 				

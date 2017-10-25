@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import edu.wisc.ece454.hu_mon.MapsActivity;
 import edu.wisc.ece454.hu_mon.R;
 
 public class MenuActivity extends AppCompatActivity {
@@ -76,6 +77,8 @@ public class MenuActivity extends AppCompatActivity {
                 startActivity(intent);
                 break;
             case MAP:
+                intent = new Intent(this, MapsActivity.class);
+                startActivity(intent);
                 break;
             case CREATE_HUMON:
                 intent = new Intent(this, CreateHumonImageActivity.class);

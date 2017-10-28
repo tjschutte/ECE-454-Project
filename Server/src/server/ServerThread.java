@@ -140,7 +140,7 @@ public class ServerThread extends Thread {
 			// Attempt to map email and password to an object.
 			User u = new User(mapper, data);
 			
-			ResultSet resultSet = databaseConnection.executeSQL("SELECT * from users where email='" + u.getEmail() + "';");
+			ResultSet resultSet = databaseConnection.executeSQL("select * from users where email='" + u.getEmail() + "';");
 
 			if (resultSet.next()) {
 				error("email already in use");
@@ -152,7 +152,7 @@ public class ServerThread extends Thread {
 			User newUser = new User(mapper, u.getEmail(), u.getPassword(), null, null, null, 0, true);
 			
 			// Insert into the database.
-			PreparedStatement ps = databaseConnection.prepareStatement("INSERT INTO USERS "
+			PreparedStatement ps = databaseConnection.prepareStatement("insert into users "
 					+ GlobalConstants.USERS_TABLE_COLUMNS + " values "
 					+ newUser.toSqlValueString());
 			
@@ -186,7 +186,7 @@ public class ServerThread extends Thread {
 		
 		try {
 			User u = new User(mapper, data);
-			ResultSet resultSet = databaseConnection.executeSQL("SELECT * from users where email='" + u.getEmail()
+			ResultSet resultSet = databaseConnection.executeSQL("select * from users where email='" + u.getEmail()
 					+ "' and password='" + u.getPassword() + "';");
 
 			if (!resultSet.next()) {

@@ -1,7 +1,10 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
+import android.app.job.JobScheduler;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -10,6 +13,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import edu.wisc.ece454.hu_mon.R;
+import edu.wisc.ece454.hu_mon.Utilities.StepJobScheduler;
 
 public class MenuActivity extends AppCompatActivity {
 
@@ -26,6 +30,7 @@ public class MenuActivity extends AppCompatActivity {
     private final String FRIENDS_LIST = "Friends List";
     private final String MAP = "Map";
     private final String CREATE_HUMON = "Create Hu-mon";
+    private final String HUMON_SEARCH = "Search for Hu-mons (dev)";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +43,7 @@ public class MenuActivity extends AppCompatActivity {
         //TODO: Pass Email to other activities?
         userEmail = getIntent().getStringExtra(EMAIL_KEY);
 
-        menuOption = new String[]{HUMON_INDEX, PARTY, FRIENDS_LIST, MAP, CREATE_HUMON};
+        menuOption = new String[]{HUMON_INDEX, PARTY, FRIENDS_LIST, MAP, CREATE_HUMON, HUMON_SEARCH};
 
 
         menuListView = (ListView) findViewById(R.id.menuListView);
@@ -57,7 +62,25 @@ public class MenuActivity extends AppCompatActivity {
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @RequiresApi(api = 23)
+    @Override
+    protected void onDestroy() {
+        //Obtain ID of Step JobService
+        int stepJobId = Integer.parseInt(getString(R.string.stepJobId));
+
+        JobScheduler jobScheduler = this.getSystemService(JobScheduler.class);
+        jobScheduler.cancel(stepJobId);
+        super.onDestroy();
+    }
+
     //changes activity to the next screen based off menu button hit
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void changeMenu(String nextMenu) {
         Toast toast = Toast.makeText(getApplicationContext(), nextMenu, Toast.LENGTH_LONG);
 
@@ -82,6 +105,11 @@ public class MenuActivity extends AppCompatActivity {
             case CREATE_HUMON:
                 intent = new Intent(this, CreateHumonImageActivity.class);
                 startActivity(intent);
+                break;
+            case HUMON_SEARCH:
+                toast.setText("Began searching for hu-mons, will notify when hu-mon found.");
+                toast.show();
+                StepJobScheduler.scheduleJob(getApplicationContext());
                 break;
             default:
                 toast.setText("Error: Bad Menu Item");

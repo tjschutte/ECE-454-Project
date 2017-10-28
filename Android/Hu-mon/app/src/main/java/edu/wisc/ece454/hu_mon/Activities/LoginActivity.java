@@ -1,7 +1,10 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -26,6 +29,11 @@ public class LoginActivity extends AppCompatActivity {
     private final String REGISTER_SUCCESS = "Register Succeeded";
     private final String PERMISSION_FAILURE = "Must Allow Permissions to Proceed";
     private String EMAIL_KEY;
+    private String email;
+    private String password;
+
+    private String issuedCommand;
+
     private final String ACTIVITY_TITLE = "Login";
     ServerConnection mServerConnection;
     boolean mServiceBound;
@@ -49,6 +57,37 @@ public class LoginActivity extends AppCompatActivity {
         Intent intent = new Intent(this, ServerConnection.class);
         startService(intent);
         bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Should end up killing the sevice when the app is closed.
+        Intent intent = new Intent(this, ServerConnection.class);
+        stopService(intent);
+        unbindService(mServiceConnection);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        filter.addAction("edu.wisc.ece454.hu_mon.SERVER_RESPONSE");
+        registerReceiver(receiver, filter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        try {
+            unregisterReceiver(receiver);
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("Receiver not registered")) {
+                // Ignore this exception. This is exactly what is desired
+            } else {
+                // unexpected, re-throw
+                throw e;
+            }
+        }
     }
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -79,6 +118,37 @@ public class LoginActivity extends AppCompatActivity {
         return hasPermissions;
     }
 
+    BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String response = intent.getStringExtra("Response");
+            String command;
+            String data;
+            if (response.indexOf(':') == -1) {
+                // Got a bad response from the server. Do nothing.
+                Toast toast = Toast.makeText(context, "Error communicating with server. Try again.", Toast.LENGTH_SHORT);
+                toast.show();
+                return;
+            }
+
+            command = response.substring(0, response.indexOf(':'));
+            command = command.toUpperCase();
+            data = response.substring(response.indexOf(':') + 1, response.length());
+
+            if (command.equals("SUCCESS")) {
+                //Send email to next activity to retrieve user info
+                Intent i = new Intent(context, MenuActivity.class);
+                i.putExtra(EMAIL_KEY, email);
+                startActivity(i);
+            } else {
+                Toast toast = Toast.makeText(context, response, Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        }
+    };
+
+    IntentFilter filter = new IntentFilter();
+
     //Called when hitting the sign in button
     //Retrieves EditText values and attempts to sign in account
     //On success, changes to menu activity
@@ -86,8 +156,16 @@ public class LoginActivity extends AppCompatActivity {
         EditText emailText = (EditText) findViewById(R.id.emailEditText);
         EditText passwordText = (EditText) findViewById(R.id.passwordEditText);
 
-        String email = emailText.getText().toString();
-        String password = passwordText.getText().toString();
+        email = emailText.getText().toString();
+        password = passwordText.getText().toString();
+
+        // test account to not need the server
+        if (email.equals("test")){
+            //Send email to next activity to retrieve user info
+            Intent i = new Intent(this, MenuActivity.class);
+            i.putExtra(EMAIL_KEY, email);
+            startActivity(i);
+        }
 
         if(email.isEmpty() || password.isEmpty()) {
             Toast toast = Toast.makeText(this, SIGN_IN_FAILURE, Toast.LENGTH_SHORT);
@@ -97,31 +175,13 @@ public class LoginActivity extends AppCompatActivity {
             Toast toast = Toast.makeText(this, PERMISSION_FAILURE, Toast.LENGTH_SHORT);
             toast.show();
         }
-        //TODO: Send email/password to server
+
         else {
-            //Toast toast = Toast.makeText(this, SIGN_IN_SUCCESS, Toast.LENGTH_SHORT);
-            //toast.show();
-
             if (mServiceBound){
-                try {
-                    System.out.println("Trying to send a message");
-                    mServerConnection.sendMessage("login:{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}");
-
-                    //String response = mServerConnection.receiveDataFromServer();
-
-                    //Toast toast = Toast.makeText(this, response, Toast.LENGTH_SHORT);
-                    //toast.show();
-
-                } catch (IOException e) {
-                    System.out.println("IOException: " + e);
-                }
+                mServerConnection.sendMessage("login:{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}");
+            } else {
+                // Couldnt talk to server or something?
             }
-
-
-            //Send email to next activity to retrieve user info
-            Intent intent = new Intent(this, MenuActivity.class);
-            intent.putExtra(EMAIL_KEY, emailText.getText().toString());
-            startActivity(intent);
         }
 
     }
@@ -134,6 +194,18 @@ public class LoginActivity extends AppCompatActivity {
         EditText emailText = (EditText) findViewById(R.id.emailEditText);
         EditText passwordText = (EditText) findViewById(R.id.passwordEditText);
 
+        email = emailText.getText().toString();
+        password = passwordText.getText().toString();
+
+
+        // test account to not need the server
+        if (email.equals("test")){
+            //Send email to next activity to retrieve user info
+            Intent i = new Intent(this, MenuActivity.class);
+            i.putExtra(EMAIL_KEY, email);
+            startActivity(i);
+        }
+
         if(emailText.getText().toString().isEmpty() || passwordText.getText().toString().isEmpty()) {
             Toast toast = Toast.makeText(getApplicationContext(), REGISTER_FAILURE, Toast.LENGTH_SHORT);
             toast.show();
@@ -142,15 +214,13 @@ public class LoginActivity extends AppCompatActivity {
             Toast toast = Toast.makeText(this, PERMISSION_FAILURE, Toast.LENGTH_SHORT);
             toast.show();
         }
-        //TODO: Send email/password to server
-        else {
-            Toast toast = Toast.makeText(getApplicationContext(), REGISTER_SUCCESS, Toast.LENGTH_SHORT);
-            toast.show();
 
-            //Send email to next activity to retrieve user info
-            Intent intent = new Intent(this, MenuActivity.class);
-            intent.putExtra(EMAIL_KEY, emailText.getText().toString());
-            startActivity(intent);
+        else {
+            if (mServiceBound){
+                mServerConnection.sendMessage("register:{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}");
+            } else {
+                // Couldnt talk to server or something?
+            }
         }
 
     }

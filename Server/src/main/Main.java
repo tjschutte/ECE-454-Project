@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.sql.SQLException;
 
-import server.Server;
+import server.ServerThread;
+import service.database.Database;
 
 
 public class Main {
@@ -13,10 +14,15 @@ public class Main {
 		System.out.println("Starting Server...");
         int clientNumber = 0;
         ServerSocket listener = new ServerSocket(9898);
+        
+        // Ensure that the database is set up, and has tables set up.
+        Database database = new Database(false, false);
+        
+        
         try {
         	System.out.println("Waiting for connections.");
             while (true) {
-                new Server(listener.accept(), clientNumber++).start();
+                new ServerThread(listener.accept(), clientNumber++).start();
             }
         } finally {
             listener.close();

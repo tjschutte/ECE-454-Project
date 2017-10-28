@@ -9,17 +9,22 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import data.models.User;
+import main.GlobalConstants;
 import service.database.Connector;
 
-public class Server extends Thread {
+public class ServerThread extends Thread {
 
 	/**
-	 * A private thread to handle capitalization requests on a particular socket.
+	 * A private thread to handle requests on a particular socket.
 	 * The client terminates the dialogue by sending a single line containing only a
 	 * period.
 	 */
@@ -30,19 +35,23 @@ public class Server extends Thread {
 	private BufferedReader clientIn;
 	private PrintWriter clientOut;
 	private User user;
+	private long lastSave;
+	private DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
-	public Server(Socket socket, int clientNumber) throws IOException {
+	public ServerThread(Socket socket, int clientNumber) throws IOException {
 		this.socket = socket;
 		this.clientNumber = clientNumber;
 		log("connected at " + socket);
 		mapper = new ObjectMapper();
-		databaseConnection = new Connector("jdbc:mysql://localhost:3306/", "humon-test", "ece454", "zYFqzVgW3t2Y", "5");
+		databaseConnection = new Connector(GlobalConstants.DATABASE_NAME, GlobalConstants.TABLE_NAME, 
+				GlobalConstants.DATABASE_USER_NAME, GlobalConstants.DATABASE_USER_PASSWORD, GlobalConstants.DEFAULT_CONNECTIONS);
 		// Connect to the database and table
 		databaseConnection.startConnection();
 		// Decorate the streams so we can send characters and not just bytes. Ensure output is flushed
 		// after every newline.
 		clientIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		clientOut = new PrintWriter(socket.getOutputStream());
+		lastSave = System.nanoTime();
 	}
 
 	/**
@@ -52,18 +61,36 @@ public class Server extends Thread {
 	 */
 	public void run() {
 		try {
-
+			String input;
+			String command;
+			String data;
+			
 			while (true) {
+				/* Save any dirty data every ~5 minutes, assuming user is active. Else data will be
+				* saved on close. (This is blocked by below readLine)
+				*/
+				if (Math.abs((lastSave - System.nanoTime())) > GlobalConstants.UPDATE_TIME) {
+					lastSave = System.nanoTime();
+					save();
+				}
 
-				String input = clientIn.readLine();
-				if (input == null || input.length() == 0 || input.indexOf(':') == -1) {
+				// Note: this line is blocking
+				input = clientIn.readLine();
+				
+				// Fast input checking. Error on bad command, check to see if they 
+				// wanted to close the connection otherwise
+				if (input == null || input.length() == 0 || input.equals(".")) {
+					log("Saving any dirty data and disconnecting from server.");
+					save();
+					break;
+				} else if (input.indexOf(':') == -1) {
 					error("empty or unrecognized command was issued");
 					continue;
 				}
 
-				String command = input.substring(0, input.indexOf(':'));
+				command = input.substring(0, input.indexOf(':'));
 				command = command.toUpperCase();
-				String data = input.substring(input.indexOf(':') + 1, input.length());
+				data = input.substring(input.indexOf(':') + 1, input.length());
 
 				log("Command: " + command);
 				log("Data: " + data);
@@ -77,11 +104,6 @@ public class Server extends Thread {
 					break;
 				default:
 					error("empty or unrecognized command was issued");
-					break;
-				}
-
-				if (command == null || command.equals(".")) {
-					log("Disconnecting from server.");
 					break;
 				}
 				
@@ -99,6 +121,17 @@ public class Server extends Thread {
 		}
 	}
 	
+	/**
+	 * Push update data to the sever *IF* it has changed.
+	 */
+	private void save() {
+		log("Save was issued");
+		if (user != null && user.isDirty()) {
+			log("User data was updated. Saving to database");
+			sendResponse(Commands.SAVE_USER, Message.SERVER_SAVED_USER);
+		}
+	}
+
 	private void register(String data) {
 		log("Trying to register new user");
 		log(data);
@@ -107,7 +140,7 @@ public class Server extends Thread {
 			// Attempt to map email and password to an object.
 			User u = new User(mapper, data);
 			
-			ResultSet resultSet = databaseConnection.executeSQL("SELECT * from users where email='" + u.getEmail() + "';");
+			ResultSet resultSet = databaseConnection.executeSQL("select * from users where email='" + u.getEmail() + "';");
 
 			if (resultSet.next()) {
 				error("email already in use");
@@ -116,12 +149,12 @@ public class Server extends Thread {
 			}
 
 			// Unique email, create a new user
-			User newUser = new User(mapper, u.getEmail(), u.getPassword(), null, null, 0);
+			User newUser = new User(mapper, u.getEmail(), u.getPassword(), null, null, null, 0, true);
 			
 			// Insert into the database.
-			PreparedStatement ps = databaseConnection.prepareStatement("INSERT INTO USERS "
-					+ "(email, password, party, encountered_humons, hcount) values "
-					+ "(" + newUser.toSqlValueString() + ")");
+			PreparedStatement ps = databaseConnection.prepareStatement("insert into users "
+					+ GlobalConstants.USERS_TABLE_COLUMNS + " values "
+					+ newUser.toSqlValueString());
 			
 			// Should only get 1 row was affected.
 			int rows = ps.executeUpdate();
@@ -136,13 +169,13 @@ public class Server extends Thread {
 
 		} catch (JsonParseException e) {
 			log("Recieved malformed data packet");
-			error(Errors.MALFORMED_DATA_PACKET);
+			error(Message.MALFORMED_DATA_PACKET);
 		} catch (SQLException e) {
 			log("Bad sql " + e);
-			error(Errors.SERVER_ERROR_RETRY);
+			error(Message.SERVER_ERROR_RETRY);
 		} catch (IOException e) {
 			log("Something went wrong mapping user to object" + e);
-			error(Errors.SERVER_ERROR_RETRY);
+			error(Message.SERVER_ERROR_RETRY);
 		}
 		
 	}
@@ -153,11 +186,11 @@ public class Server extends Thread {
 		
 		try {
 			User u = new User(mapper, data);
-			ResultSet resultSet = databaseConnection.executeSQL("SELECT * from users where email='" + u.getEmail()
+			ResultSet resultSet = databaseConnection.executeSQL("select * from users where email='" + u.getEmail()
 					+ "' and password='" + u.getPassword() + "';");
 
 			if (!resultSet.next()) {
-				sendResponse(Commands.ERROR, Errors.BAD_CREDENTIALS);
+				sendResponse(Commands.ERROR, Message.BAD_CREDENTIALS);
 				log("Invalid login creditials for user: " + u.getEmail());
 				log("Does user exist?");
 				return;
@@ -185,13 +218,13 @@ public class Server extends Thread {
 
 		} catch (JsonParseException e) {
 			log("Recieved malformed data packet");
-			error(Errors.MALFORMED_DATA_PACKET);
+			error(Message.MALFORMED_DATA_PACKET);
 		} catch (SQLException e) {
 			log("Bad sql " + e);
-			error(Errors.SERVER_ERROR_RETRY);
+			error(Message.SERVER_ERROR_RETRY);
 		} catch (IOException e) {
 			log("Something went wrong mapping user to object " + e);
-			error(Errors.SERVER_ERROR_RETRY);
+			error(Message.SERVER_ERROR_RETRY);
 		}
 
 	}
@@ -200,15 +233,15 @@ public class Server extends Thread {
 	 * Sends error message to client.
 	 */
 	private void error(String msg) {
-		clientOut.println(Commands.ERROR + ":" + msg);
+		clientOut.println(Commands.ERROR + ": " + msg);
 		clientOut.flush();
 		log("Client was sent error [" + Commands.ERROR + ":" + msg + "]");
 	}
 	
 	private void sendResponse(String cmd, String msg) {
-		clientOut.println(cmd + ":" + msg);
+		clientOut.println(cmd + ": " + msg);
 		clientOut.flush();
-		log("Client was sent cmd:msg [" + cmd + ":" + msg + "]");
+		log("Client was sent <cmd:msg> [" + cmd + ": " + msg + "]");
 	}
 
 	/**
@@ -216,6 +249,6 @@ public class Server extends Thread {
 	 * applications standard output.
 	 */
 	public void log(String message) {
-		System.out.println(clientNumber + ": " + message);
+		System.out.println("Client " + clientNumber + ": " + dateFormat.format(Calendar.getInstance().getTime()) + " " + message);
 	}
 }

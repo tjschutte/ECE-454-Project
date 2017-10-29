@@ -1,10 +1,17 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.os.Bundle;
+
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -15,7 +22,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.ArrayList;
+
+import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.R;
+import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 
 public class CreateHumonActivity extends AppCompatActivity {
 
@@ -29,6 +42,9 @@ public class CreateHumonActivity extends AppCompatActivity {
     private TextView statTextView;
     private String[] moveList;
     ArrayAdapter<String> moveAdapter;
+    ServerConnection mServerConnection;
+    boolean mBound;
+    IntentFilter filter = new IntentFilter();
 
     //image data
     Bitmap rawHumonImage;
@@ -93,6 +109,88 @@ public class CreateHumonActivity extends AppCompatActivity {
                 }
         );
 
+        // Attach to the server communication service
+        Intent intent = new Intent(this, ServerConnection.class);
+        startService(intent);
+        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+    }
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            ServerConnection.LocalBinder myBinder = (ServerConnection.LocalBinder) service;
+            mServerConnection = myBinder.getService();
+            mBound = true;
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            mServiceConnection = null;
+            mBound = false;
+        }
+    };
+
+    BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String response = intent.getStringExtra(getString(R.string.serverBroadCastResponseKey));
+            String command;
+            String data;
+            if (response.indexOf(':') == -1) {
+                // Got a bad response from the server. Do nothing.
+                Toast toast = Toast.makeText(context, "Error communicating with server. Try again.", Toast.LENGTH_SHORT);
+                toast.show();
+                return;
+            }
+
+            command = response.substring(0, response.indexOf(':'));
+            command = command.toUpperCase();
+            data = response.substring(response.indexOf(':') + 1, response.length());
+
+            System.out.println(command + ": " + data);
+        }
+    };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // make sure to unbind
+        if (mBound) {
+            unbindService(mServiceConnection);
+            mBound = false;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        try {
+            unregisterReceiver(receiver);
+            if (mBound) {
+                unbindService(mServiceConnection);
+                mBound = false;
+            }
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("Receiver not registered")) {
+                // Ignore this exception. This is exactly what is desired
+            } else {
+                // unexpected, re-throw
+                throw e;
+            }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        filter.addAction(getString(R.string.serverBroadCastEvent));
+        registerReceiver(receiver, filter);
+        if (!mBound) {
+            // Attach to the server communication service
+            Intent intent = new Intent(this, ServerConnection.class);
+            startService(intent);
+            bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+        }
     }
 
     @Override
@@ -274,8 +372,16 @@ public class CreateHumonActivity extends AppCompatActivity {
             }
         }
 
-        //TODO: Create Humon object here and save
+        ArrayList<String> moves = new ArrayList<>();
+        for (String move : moveList) {
+            moves.add(move);
+        }
 
+        //TODO: Create Humon object here and save
+        //ObjectMapper mapper, String name, String description, Bitmap image, int hID, String uID, int hp, String iID, ArrayList<String> moves
+        //ObjectMapper mapper = new ObjectMapper();
+        //Humon h = new Humon(mapper, humonName, humonDescription, humonImage, 0, "users email", 100, "Combo of uid + hcount", moves);
+        mServerConnection.sendMessage("CREATE-HUMON: was this on the same thread?");
 
         Toast toast = Toast.makeText(this, "Hu-mon Successfully Created", Toast.LENGTH_SHORT);
         toast.show();

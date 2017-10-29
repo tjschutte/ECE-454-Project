@@ -67,7 +67,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        filter.addAction("edu.wisc.ece454.hu_mon.SERVER_RESPONSE");
+        filter.addAction(getString(R.string.serverBroadCastEvent));
         registerReceiver(receiver, filter);
     }
 
@@ -117,7 +117,7 @@ public class LoginActivity extends AppCompatActivity {
     BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String response = intent.getStringExtra("Response");
+            String response = intent.getStringExtra(getString(R.string.serverBroadCastResponseKey));
             String command;
             String data;
             if (response.indexOf(':') == -1) {

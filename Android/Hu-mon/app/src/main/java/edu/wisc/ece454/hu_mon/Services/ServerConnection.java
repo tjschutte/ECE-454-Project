@@ -15,6 +15,8 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import edu.wisc.ece454.hu_mon.R;
+
 public class ServerConnection extends Service {
     public static final String SERVERIP = "68.185.171.192";
     public static final int SERVERPORT = 9898;
@@ -23,6 +25,7 @@ public class ServerConnection extends Service {
     Socket socket;
     InetAddress serverAddr;
     private final IBinder myBinder = new LocalBinder();
+    boolean running = false;
 
     public class LocalBinder extends Binder {
         public ServerConnection getService() {
@@ -32,7 +35,6 @@ public class ServerConnection extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO Auto-generated method stub
         return myBinder;
     }
 
@@ -40,10 +42,6 @@ public class ServerConnection extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-    }
-
-    public void IsBoundable() {
-        // TODO: Does this need to be implemented?
     }
 
     /**
@@ -84,10 +82,13 @@ public class ServerConnection extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        super.onStartCommand(intent, flags, startId);
-        Runnable connect = new connectSocket();
-        new Thread(connect).start();
-        return START_NOT_STICKY;
+        if (!running) {
+            super.onStartCommand(intent, flags, startId);
+            Runnable connect = new connectSocket();
+            new Thread(connect).start();
+            running = true;
+        }
+            return START_NOT_STICKY;
     }
 
     /**
@@ -115,8 +116,8 @@ public class ServerConnection extends Service {
 
                     if (res != null && !res.isEmpty()) {
                         Intent intent = new Intent();
-                        intent.setAction("edu.wisc.ece454.hu_mon.SERVER_RESPONSE");
-                        intent.putExtra("Response",res);
+                        intent.setAction(getString(R.string.serverBroadCastEvent));
+                        intent.putExtra(getString(R.string.serverBroadCastResponseKey),res);
                         sendBroadcast(intent);
                     }
 

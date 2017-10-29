@@ -9,4 +9,6 @@
     <string name="title_activity_maps">Map</string>
     <string name="google_maps_key">AIzaSyAQm7fVEPSgc-AJLBlOtgkgutrQPRbsSrE</string>
     <string name="stepJobId">1</string>
+    <string name="serverBroadCastEvent">edu.wisc.ece454.hu_mon.SERVER_RESPONSE</string>
+    <string name="serverBroadCastResponseKey">RESPONSE</string>
 </resources>

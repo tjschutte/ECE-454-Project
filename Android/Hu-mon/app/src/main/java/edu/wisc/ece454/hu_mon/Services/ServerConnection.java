@@ -87,7 +87,7 @@ public class ServerConnection extends Service {
         super.onStartCommand(intent, flags, startId);
         Runnable connect = new connectSocket();
         new Thread(connect).start();
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     /**

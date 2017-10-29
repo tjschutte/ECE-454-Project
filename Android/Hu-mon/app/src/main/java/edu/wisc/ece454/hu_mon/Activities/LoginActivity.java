@@ -24,15 +24,11 @@ import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 public class LoginActivity extends AppCompatActivity {
 
     private final String SIGN_IN_FAILURE = "Sign in Failed";
-    private final String SIGN_IN_SUCCESS = "Sign in Succeeded";
     private final String REGISTER_FAILURE = "Register Failed";
-    private final String REGISTER_SUCCESS = "Register Succeeded";
     private final String PERMISSION_FAILURE = "Must Allow Permissions to Proceed";
     private String EMAIL_KEY;
     private String email;
     private String password;
-
-    private String issuedCommand;
 
     private final String ACTIVITY_TITLE = "Login";
     ServerConnection mServerConnection;

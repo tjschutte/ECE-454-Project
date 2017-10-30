@@ -49,7 +49,7 @@ public class Move extends Jsonable implements Parcelable {
     }
 
     public enum Effect {
-        PARALYZED, CONFUSED, SLEPT, POISONED, EMBARASSED
+        PARALYZED, CONFUSED, SLEPT, POISONED, EMBARRASSED
     }
 
     private int id;

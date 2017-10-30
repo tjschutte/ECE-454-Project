@@ -43,6 +43,8 @@ public class LoginActivity extends AppCompatActivity {
         checkPermissions();
     }
 
+
+
     @Override
     protected void onStart() {
         super.onStart();

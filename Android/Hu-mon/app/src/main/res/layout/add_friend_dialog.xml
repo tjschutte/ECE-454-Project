@@ -7,6 +7,8 @@
         android:id="@+id/addFriendEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Username"/>
+        android:hint="Username"
+        android:inputType="textEmailAddress"
+        android:imeOptions="actionDone"/>
 
 </LinearLayout>

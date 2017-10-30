@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Move extends Jsonable {
 
     public enum Effect {
-        PARALYZED, CONFUSED, SLEPT, POISONED, EMBARASSED
+        PARALYZED, CONFUSED, SLEPT, POISONED, EMBARRASSED
     }
 
     private int id;

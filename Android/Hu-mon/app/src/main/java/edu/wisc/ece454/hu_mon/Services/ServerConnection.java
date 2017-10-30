@@ -17,7 +17,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
-import edu.wisc.ece454.hu_mon.Models.JsonObject;
+import edu.wisc.ece454.hu_mon.Models.Jsonable;
 import edu.wisc.ece454.hu_mon.R;
 
 public class ServerConnection extends Service {
@@ -62,7 +62,7 @@ public class ServerConnection extends Service {
      * @param message - the message to send the server, should be a command.
      * @param object - the JsonObject to convert to JSON and send as the data portion of the message.
      */
-    public void sendMessage(String message, JsonObject object) {
+    public void sendMessage(String message, Jsonable object) {
         Runnable sendSocket = new sendSocket(message, object);
         new Thread(sendSocket).start();
     }
@@ -72,9 +72,9 @@ public class ServerConnection extends Service {
      */
     class sendSocket implements Runnable {
         private String msg;
-        private JsonObject obj;
+        private Jsonable obj;
 
-        public sendSocket(String msg, JsonObject obj){
+        public sendSocket(String msg, Jsonable obj){
             this.msg = msg;
             this.obj = obj;
         }

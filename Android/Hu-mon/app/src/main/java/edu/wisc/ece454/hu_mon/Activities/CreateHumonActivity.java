@@ -378,8 +378,8 @@ public class CreateHumonActivity extends AppCompatActivity {
         }
 
         //TODO: Create Humon object here and save
-        // String name, String description, Bitmap image, int hID, String uID, int hp, String iID, ArrayList<String> moves
-        Humon h = new Humon(humonName, humonDescription, humonImage, 0, "users email", 100, "Combo of uid + hcount", moves);
+        // String name, String description, Bitmap image, int level, int xp, int hID, String uID, String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense
+        Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, "", "", null, 10, 10, 10, 10, 10);
         mServerConnection.sendMessage("CREATE-HUMON", h);
 
         Toast toast = Toast.makeText(this, "Hu-mon Successfully Created", Toast.LENGTH_SHORT);

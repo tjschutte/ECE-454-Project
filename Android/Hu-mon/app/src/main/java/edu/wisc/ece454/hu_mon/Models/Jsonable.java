@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Objects that will be transferable to the sever need to extend this class.
  */
-public abstract class JsonObject {
+public abstract class Jsonable {
 
     /**
      * Turns object into a JSON representation using public fields, or private fields with

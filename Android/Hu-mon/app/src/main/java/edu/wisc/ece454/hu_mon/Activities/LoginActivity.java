@@ -23,8 +23,7 @@ import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private final String SIGN_IN_FAILURE = "Sign in Failed";
-    private final String REGISTER_FAILURE = "Register Failed";
+    private final String FIELD_MISSING = "Make sure all fields are filled in.";
     private final String PERMISSION_FAILURE = "Must Allow Permissions to Proceed";
     private String EMAIL_KEY;
     private String email;
@@ -164,7 +163,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         if(email.isEmpty() || password.isEmpty()) {
-            Toast toast = Toast.makeText(this, SIGN_IN_FAILURE, Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(this, FIELD_MISSING, Toast.LENGTH_SHORT);
             toast.show();
         }
         else if(!checkPermissions()) {
@@ -203,7 +202,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         if(emailText.getText().toString().isEmpty() || passwordText.getText().toString().isEmpty()) {
-            Toast toast = Toast.makeText(getApplicationContext(), REGISTER_FAILURE, Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(getApplicationContext(), FIELD_MISSING, Toast.LENGTH_SHORT);
             toast.show();
         }
         else if(!checkPermissions()) {

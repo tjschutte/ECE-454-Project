@@ -119,6 +119,14 @@ public class ServerConnection extends Service {
                         intent.setAction(getString(R.string.serverBroadCastEvent));
                         intent.putExtra(getString(R.string.serverBroadCastResponseKey),res);
                         sendBroadcast(intent);
+                    } else if (res == null) {
+                        // If we null back, the server was unreachable.
+                        // TODO: Schedule a retry to connect to the server.
+                        Intent intent = new Intent();
+                        intent.setAction(getString(R.string.serverBroadCastEvent));
+                        intent.putExtra(getString(R.string.serverBroadCastResponseKey), "Unable to reach Server. Try again later.");
+                        sendBroadcast(intent);
+                        return;
                     }
 
                 }

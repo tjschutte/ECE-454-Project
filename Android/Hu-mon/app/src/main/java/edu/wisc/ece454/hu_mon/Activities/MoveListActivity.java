@@ -3,6 +3,7 @@ package edu.wisc.ece454.hu_mon.Activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -11,6 +12,7 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 
+import edu.wisc.ece454.hu_mon.Models.Move;
 import edu.wisc.ece454.hu_mon.R;
 
 public class MoveListActivity extends AppCompatActivity {
@@ -19,7 +21,7 @@ public class MoveListActivity extends AppCompatActivity {
     private String MOVE_POSITION_KEY;
     private int movePosition;
 
-    private ArrayList<String> moveList;
+    private ArrayList<Move> moveList;
     private ListView moveListView;
 
     @Override
@@ -34,11 +36,11 @@ public class MoveListActivity extends AppCompatActivity {
         //retrieve position of selected move
         movePosition = getIntent().getIntExtra(MOVE_POSITION_KEY, -1);
 
-        moveList = new ArrayList<String>();
+        moveList = new ArrayList<Move>();
 
 
         moveListView = (ListView) findViewById(R.id.moveListView);
-        ArrayAdapter<String> moveAdapter = new ArrayAdapter<String>(this,
+        ArrayAdapter<Move> moveAdapter = new ArrayAdapter<Move>(this,
                 android.R.layout.simple_list_item_1, moveList);
         moveListView.setAdapter(moveAdapter);
 
@@ -47,7 +49,7 @@ public class MoveListActivity extends AppCompatActivity {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         Intent returnIntent = new Intent();
-                        returnIntent.putExtra(MOVE_KEY, moveList.get(position));
+                        returnIntent.putExtra(MOVE_KEY, (Parcelable) moveList.get(position));
                         returnIntent.putExtra(MOVE_POSITION_KEY, movePosition);
                         setResult(Activity.RESULT_OK, returnIntent);
                         finish();
@@ -76,19 +78,14 @@ public class MoveListActivity extends AppCompatActivity {
     //TODO: This needs to be done on a background thread
     private void loadMoves() {
 
-        //TODO: keep humons from last index view and add newly encountered
         moveList.clear();
-
-        moveList.add("Test Move A");
-        moveList.add("Test Move B");
-        moveList.add("Test Move C");
-        moveList.add("Test Move D");
-        moveList.add("Test Move E");
-        moveList.add("Test Move F");
-        moveList.add("Test Move G");
-        moveList.add("Test Move H");
-        moveList.add("Test Move I");
-        moveList.add("Test Move J");
+        for(int i = 0; i < 10; i++) {
+            String moveName = "Test Move ";
+            char uniqueLetter = 'A';
+            uniqueLetter += i;
+            moveName += uniqueLetter;
+            moveList.add(new Move(i, moveName, false, 10, null, false, "Wattup"));
+        }
     }
 
 }

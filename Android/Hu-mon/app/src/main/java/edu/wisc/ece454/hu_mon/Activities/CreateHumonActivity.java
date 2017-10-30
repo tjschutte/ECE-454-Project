@@ -10,7 +10,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.os.Bundle;
-
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -22,11 +21,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import edu.wisc.ece454.hu_mon.Models.Humon;
+import edu.wisc.ece454.hu_mon.Models.Move;
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 
@@ -40,7 +39,8 @@ public class CreateHumonActivity extends AppCompatActivity {
     private final int MAX_RESOLUTION = 4096;
 
     private TextView statTextView;
-    private String[] moveList;
+    private String[] moveDisplayList;
+    private Move[] moveList;
     ArrayAdapter<String> moveAdapter;
     ServerConnection mServerConnection;
     boolean mBound;
@@ -88,14 +88,15 @@ public class CreateHumonActivity extends AppCompatActivity {
         statTextView = (TextView) findViewById(R.id.statValue);
 
         //Set up move grid
-        moveList = new String[4];
-        for(int i = 0; i < moveList.length; i++) {
-            moveList[i] = MOVE_DEFAULT_VALUE;
+        moveDisplayList = new String[4];
+        moveList = new Move[4];
+        for(int i = 0; i < moveDisplayList.length; i++) {
+            moveDisplayList[i] = MOVE_DEFAULT_VALUE;
         }
 
         GridView moveGridView = (GridView) findViewById(R.id.moveGridView);
         moveAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, moveList);
+                android.R.layout.simple_list_item_1, moveDisplayList);
         moveGridView.setAdapter(moveAdapter);
 
         moveGridView.setOnItemClickListener(
@@ -200,10 +201,12 @@ public class CreateHumonActivity extends AppCompatActivity {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 int movePosition = data.getIntExtra(MOVE_POSITION_KEY, -1);
-                String moveName = data.getStringExtra(MOVE_KEY);
+                Move chosenMove = (Move) data.getParcelableExtra(MOVE_KEY);
+                String moveName = chosenMove.getName();
 
                 if(movePosition > -1) {
-                    moveList[movePosition] = moveName;
+                    moveDisplayList[movePosition] = moveName;
+                    moveList[movePosition] = chosenMove;
                     moveAdapter.notifyDataSetChanged();
                 }
 
@@ -354,17 +357,17 @@ public class CreateHumonActivity extends AppCompatActivity {
         }
 
         //make sure moves are filled in correctly
-        for(int i = 0; i < moveList.length; i++) {
-            for(int j = 0; j < moveList.length; j++) {
+        for(int i = 0; i < moveDisplayList.length; i++) {
+            for(int j = 0; j < moveDisplayList.length; j++) {
                 if(i == j) {
                     continue;
                 }
-                if(moveList[i].equals(MOVE_DEFAULT_VALUE)) {
+                if(moveDisplayList[i].equals(MOVE_DEFAULT_VALUE)) {
                     Toast toast = Toast.makeText(this, "Must Fill All Moves", Toast.LENGTH_SHORT);
                     toast.show();
                     return;
                 }
-                if(moveList[i].equals(moveList[j])) {
+                if(moveDisplayList[i].equals(moveDisplayList[j])) {
                     Toast toast = Toast.makeText(this, "Cannot Have Duplicate Moves", Toast.LENGTH_SHORT);
                     toast.show();
                     return;
@@ -372,14 +375,22 @@ public class CreateHumonActivity extends AppCompatActivity {
             }
         }
 
-        ArrayList<String> moves = new ArrayList<>();
-        for (String move : moveList) {
-            moves.add(move);
-        }
+        ArrayList<Move> movesArrayList =  new ArrayList<Move>(Arrays.asList(moveList));
+        TextView tempTextView = (TextView) findViewById(R.id.healthValue);
+        int health = Integer.parseInt(tempTextView.getText().toString());
+        tempTextView = (TextView) findViewById(R.id.attackValue);
+        int attack = Integer.parseInt(tempTextView.getText().toString());
+        tempTextView = (TextView) findViewById(R.id.defenseValue);
+        int defense = Integer.parseInt(tempTextView.getText().toString());
+        tempTextView = (TextView) findViewById(R.id.speedValue);
+        int speed = Integer.parseInt(tempTextView.getText().toString());
+        tempTextView = (TextView) findViewById(R.id.luckValue);
+        int luck = Integer.parseInt(tempTextView.getText().toString());
+
 
         //TODO: Create Humon object here and save
         // String name, String description, Bitmap image, int level, int xp, int hID, String uID, String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense
-        Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, "", "", null, 10, 10, 10, 10, 10);
+        Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, "", "", movesArrayList, health, luck, attack, speed, defense);
         mServerConnection.sendMessage("CREATE-HUMON", h);
 
         Toast toast = Toast.makeText(this, "Hu-mon Successfully Created", Toast.LENGTH_SHORT);

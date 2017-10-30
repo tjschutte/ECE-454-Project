@@ -1,15 +1,17 @@
 package edu.wisc.ece454.hu_mon.Models;
 
 import android.graphics.Bitmap;
+import android.util.Base64;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class Humon {
+public class Humon extends JsonObject {
 
-    ObjectMapper mapper;
     private String name; 			// humon name
     private String description;     // Description about how kewl your humon is
     private Bitmap image;			// image of humon
@@ -19,8 +21,7 @@ public class Humon {
     private int hp; 				// the health of a humon. All humons start with 100 hp.
     private ArrayList<String> moves; // list of moves a humon can perform
 
-    public Humon(ObjectMapper mapper, String name, String description, Bitmap image, int hID, String uID, int hp, String iID, ArrayList<String> moves) {
-        this.mapper = mapper;
+    public Humon(String name, String description, Bitmap image, int hID, String uID, int hp, String iID, ArrayList<String> moves) {
         this.name = name;	// CANNOT BE NULL
         this.description = description;
         this.image = image; // CANNOT BE NULL
@@ -43,7 +44,14 @@ public class Humon {
         return description;
     }
 
-    public Bitmap getImage() {
+    public String getImage() {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        image.compress(Bitmap.CompressFormat.PNG, 100, bytes);
+        return Base64.encodeToString(bytes.toByteArray(), Base64.DEFAULT);
+    }
+
+    @JsonIgnore
+    public Bitmap getBitmap() {
         return image;
     }
 
@@ -74,7 +82,7 @@ public class Humon {
      * @return JSON string
      * @throws JsonProcessingException
      */
-    public String toJson() throws JsonProcessingException {
+    public String toJson(ObjectMapper mapper) throws JsonProcessingException {
         return mapper.writeValueAsString(this);
     }
 

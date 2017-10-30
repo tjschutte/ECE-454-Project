@@ -378,10 +378,9 @@ public class CreateHumonActivity extends AppCompatActivity {
         }
 
         //TODO: Create Humon object here and save
-        //ObjectMapper mapper, String name, String description, Bitmap image, int hID, String uID, int hp, String iID, ArrayList<String> moves
-        //ObjectMapper mapper = new ObjectMapper();
-        //Humon h = new Humon(mapper, humonName, humonDescription, humonImage, 0, "users email", 100, "Combo of uid + hcount", moves);
-        mServerConnection.sendMessage("CREATE-HUMON: was this on the same thread?");
+        // String name, String description, Bitmap image, int hID, String uID, int hp, String iID, ArrayList<String> moves
+        Humon h = new Humon(humonName, humonDescription, humonImage, 0, "users email", 100, "Combo of uid + hcount", moves);
+        mServerConnection.sendMessage("CREATE-HUMON", h);
 
         Toast toast = Toast.makeText(this, "Hu-mon Successfully Created", Toast.LENGTH_SHORT);
         toast.show();

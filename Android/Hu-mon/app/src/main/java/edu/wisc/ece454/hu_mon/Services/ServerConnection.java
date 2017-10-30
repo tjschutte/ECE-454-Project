@@ -6,6 +6,8 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -15,6 +17,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import edu.wisc.ece454.hu_mon.Models.JsonObject;
 import edu.wisc.ece454.hu_mon.R;
 
 public class ServerConnection extends Service {
@@ -49,7 +52,18 @@ public class ServerConnection extends Service {
      * @param message
      */
     public void sendMessage(String message) {
-        Runnable sendSocket = new sendSocket(message);
+        Runnable sendSocket = new sendSocket(message, null);
+        new Thread(sendSocket).start();
+    }
+
+    /**
+     * Creates a thread to convert object to JSON representation and send in a message to the
+     * server in the background.
+     * @param message - the message to send the server, should be a command.
+     * @param object - the JsonObject to convert to JSON and send as the data portion of the message.
+     */
+    public void sendMessage(String message, JsonObject object) {
+        Runnable sendSocket = new sendSocket(message, object);
         new Thread(sendSocket).start();
     }
 
@@ -58,21 +72,35 @@ public class ServerConnection extends Service {
      */
     class sendSocket implements Runnable {
         private String msg;
+        private JsonObject obj;
 
-        public sendSocket(String msg){
+        public sendSocket(String msg, JsonObject obj){
             this.msg = msg;
+            this.obj = obj;
         }
 
         @Override
         public void run() {
             try {
-                System.out.println("Attempting to send: " + msg);
-                if (out != null && !out.checkError()) {
-                    System.out.println("Sending...");
-                    out.println(msg);
-                    out.flush();
+                if (obj == null) {
+                    System.out.println("Attempting to send: " + msg);
+                    if (out != null && !out.checkError()) {
+                        System.out.println("Sending...");
+                        out.println(msg);
+                        out.flush();
+                    } else {
+                        System.out.println("Out was null, or had an error");
+                    }
                 } else {
-                    System.out.println("Out was null, or had an error");
+                    String data = obj.toJson(new ObjectMapper());
+                    System.out.println("Attempting to send: " + msg + ": " + data);
+                    if (out != null && !out.checkError()) {
+                        System.out.println("Sending...");
+                        out.println( msg + ": " + data);
+                        out.flush();
+                    } else {
+                        System.out.println("Out was null, or had an error");
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();

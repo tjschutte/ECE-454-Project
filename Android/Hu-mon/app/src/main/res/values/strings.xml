@@ -11,4 +11,5 @@
     <string name="stepJobId">1</string>
     <string name="serverBroadCastEvent">edu.wisc.ece454.hu_mon.SERVER_RESPONSE</string>
     <string name="serverBroadCastResponseKey">RESPONSE</string>
+    <string name="sharedPreferencesFile">edu.wisc.ece454.hu_mon.sharedPreferences</string>
 </resources>

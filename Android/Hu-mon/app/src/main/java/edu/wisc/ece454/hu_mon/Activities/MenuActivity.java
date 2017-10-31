@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -44,10 +45,14 @@ public class MenuActivity extends AppCompatActivity {
         setContentView(R.layout.menu_layout);
         setTitle(ACTIVITY_TITLE);
 
+        //save email to shared preferences so all activities have access
         EMAIL_KEY  = getString(R.string.emailKey);
-
-        //TODO: Pass Email to other activities?
         userEmail = getIntent().getStringExtra(EMAIL_KEY);
+        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(getString(R.string.emailKey), userEmail);
+        editor.commit();
 
         menuOption = new String[]{HUMON_INDEX, PARTY, FRIENDS_LIST, MAP, CREATE_HUMON, HUMON_SEARCH};
 

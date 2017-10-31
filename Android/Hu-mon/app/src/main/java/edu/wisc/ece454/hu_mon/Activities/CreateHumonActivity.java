@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -375,6 +376,7 @@ public class CreateHumonActivity extends AppCompatActivity {
             }
         }
 
+        //Retrieve user created data for humon
         ArrayList<Move> movesArrayList =  new ArrayList<Move>(Arrays.asList(moveList));
         TextView tempTextView = (TextView) findViewById(R.id.healthValue);
         int health = Integer.parseInt(tempTextView.getText().toString());
@@ -387,10 +389,15 @@ public class CreateHumonActivity extends AppCompatActivity {
         tempTextView = (TextView) findViewById(R.id.luckValue);
         int luck = Integer.parseInt(tempTextView.getText().toString());
 
+        //retrieve email of the user
+        SharedPreferences sharedPref = this.getSharedPreferences(
+                getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+        String userEmail = sharedPref.getString(getString(R.string.emailKey), "");
+
 
         //TODO: Create Humon object here and save
         // String name, String description, Bitmap image, int level, int xp, int hID, String uID, String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense
-        Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, "", "", movesArrayList, health, luck, attack, speed, defense);
+        Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, userEmail, "", movesArrayList, health, luck, attack, speed, defense);
         mServerConnection.sendMessage("CREATE-HUMON", h);
 
         Toast toast = Toast.makeText(this, "Hu-mon Successfully Created", Toast.LENGTH_SHORT);

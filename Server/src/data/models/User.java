@@ -1,121 +1,72 @@
 package data.models;
 
-import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class User {
+public class User implements Serializable {
 	/**
 	 * TODO: Make sure constructors sanitize data.
 	 */
 	
-	ObjectMapper mapper;
 
 	private String email;
 	private String password;
-	private ArrayList<Integer> party;
-	private ArrayList<Integer> encounteredHumons;
+	private ArrayList<String> party;
+	private ArrayList<String> encounteredHumons;
 	private ArrayList<String> friends;
-	private int hCount;
+	private int hcount;
 	private boolean isDirty;
 
 	/**
-	 * 
+	 * Default Constructor for Jackson.
+	 */
+	public User() {
+		// This needs to be here for Jackson to be able to take from JSON string back to object for us.
+	}
+	
+	/**
+	 * Create a new object. Potentially registering a new user.
 	 * @param mapper
 	 * @param email - email
 	 * @param password - password
-	 * @param party - list of instanceIDs
-	 * @param encounteredHumons - list of hIDs
-	 * @param hCount - number of humons encountered
+	 * @param hcount - number of humons encountered
 	 */
-	public User(ObjectMapper mapper, String email, String password, ArrayList<Integer> party,
-			ArrayList<Integer> encounteredHumons, ArrayList<String> friends, int hCount, boolean isDirty) {
-		this.mapper = mapper;
+	public User(String email, String password, int hcount, boolean isDirty) {
 		this.email = email;
 		this.password = password;
-		this.party = party; 
-		this.encounteredHumons = encounteredHumons;
-		this.friends = friends;
-		this.hCount = hCount;
+		this.party = null; 
+		this.encounteredHumons = null;
+		this.friends = null;
+		this.hcount = hcount;
+		this.isDirty = isDirty;
+	}
+	
+	/**
+	 * From database to object.
+	 * @param mapper
+	 * @param email
+	 * @param password
+	 * @param party
+	 * @param encounteredHumons
+	 * @param friends
+	 * @param hcount
+	 * @param isDirty
+	 */
+	public User(String email, String password, String party, String encounteredHumons, String friends, int hcount, boolean isDirty) {
+		this.email = email;
+		this.password = password;
+		this.party = (party != null) ? new ArrayList<String>(Arrays.asList(party.split(","))) : new ArrayList<String>();
+		this.encounteredHumons = (encounteredHumons != null) ? new ArrayList<String>(Arrays.asList(encounteredHumons.split(","))) : new ArrayList<String>();
+		this.friends = (friends != null) ? new ArrayList<String>(Arrays.asList(friends.split(","))) : new ArrayList<String>();
+		this.hcount = hcount;
 		this.isDirty = isDirty;
 	}
 
-	public User(ObjectMapper mapper, String json) throws JsonParseException, IOException {
-		this.mapper = mapper;
-		// get an instance of the json parser from the json factory
-		JsonFactory factory = new JsonFactory();
-		JsonParser parser = factory.createParser(json);
-
-		// continue parsing the token till the end of input is reached
-		while (!parser.isClosed()) {
-			// get the token
-			JsonToken token = parser.nextToken();
-			// if its the last token then we are done
-			if (token == null) {
-				break;
-			}
-			
-			// get userID
-			if (JsonToken.FIELD_NAME.equals(token) && "email".equals(parser.getCurrentName())) {
-				token = parser.nextToken();
-				email = parser.getText();
-			}
-
-			// get passHash
-			if (JsonToken.FIELD_NAME.equals(token) && "password".equals(parser.getCurrentName())) {
-				token = parser.nextToken();
-				password = parser.getText();
-			}
-
-			// get Party
-			if (JsonToken.FIELD_NAME.equals(token) && "party".equals(parser.getCurrentName())) {
-				if (parser.nextToken() != JsonToken.START_ARRAY) {
-					throw new IllegalStateException("Expected an array");
-				}
-				party = new ArrayList<Integer>();
-				while (parser.nextToken() != JsonToken.END_ARRAY) {
-					party.add(new Integer(parser.getIntValue()));
-				}
-			}
-
-			// get Party
-			if (JsonToken.FIELD_NAME.equals(token) && "encounteredHumons".equals(parser.getCurrentName())) {
-				if (parser.nextToken() != JsonToken.START_ARRAY) {
-					throw new IllegalStateException("Expected an array");
-				}
-				encounteredHumons = new ArrayList<Integer>();
-				while (parser.nextToken() != JsonToken.END_ARRAY) {
-					encounteredHumons.add(new Integer(parser.getIntValue()));
-				}
-			}
-			
-			// get friends
-			if (JsonToken.FIELD_NAME.equals(token) && "friends".equals(parser.getCurrentName())) {
-				if (parser.nextToken() != JsonToken.START_ARRAY) {
-					throw new IllegalStateException("Expected an array");
-				}
-				encounteredHumons = new ArrayList<Integer>();
-				while (parser.nextToken() != JsonToken.END_ARRAY) {
-					encounteredHumons.add(new Integer(parser.getIntValue()));
-				}
-			}
-			
-			if (JsonToken.FIELD_NAME.equals(token) && "hCount".equals(parser.getCurrentName())) {
-				token = parser.nextToken();
-				hCount = Integer.parseInt(parser.getText());
-				
-			}
-
-		}
-	}
-	
-	public boolean isDirty() {
+	public boolean getIsDirty() {
 		return isDirty;
 	}
 	
@@ -160,13 +111,13 @@ public class User {
 		return password;
 	}
 
-	public ArrayList<Integer> getParty() {
+	public ArrayList<String> getParty() {
 		return party;
 	}
 	
-	public void addPartyMember(int instanceID) {
+	public void addPartyMember(String instanceID) {
 		if (party == null) {
-			party = new ArrayList<Integer>();
+			party = new ArrayList<String>();
 		} 	
 		if (!party.contains(instanceID)) {
 			party.add(instanceID);
@@ -178,7 +129,7 @@ public class User {
 		if (party == null || party.isEmpty()) {
 			return true;
 		} else {
-			for (Integer id : party) {
+			for (String id : party) {
 				if (id.equals(instanceID)) {
 					party.remove(instanceID);
 					isDirty = true;
@@ -189,13 +140,13 @@ public class User {
 		return false;
 	}
 
-	public ArrayList<Integer> getEncounteredHumons() {
+	public ArrayList<String> getEncounteredHumons() {
 		return encounteredHumons;
 	}
 	
-	public void addEncounteredHumon(int humonID) {
+	public void addEncounteredHumon(String humonID) {
 		if (encounteredHumons == null) {
-			encounteredHumons = new ArrayList<Integer>();
+			encounteredHumons = new ArrayList<String>();
 		} 
 		if (encounteredHumons.contains(humonID)) {
 			return;
@@ -206,16 +157,16 @@ public class User {
 		
 	}
 
-	public int getHcount(int hCount) {
-		return hCount;
+	public int getHcount() {
+		return hcount;
 	}
 	
 	public void incrementHCount() {
-		hCount++;
+		hcount++;
 		isDirty = true;
 	}
 
-	public String toJson() throws JsonProcessingException {
+	public String toJson(ObjectMapper mapper) throws JsonProcessingException {
 		return mapper.writeValueAsString(this);
 	}
 
@@ -226,7 +177,7 @@ public class User {
 		obj += "'" + party + "',";
 		obj += "'" + encounteredHumons + "',";
 		obj += "'" + friends + "',";
-		obj += "'" + hCount + "')";
+		obj += "'" + hcount + "')";
 		
 		return obj;
 	}

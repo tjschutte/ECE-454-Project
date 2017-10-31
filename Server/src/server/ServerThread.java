@@ -1,6 +1,10 @@
 package server;
 
+import java.awt.image.BufferedImage;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -11,10 +15,18 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
+import javax.imageio.ImageIO;
+
+import org.apache.commons.codec.binary.Base64;
+
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import data.models.User;
@@ -84,7 +96,7 @@ public class ServerThread extends Thread {
 					save();
 					break;
 				} else if (input.indexOf(':') == -1) {
-					error("empty or unrecognized command was issued");
+					error(Message.BAD_COMMAND);
 					continue;
 				}
 
@@ -93,17 +105,20 @@ public class ServerThread extends Thread {
 				data = input.substring(input.indexOf(':') + 1, input.length());
 
 				log("Command: " + command);
-				log("Data: " + data);
+				//log("Data: " + data);
 
 				switch (command) {
-				case Commands.LOGIN:
-					login(data);
-					break;
 				case Commands.REGISTER:
 					register(data);
 					break;
+				case Commands.LOGIN:
+					login(data);
+					break;
+				case Commands.SAVE_HUMON:
+					saveNewHumon(data);
+					break;
 				default:
-					error("empty or unrecognized command was issued");
+					error(Message.BAD_COMMAND);
 					break;
 				}
 				
@@ -121,12 +136,13 @@ public class ServerThread extends Thread {
 		}
 	}
 	
+	
 	/**
 	 * Push update data to the sever *IF* it has changed.
 	 */
 	private void save() {
 		log("Save was issued");
-		if (user != null && user.isDirty()) {
+		if (user != null && user.getIsDirty()) {
 			log("User data was updated. Saving to database");
 			sendResponse(Commands.SAVE_USER, Message.SERVER_SAVED_USER);
 		}
@@ -138,8 +154,7 @@ public class ServerThread extends Thread {
 		
 		try {
 			// Attempt to map email and password to an object.
-			User u = new User(mapper, data);
-			
+			User u = mapper.readValue(data, User.class);
 			ResultSet resultSet = databaseConnection.executeSQL("select * from users where email='" + u.getEmail() + "';");
 
 			if (resultSet.next()) {
@@ -149,13 +164,11 @@ public class ServerThread extends Thread {
 			}
 
 			// Unique email, create a new user
-			User newUser = new User(mapper, u.getEmail(), u.getPassword(), null, null, null, 0, true);
-			
+			User newUser = new User(u.getEmail(), u.getPassword(), 0, true);		
 			// Insert into the database.
 			PreparedStatement ps = databaseConnection.prepareStatement("insert into users "
 					+ GlobalConstants.USERS_TABLE_COLUMNS + " values "
 					+ newUser.toSqlValueString());
-			
 			// Should only get 1 row was affected.
 			int rows = ps.executeUpdate();
 			if (rows == 1) {
@@ -165,7 +178,8 @@ public class ServerThread extends Thread {
 				throw new SQLException();
 			}
 			
-			sendResponse(Commands.SUCCESS, "");
+			// Send success, and the user JSON string so client has it as well.
+			sendResponse(Commands.SUCCESS, user.toJson(mapper));
 
 		} catch (JsonParseException e) {
 			log("Recieved malformed data packet");
@@ -179,13 +193,13 @@ public class ServerThread extends Thread {
 		}
 		
 	}
-
+	
 	private void login(String data) {
 		log("Trying to login with ");
 		log(data);
 		
 		try {
-			User u = new User(mapper, data);
+			User u = mapper.readValue(data, User.class);
 			ResultSet resultSet = databaseConnection.executeSQL("select * from users where email='" + u.getEmail()
 					+ "' and password='" + u.getPassword() + "';");
 
@@ -203,18 +217,21 @@ public class ServerThread extends Thread {
 			int columnsNumber = rsmd.getColumnCount();
 			
 			String object = "";
-			while (resultSet.next()) {
-				for (int i = 1; i <= columnsNumber; i++) {
-					if (i > 1)
-						object += (", ");
-					String columnValue = resultSet.getString(i);
-					object += (rsmd.getColumnName(i) + " " + columnValue);
-				}
-				log("Found user");
-				log(object);
+			
+			// Move to the user line
+			resultSet.next(); 
+			for (int i = 1; i <= columnsNumber; i++) {
+				if (i > 1)
+					object += (", ");
+				String columnValue = resultSet.getString(i);
+				object += (rsmd.getColumnName(i) + " " + columnValue);
 			}
 			
-			sendResponse(Commands.SUCCESS, "");
+			log("Found user");
+			log(object);
+			// Map from database to object
+			user = new User(resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6), resultSet.getInt(7), false);
+			sendResponse(Commands.SUCCESS, user.toJson(mapper));
 
 		} catch (JsonParseException e) {
 			log("Recieved malformed data packet");
@@ -227,6 +244,48 @@ public class ServerThread extends Thread {
 			error(Message.SERVER_ERROR_RETRY);
 		}
 
+	}
+	
+	private void saveNewHumon(String data) {
+		// TODO Auto-generated method stub
+		JsonFactory factory = new JsonFactory();
+		try {
+			JsonParser parser = factory.createParser(data);
+			
+			// continue parsing the token till the end of input is reached
+			while (!parser.isClosed()) {
+				// get the token
+				JsonToken token = parser.nextToken();
+				// if its the last token then we are done
+				if (token == null) {
+					parser.close();
+					break;
+				}
+				// get image
+				if (JsonToken.FIELD_NAME.equals(token) && "image".equals(parser.getCurrentName())) {
+					token = parser.nextToken();
+					String image = parser.getText();
+					byte[] bytes = Base64.decodeBase64(image);
+				    BufferedImage img = ImageIO.read(new ByteArrayInputStream(bytes));
+
+				    BufferedOutputStream out;
+			    	out = new BufferedOutputStream(new FileOutputStream("image" + clientNumber + ".png"));
+			        out.write(bytes);
+			        out.flush();
+			        out.close();
+				    
+			        
+			        
+				}
+			}
+			
+			
+		} catch (JsonParseException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	/**

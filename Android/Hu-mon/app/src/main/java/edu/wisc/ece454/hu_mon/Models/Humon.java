@@ -3,18 +3,19 @@ package edu.wisc.ece454.hu_mon.Models;
 import android.graphics.Bitmap;
 import android.util.Base64;
 
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 
 public class Humon extends Jsonable {
 
     private String name; 			// humon name
     private String description;     // Description about how kewl your humon is
     private Bitmap image;			// image of humon
+    private String imagePath;       // location of image file on phone
     private int level;              // The current level of the humon-instance
     private int xp;                 // current amount of xp
     private int hID;     			// hID will map a humon to is details in storage (picture, name, moves, etc)
@@ -30,10 +31,11 @@ public class Humon extends Jsonable {
     // Moves will be a combination of <Name, id> to m ap to template moves.
 
     public Humon(String name, String description, Bitmap image, int level, int xp, int hID, String uID,
-                 String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense) {
+                 String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense, String imagePath) {
         this.name = name;
         this.description = description;
         this.image = image;
+        this.imagePath = imagePath;
         this.level = level;
         this.xp = xp;
         this.hID = hID;
@@ -60,9 +62,18 @@ public class Humon extends Jsonable {
     }
 
     public String getImage() {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        image.compress(Bitmap.CompressFormat.PNG, 100, bytes);
-        return Base64.encodeToString(bytes.toByteArray(), Base64.DEFAULT);
+        if(image != null) {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            image.compress(Bitmap.CompressFormat.PNG, 100, bytes);
+            return Base64.encodeToString(bytes.toByteArray(), Base64.DEFAULT);
+        }
+        else {
+            return "";
+        }
+    }
+
+    public String getImagePath() {
+        return imagePath;
     }
 
     @JsonIgnore
@@ -114,6 +125,14 @@ public class Humon extends Jsonable {
         return defense;
     }
 
+    public void setImage(Bitmap image) {
+        this.image = image;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
+
     /**
      * Process the object into a JSON representation.  Will only expose public fields, or private
      * fields with getters.
@@ -125,7 +144,8 @@ public class Humon extends Jsonable {
         return mapper.writeValueAsString(this);
     }
 
+    //
     public String toString() {
-        return "To-Do: Implement Humon.toString()";
+        return name;
     }
 }

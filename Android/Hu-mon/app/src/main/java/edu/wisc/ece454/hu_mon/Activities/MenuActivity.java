@@ -48,11 +48,14 @@ public class MenuActivity extends AppCompatActivity {
         //save email to shared preferences so all activities have access
         EMAIL_KEY  = getString(R.string.emailKey);
         userEmail = getIntent().getStringExtra(EMAIL_KEY);
-        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
-                Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(getString(R.string.emailKey), userEmail);
-        editor.commit();
+        if(userEmail != null) {
+            SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                    Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString(getString(R.string.emailKey), userEmail);
+            editor.commit();
+        }
+
 
         menuOption = new String[]{HUMON_INDEX, PARTY, FRIENDS_LIST, MAP, CREATE_HUMON, HUMON_SEARCH};
 

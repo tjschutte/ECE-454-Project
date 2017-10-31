@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -29,6 +31,7 @@ import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.Models.Move;
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Services.ServerConnection;
+import edu.wisc.ece454.hu_mon.Utilities.HumonIndexSaver;
 
 public class CreateHumonActivity extends AppCompatActivity {
 
@@ -48,6 +51,7 @@ public class CreateHumonActivity extends AppCompatActivity {
     IntentFilter filter = new IntentFilter();
 
     //image data
+    private String tempImagePath;
     Bitmap rawHumonImage;
     Bitmap humonImage;
     int imageOrientation;
@@ -67,7 +71,7 @@ public class CreateHumonActivity extends AppCompatActivity {
         Intent incomingIntent = getIntent();
 
         //load the image from previous activity
-        String tempImagePath =  incomingIntent.getStringExtra(HUMON_IMAGE_KEY);
+        tempImagePath =  incomingIntent.getStringExtra(HUMON_IMAGE_KEY);
         rawHumonImage = BitmapFactory.decodeFile(tempImagePath);
 
         //obtain dimensions of the image
@@ -397,11 +401,23 @@ public class CreateHumonActivity extends AppCompatActivity {
 
         //TODO: Create Humon object here and save
         // String name, String description, Bitmap image, int level, int xp, int hID, String uID, String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense
-        Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, userEmail, "", movesArrayList, health, luck, attack, speed, defense);
+        Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, userEmail, "", movesArrayList, health, luck, attack, speed, defense, "");
         mServerConnection.sendMessage("CREATE-HUMON", h);
 
-        Toast toast = Toast.makeText(this, "Hu-mon Successfully Created", Toast.LENGTH_SHORT);
-        toast.show();
+        //Store image path instead of image locally
+        //TODO: replace filename with hID
+        h.setImage(null);
+        File imageFile = new File(tempImagePath);
+        File renameFile = new File(getFilesDir(),humonName + ".jpg");
+        if(imageFile.exists()) {
+            imageFile.renameTo(renameFile);
+        }
+        h.setImagePath(renameFile.getPath());
+
+        //save humon data to index
+        AsyncTask<Humon, Integer, Boolean> indexSaveTask = new HumonIndexSaver(userEmail + getString(R.string.indexFile),
+                userEmail, this, getString(R.string.humonsKey));
+        indexSaveTask.execute(h);
 
         //return to the menu
         Intent intent = new Intent(this, MenuActivity.class);
@@ -409,4 +425,64 @@ public class CreateHumonActivity extends AppCompatActivity {
         startActivity(intent);
 
     }
+
+    //Called after user hits DONE
+    //Adds the humon to the user's index file
+    //Returns true on successful write
+    /*private boolean saveHumon(Humon createdHumon, String email) {
+        boolean goodSave = true;
+
+        String filename = email + getString(R.string.indexFile);
+        String oldIndex = "";
+        FileInputStream inputStream;
+        FileOutputStream outputStream;
+
+        //read in current index (if it exists)
+        try {
+            inputStream = openFileInput(filename);
+            int inputBytes = inputStream.available();
+            byte[] buffer = new byte[inputBytes];
+            inputStream.read(buffer);
+            inputStream.close();
+            oldIndex = new String(buffer, "UTF-8");
+            System.out.println("Current humon index: " + oldIndex);
+        }
+        catch(FileNotFoundException e) {
+            e.printStackTrace();
+            System.out.println("No index currently exists for: " + email);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //append new humon
+        try {
+
+            //append humon on to current object
+            JSONObject indexJSON;
+            JSONArray humonsArray;
+            String HUMONS_KEY = getString(R.string.humonsKey);
+            if(oldIndex.length() == 0) {
+                indexJSON = new JSONObject();
+                humonsArray = new JSONArray();
+            }
+            else {
+                indexJSON = new JSONObject(oldIndex);
+                humonsArray = indexJSON.getJSONArray(HUMONS_KEY);
+            }
+
+            humonsArray.put(createdHumon.toJson(new ObjectMapper()));
+            indexJSON.put(HUMONS_KEY, humonsArray);
+
+            //write object to file
+            System.out.println("Writing: " + indexJSON.toString() + " to: " + filename);
+            outputStream = openFileOutput(filename, Context.MODE_PRIVATE);
+            outputStream.write(indexJSON.toString().getBytes());
+            outputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            goodSave = false;
+        }
+
+        return goodSave;
+    }*/
 }

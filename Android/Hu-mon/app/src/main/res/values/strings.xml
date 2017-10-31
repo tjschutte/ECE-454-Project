@@ -12,4 +12,6 @@
     <string name="serverBroadCastEvent">edu.wisc.ece454.hu_mon.SERVER_RESPONSE</string>
     <string name="serverBroadCastResponseKey">RESPONSE</string>
     <string name="sharedPreferencesFile">edu.wisc.ece454.hu_mon.sharedPreferences</string>
+    <string name="indexFile">-index.json</string>
+    <string name="humonsKey">humons</string>
 </resources>

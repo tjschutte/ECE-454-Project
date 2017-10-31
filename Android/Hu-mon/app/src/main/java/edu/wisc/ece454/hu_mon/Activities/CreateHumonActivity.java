@@ -313,23 +313,33 @@ public class CreateHumonActivity extends AppCompatActivity {
 
     //rotates the humon image
     public void rotateImageRight(View view) {
-        imageOrientation += 90;
-        Matrix m = new Matrix();
-        m.postRotate(imageOrientation);
-        humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, imageWidth, imageHeight, m, true);
-        ImageView humonImageView = (ImageView) findViewById(R.id.humonImageView);
-        humonImageView.setImageBitmap(humonImage);
+        Thread rotateThread = new Thread() {
+            public void run() {
+                imageOrientation += 90;
+                Matrix m = new Matrix();
+                m.postRotate(imageOrientation);
+                humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, imageWidth, imageHeight, m, true);
+                ImageView humonImageView = (ImageView) findViewById(R.id.humonImageView);
+                humonImageView.setImageBitmap(humonImage);
+            }
+        };
 
+        rotateThread.run();
     }
 
     public void rotateImageLeft(View view) {
-        imageOrientation -= 90;
-        Matrix m = new Matrix();
-        m.postRotate(imageOrientation);
-        humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, imageWidth, imageHeight, m, true);
-        ImageView humonImageView = (ImageView) findViewById(R.id.humonImageView);
-        humonImageView.setImageBitmap(humonImage);
+        Thread rotateThread = new Thread() {
+            public void run() {
+                imageOrientation -= 90;
+                Matrix m = new Matrix();
+                m.postRotate(imageOrientation);
+                humonImage = Bitmap.createBitmap(rawHumonImage, 0, 0, imageWidth, imageHeight, m, true);
+                ImageView humonImageView = (ImageView) findViewById(R.id.humonImageView);
+                humonImageView.setImageBitmap(humonImage);
+            }
+        };
 
+        rotateThread.run();
     }
 
     //button called by done button
@@ -420,69 +430,7 @@ public class CreateHumonActivity extends AppCompatActivity {
         indexSaveTask.execute(h);
 
         //return to the menu
-        Intent intent = new Intent(this, MenuActivity.class);
         finish();
-        startActivity(intent);
 
     }
-
-    //Called after user hits DONE
-    //Adds the humon to the user's index file
-    //Returns true on successful write
-    /*private boolean saveHumon(Humon createdHumon, String email) {
-        boolean goodSave = true;
-
-        String filename = email + getString(R.string.indexFile);
-        String oldIndex = "";
-        FileInputStream inputStream;
-        FileOutputStream outputStream;
-
-        //read in current index (if it exists)
-        try {
-            inputStream = openFileInput(filename);
-            int inputBytes = inputStream.available();
-            byte[] buffer = new byte[inputBytes];
-            inputStream.read(buffer);
-            inputStream.close();
-            oldIndex = new String(buffer, "UTF-8");
-            System.out.println("Current humon index: " + oldIndex);
-        }
-        catch(FileNotFoundException e) {
-            e.printStackTrace();
-            System.out.println("No index currently exists for: " + email);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        //append new humon
-        try {
-
-            //append humon on to current object
-            JSONObject indexJSON;
-            JSONArray humonsArray;
-            String HUMONS_KEY = getString(R.string.humonsKey);
-            if(oldIndex.length() == 0) {
-                indexJSON = new JSONObject();
-                humonsArray = new JSONArray();
-            }
-            else {
-                indexJSON = new JSONObject(oldIndex);
-                humonsArray = indexJSON.getJSONArray(HUMONS_KEY);
-            }
-
-            humonsArray.put(createdHumon.toJson(new ObjectMapper()));
-            indexJSON.put(HUMONS_KEY, humonsArray);
-
-            //write object to file
-            System.out.println("Writing: " + indexJSON.toString() + " to: " + filename);
-            outputStream = openFileOutput(filename, Context.MODE_PRIVATE);
-            outputStream.write(indexJSON.toString().getBytes());
-            outputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            goodSave = false;
-        }
-
-        return goodSave;
-    }*/
 }

@@ -125,7 +125,7 @@ public class IndexActivity extends AppCompatActivity {
         registerReceiver(receiver, filter);
     }
 
-    //TODO: Read in moves 
+    //TODO: Read in moves
     private void loadHumons() {
 
         humonList.clear();

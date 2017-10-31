@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -31,7 +32,7 @@ import edu.wisc.ece454.hu_mon.R;
 public class IndexActivity extends AppCompatActivity {
 
     private final String ACTIVITY_TITLE = "Hu-mon Index";
-    private String HUMON_NAME_KEY;
+    private String HUMON_KEY;
 
     private ArrayList<Humon> humonList;
     private ArrayAdapter<Humon> indexAdapter;
@@ -50,7 +51,7 @@ public class IndexActivity extends AppCompatActivity {
         setContentView(R.layout.index_layout);
         setTitle(ACTIVITY_TITLE);
 
-        HUMON_NAME_KEY = getString(R.string.humonNameKey);
+        HUMON_KEY = getString(R.string.humonKey);
 
         humonList = new ArrayList<Humon>();
 
@@ -71,7 +72,7 @@ public class IndexActivity extends AppCompatActivity {
                 new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        viewHumon(humonList.get(position).getName());
+                        viewHumon(humonList.get(position));
                     }
                 }
         );
@@ -165,8 +166,26 @@ public class IndexActivity extends AppCompatActivity {
                         int speed = humonJson.getInt("speed");
                         int defense = humonJson.getInt("defense");
                         String imagePath = humonJson.getString("imagePath");
+
+                        //load moves
+                        ArrayList<Move> moveList = new ArrayList<Move>();
+                        JSONArray moveArray = humonJson.getJSONArray("moves");
+                        for(int j = 0; j < moveArray.length(); j++) {
+                            JSONObject moveJson = moveArray.getJSONObject(j);
+                            int moveId = moveJson.getInt("id");
+                            String moveName = moveJson.getString("name");
+                            boolean moveSelfCast = moveJson.getBoolean("selfCast");
+                            int dmg = moveJson.getInt("dmg");
+                            //Move.Effect moveEffect = (Move.Effect) moveJson.get("effect");
+                            boolean moveHasEffect = moveJson.getBoolean("hasEffect");
+                            String moveDescription = moveJson.getString("description");
+
+                            moveList.add(new Move(moveId, moveName, moveSelfCast, dmg, null,
+                                    moveHasEffect, moveDescription));
+                        }
+
                         Humon loadedHumon = new Humon(name, description, image, level, xp, hID, uID,
-                                iID, new ArrayList<Move>(), health, luck, attack, speed, defense, imagePath);
+                                iID, moveList, health, luck, attack, speed, defense, imagePath);
 
                         humonList.add(loadedHumon);
 
@@ -192,9 +211,9 @@ public class IndexActivity extends AppCompatActivity {
     }
 
     //go to humon info activity to view particular humon
-    private void viewHumon(String humonName) {
+    private void viewHumon(Humon humon) {
         Intent intent = new Intent(this, HumonInfoActivity.class);
-        intent.putExtra(HUMON_NAME_KEY, humonName);
+        intent.putExtra(HUMON_KEY, (Parcelable) humon);
         startActivity(intent);
     }
 }

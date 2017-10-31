@@ -24,6 +24,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -345,7 +348,7 @@ public class CreateHumonActivity extends AppCompatActivity {
     //button called by done button
     //saves humon data and returns user to menu
     //TODO: Add humon to index and send to server
-    public void createHumon(View view) {
+    public void createHumon(View view) throws IOException {
 
         //retrieve values from ui elements
         EditText nameView = (EditText) findViewById(R.id.humonNameEditText);
@@ -417,12 +420,11 @@ public class CreateHumonActivity extends AppCompatActivity {
         //Store image path instead of image locally
         //TODO: replace filename with hID
         h.setImage(null);
-        File imageFile = new File(tempImagePath);
-        File renameFile = new File(getFilesDir(),humonName + ".jpg");
-        if(imageFile.exists()) {
-            imageFile.renameTo(renameFile);
-        }
-        h.setImagePath(renameFile.getPath());
+        File imageFile = new File(getFilesDir(),humonName + ".jpg");
+        storeImageFile(imageFile);
+        h.setImagePath(imageFile.getPath());
+        System.out.println("Old image path: " + tempImagePath);
+        System.out.println("New image path: " + h.getImagePath());
 
         //save humon data to index
         AsyncTask<Humon, Integer, Boolean> indexSaveTask = new HumonIndexSaver(userEmail + getString(R.string.indexFile),
@@ -432,5 +434,27 @@ public class CreateHumonActivity extends AppCompatActivity {
         //return to the menu
         finish();
 
+    }
+
+    //stores humon image in file designated by file parameter
+    private void storeImageFile(final File newFile) {
+
+        Thread moveThread = new Thread() {
+            public void run() {
+                try {
+
+                    FileOutputStream outputStream = new FileOutputStream(newFile);
+                    humonImage.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+                    outputStream.close();
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        moveThread.run();
     }
 }

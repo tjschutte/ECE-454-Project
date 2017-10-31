@@ -1,6 +1,8 @@
 package edu.wisc.ece454.hu_mon.Models;
 
 import android.graphics.Bitmap;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Base64;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -10,7 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 
-public class Humon extends Jsonable {
+public class Humon extends Jsonable implements Parcelable{
 
     private String name; 			// humon name
     private String description;     // Description about how kewl your humon is
@@ -147,5 +149,65 @@ public class Humon extends Jsonable {
     //
     public String toString() {
         return name;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(name);
+        dest.writeString(description);
+        dest.writeValue(image);
+        dest.writeString(imagePath);
+        dest.writeInt(level);
+        dest.writeInt(xp);
+        dest.writeInt(hID);
+        dest.writeString(uID);
+        dest.writeString(iID);
+        dest.writeArray(moves.toArray());
+        dest.writeInt(health);
+        dest.writeInt(luck);
+        dest.writeInt(attack);
+        dest.writeInt(speed);
+        dest.writeInt(defense);
+    }
+
+    public static final Parcelable.Creator<Humon> CREATOR =
+            new Parcelable.Creator<Humon>() {
+
+                @Override
+                public Humon createFromParcel(Parcel source) {
+                    return new Humon(source);
+                }
+
+                @Override
+                public Humon[] newArray(int size) {
+                    return new Humon[size];
+                }
+            };
+
+    private Humon(Parcel in) {
+        name = in.readString();
+        description = in.readString();
+        image = (Bitmap) in.readValue(null);
+        imagePath = in.readString();
+        level = in.readInt();
+        xp = in.readInt();
+        hID = in.readInt();
+        uID = in.readString();
+        iID = in.readString();
+        Object[] moveIn = in.readArray(Move.class.getClassLoader());
+        moves = new ArrayList<Move>();
+        for(int i = 0;  i < moveIn.length; i++) {
+            moves.add((Move)moveIn[i]);
+        }
+        health = in.readInt();
+        luck = in.readInt();
+        attack = in.readInt();
+        speed = in.readInt();
+        defense = in.readInt();
     }
 }

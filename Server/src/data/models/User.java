@@ -181,5 +181,21 @@ public class User implements Serializable {
 		
 		return obj;
 	}
+	
+	/**
+	 * Method for getting SQL update syntax for updating the user in the user table.
+	 * @return
+	 */
+	public String updateSyntax() {
+		//(email, password, party, encountered_humons, friends, hcount)
+		String update = "";
+		update += "email = '" + email + "',";
+		update += "password = '" + password + "',";
+		update += "party = '" + party + "',";
+		update += "encountered_humons = '" + encounteredHumons + "',";
+		update += "friends = '" + friends + "',";
+		update += "hcount = '" + hcount + "' ";
+		return update;
+	}
 
 }

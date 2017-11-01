@@ -13,5 +13,6 @@ public class Message {
 	public static final String MALFORMED_DATA_PACKET =	"003 - Data packet received was formatted incorrectly.";
 	public static final String SERVER_ERROR_RETRY = 	"004 - Server encountered an error, try request again.";
 	public static final String BAD_COMMAND = 			"005 - Invalid or bad command was issued.";
+	public static final String HUMON_CREATION_ERROR =	"006 - Error creating humon. Try again later.";
 
 }

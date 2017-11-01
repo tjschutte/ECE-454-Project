@@ -21,6 +21,7 @@ public class Humon {
     private int attack;             // How much bonehurtingjuice
     private int speed;              // GOTTA GO FAST
     private int defense;            // how much alcohol your humon can drink
+    private String imagePath;		// Not used on server side.
 
     // Moves will be a combination of <Name, id> to m ap to template moves.
 
@@ -33,7 +34,6 @@ public class Humon {
     
     public Humon(String name, String description, String image, int level, int xp, int hID, String uID,
                  String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense) {
-
         this.name = name;
         this.description = description;
         this.image = image;
@@ -53,6 +53,10 @@ public class Humon {
     public String getName() {
         return name;
     }
+    
+    public String getImagePath() {
+    	return ""; // The server never uses this value, so only even return a dumby value.
+    }
 
     public String getDescription() {
         return description;
@@ -64,6 +68,10 @@ public class Humon {
 
     public int gethID() {
         return hID;
+    }
+    
+    public void sethID(int hID) {
+    	this.hID = hID;
     }
 
     public String getuID() {
@@ -115,6 +123,32 @@ public class Humon {
 	 */
 	public String toJson(ObjectMapper mapper) throws JsonProcessingException {
 		return mapper.writeValueAsString(this);
+	}
+	
+	public String toSqlHumonValueString() {
+		// (name, description, health, attack, defense, speed, luck, moves)
+		String obj = "(";
+		obj += "'" + name + "',";
+		obj += "'" + description + "',";
+		obj += "'" + health + "',";
+		obj += "'" + attack + "',";
+		obj += "'" + defense + "',";
+		obj += "'" + speed + "',";
+		obj += "'" + luck + "',";
+		obj += "'" + moves + "')";
+		return obj;
+	}
+	
+	public String toSqlInstanceValueString(User user) {
+		// (instanceID, humonID, level, expereince, user)
+		String obj = "(";
+		obj += "'" + user.getEmail() + "-" + user.getHcount() + "',";
+		obj += "'" + hID + "',";
+		obj += "'" + level + "',";
+		obj += "'" + xp + "',";
+		obj += "'" + health + "',";
+		obj += "'" + user.getEmail() + "')";
+		return obj;
 	}
 
 }

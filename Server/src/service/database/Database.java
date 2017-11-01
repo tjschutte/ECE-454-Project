@@ -31,8 +31,8 @@ public class Database {
 		
 		createUserTable();
 		createImagesTable();
-		//createHumonsTable();
-		//createInstanceTable();
+		createHumonsTable();
+		createInstanceTable();
 		
 		if (testData) {
 			System.out.println("Populating test data...");
@@ -69,7 +69,7 @@ public class Database {
 	private void createUserTable() throws SQLException {
 		PreparedStatement ps = connection.prepareStatement("CREATE TABLE IF NOT EXISTS users (" + 
 				"userid int auto_increment," + 
-				"email varchar(20) unique not null," + 
+				"email varchar(" + GlobalConstants.MAX_EMAIL_LENGTH + ") unique not null," + 
 				"password text not null," +
 				"party blob," + 
 				"encountered_humons blob," + 
@@ -90,13 +90,32 @@ public class Database {
 	}
 	
 	private void createHumonsTable() throws SQLException {
-		//PreparedStatement ps = connection.prepareStatement("CREATE TABLE IF NOT EXISTS humon (");
-		//ps.executeUpdate();
+		PreparedStatement ps = connection.prepareStatement("CREATE TABLE IF NOT EXISTS humon ("
+				+ "humonID int auto_increment,"
+				+ "name varchar(" + GlobalConstants.MAX_NAME_LENGTH + "),"
+				+ "description varchar(" + GlobalConstants.MAX_DESCRIPTION_LENGTH + "),"
+				+ "health int,"
+				+ "attack int,"
+				+ "defense int,"
+				+ "speed int,"
+				+ "luck int,"
+				+ "moves blob,"
+				+ "PRIMARY KEY (humonID)"
+			+ ");");
+		ps.executeUpdate();
 	}
 	
 	private void createInstanceTable() throws SQLException {
-		//PreparedStatement ps = connection.prepareStatement("CREATE TABLE IF NOT EXISTS instance (");
-		//ps.executeUpdate();
+		PreparedStatement ps = connection.prepareStatement("CREATE TABLE IF NOT EXISTS instance ("
+				+ "instanceID varchar(" + GlobalConstants.MAX_INSTANCEID_LENGTH + "),"
+				+ "humonID int,"
+				+ "level int,"
+				+ "experience int,"
+				+ "health int,"
+				+ "user varchar(" + GlobalConstants.MAX_NAME_LENGTH + "),"
+				+ "PRIMARY KEY (instanceID)"
+			+ ");");
+		ps.executeUpdate();
 	}
 
 }

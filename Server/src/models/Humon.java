@@ -1,9 +1,11 @@
-package data.models;
+package models;
 
 import java.util.ArrayList;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import utilities.SQLHelper;
 
 public class Humon {
 	
@@ -128,15 +130,15 @@ public class Humon {
 	public String toSqlHumonValueString(User user) {
 		// (name, description, health, attack, defense, speed, luck, moves)
 		String obj = "(";
-		obj += "'" + name + "',";
-		obj += "'" + description + "',";
+		obj += "'" + SQLHelper.sqlString(name) + "',";
+		obj += "'" + SQLHelper.sqlString(description) + "',";
 		obj += "'" + health + "',";
 		obj += "'" + attack + "',";
 		obj += "'" + defense + "',";
 		obj += "'" + speed + "',";
 		obj += "'" + luck + "',";
 		obj += "'" + moves + "',";
-		obj += "'" + user.getEmail() + "')";
+		obj += "'" + SQLHelper.sqlString(user.getEmail()) + "')";
 		return obj;
 	}
 	

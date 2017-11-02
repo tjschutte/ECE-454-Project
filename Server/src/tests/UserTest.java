@@ -5,7 +5,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import data.models.User;
+import models.User;
 
 public class UserTest {
 

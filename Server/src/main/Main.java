@@ -5,7 +5,7 @@ import java.net.ServerSocket;
 import java.sql.SQLException;
 
 import server.ServerThread;
-import service.database.Database;
+import utilities.Database;
 
 
 public class Main {

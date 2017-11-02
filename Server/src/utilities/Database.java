@@ -1,4 +1,4 @@
-package service.database;
+package utilities;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

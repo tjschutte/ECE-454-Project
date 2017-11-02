@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import data.models.Humon;
+import models.Humon;
 
 public class HumonTest {
 

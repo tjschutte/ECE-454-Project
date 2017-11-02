@@ -15,10 +15,11 @@ import java.util.Calendar;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import data.models.Humon;
-import data.models.User;
 import main.GlobalConstants;
-import service.database.Connector;
+import models.Humon;
+import models.User;
+import utilities.Connector;
+import utilities.SQLHelper;
 
 public class ServerThread extends Thread {
 
@@ -84,8 +85,12 @@ public class ServerThread extends Thread {
 					save();
 					break;
 				} else if (input.indexOf(':') == -1) {
-					error(Message.BAD_COMMAND);
-					continue;
+					if (input.toUpperCase().equals(Commands.LOGOUT)) {
+						break;
+					} else {
+						error(Message.BAD_COMMAND);
+						continue;
+					}
 				}
 
 				command = input.substring(0, input.indexOf(':'));
@@ -93,10 +98,6 @@ public class ServerThread extends Thread {
 				data = input.substring(input.indexOf(':') + 1, input.length());
 
 				log(command);
-				
-				// close connection if they logout.
-				if (command.equals(Commands.LOGOUT))
-					break;
 				
 				switch (command) {
 				case Commands.REGISTER:
@@ -275,12 +276,12 @@ public class ServerThread extends Thread {
 			Humon humon = mapper.readValue(data, Humon.class);
 			
 			// print it
-			log(user.getEmail() + "is creating a new Humon: " + humon.getName() + ", " + humon.getDescription());
+			log(user.getEmail() + " is creating a new Humon: " + humon.getName() + ", " + humon.getDescription());
 			
 			// Check to make sure it is a unique name / email / description.
 			ResultSet resultSet = databaseConnection
-					.executeSQL("select * from humon where created_by='" + user.getEmail() + "'"
-							+ " and name='" + humon.getName() + "' and description='" +  humon.getDescription() + "';");
+					.executeSQL("select * from humon where created_by='" + SQLHelper.sqlString(user.getEmail()) + "'"
+							+ " and name='" + SQLHelper.sqlString(humon.getName()) + "' and description='" +  SQLHelper.sqlString(humon.getDescription()) + "';");
 			if (resultSet.next()) {
 				error(Message.DUPLICATE_HUMON);
 				log("User attempted to create a duplicate humon");
@@ -300,7 +301,7 @@ public class ServerThread extends Thread {
 
 			// Get the HID to return to the user
 			resultSet = databaseConnection.executeSQL(
-					"select humonID from humon where name='" + humon.getName() + "' and description='" + humon.getDescription() + "';");
+					"select humonID from humon where name='" + SQLHelper.sqlString(humon.getName()) + "' and description='" + SQLHelper.sqlString(humon.getDescription()) + "';");
 			if (!resultSet.next()) {
 				sendResponse(Commands.ERROR, Message.HUMON_CREATION_ERROR);
 				return;

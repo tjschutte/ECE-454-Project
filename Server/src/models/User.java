@@ -1,10 +1,12 @@
-package data.models;
+package models;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import utilities.SQLHelper;
 
 public class User {
 	/**
@@ -171,8 +173,8 @@ public class User {
 
 	public String toSqlValueString() {
 		String obj = "(";
-		obj += "'" + email + "',";
-		obj += "'" + password + "',";
+		obj += "'" + SQLHelper.sqlString(email) + "',";
+		obj += "'" + SQLHelper.sqlString(password) + "',";
 		obj += "'" + party + "',";
 		obj += "'" + encounteredHumons + "',";
 		obj += "'" + friends + "',";
@@ -188,8 +190,8 @@ public class User {
 	public String updateSyntax() {
 		//(email, password, party, encountered_humons, friends, hcount)
 		String update = "";
-		update += "email = '" + email + "',";
-		update += "password = '" + password + "',";
+		update += "email = '" + SQLHelper.sqlString(email) + "',";
+		update += "password = '" + SQLHelper.sqlString(password) + "',";
 		update += "party = '" + party + "',";
 		update += "encountered_humons = '" + encounteredHumons + "',";
 		update += "friends = '" + friends + "',";

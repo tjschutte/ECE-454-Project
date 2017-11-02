@@ -4,10 +4,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.sql.SQLException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import data.models.Humon;
-import data.models.User;
 import server.ServerThread;
 import service.database.Database;
 

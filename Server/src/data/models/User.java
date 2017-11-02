@@ -1,13 +1,12 @@
 package data.models;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class User implements Serializable {
+public class User {
 	/**
 	 * TODO: Make sure constructors sanitize data.
 	 */

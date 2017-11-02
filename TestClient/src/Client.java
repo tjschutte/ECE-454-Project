@@ -24,7 +24,6 @@ public class Client {
 	private JFrame frame = new JFrame("Client");
 	private JTextField dataField = new JTextField(40);
 	private JTextArea messageArea = new JTextArea(8, 60);
-	private boolean getReply = false;
 
 	/**
 	 * Constructs the client by laying out the GUI and registering a listener with

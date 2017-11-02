@@ -38,8 +38,6 @@ public class Database {
 			System.out.println("Populating test data...");
 			createTestData();
 		}
-		
-		
 		connection.disconnect();
 	}
 	
@@ -100,6 +98,7 @@ public class Database {
 				+ "speed int,"
 				+ "luck int,"
 				+ "moves blob,"
+				+ "created_by varchar(" + GlobalConstants.MAX_EMAIL_LENGTH + "),"
 				+ "PRIMARY KEY (humonID)"
 			+ ");");
 		ps.executeUpdate();

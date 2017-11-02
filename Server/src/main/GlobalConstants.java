@@ -1,7 +1,5 @@
 package main;
 
-import java.sql.PreparedStatement;
-
 public class GlobalConstants {
 
 	public static final long UPDATE_TIME = 					300000000000l;
@@ -22,7 +20,7 @@ public class GlobalConstants {
 	
 	public static final String IMAGE_TABLE_COLUMNS = "(imageid, image)";	
 	
-	public static final String HUMON_TABLE_COLUMNS = "(name, description, health, attack, defense, speed, luck, moves)";
+	public static final String HUMON_TABLE_COLUMNS = "(name, description, health, attack, defense, speed, luck, moves, created_by)";
 	
 	public static final String INSTANCE_TABLE_COLUMNS = "(instanceID, humonID, level, expereince, health, user)";
 	

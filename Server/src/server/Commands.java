@@ -7,6 +7,7 @@ public class Commands {
 	 */
 	
 	public static final String LOGIN = 			"LOGIN";
+	public static final String LOGOUT = 		"LOGOUT";
 	public static final String REGISTER = 		"REGISTER";
 	public static final String ERROR = 			"ERROR";
 	public static final String SUCCESS = 		"SUCCESS";

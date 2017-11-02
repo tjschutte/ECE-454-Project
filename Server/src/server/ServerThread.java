@@ -13,7 +13,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import data.models.Humon;
@@ -95,6 +94,10 @@ public class ServerThread extends Thread {
 
 				log(command);
 				
+				// close connection if they logout.
+				if (command.equals(Commands.LOGOUT))
+					break;
+				
 				switch (command) {
 				case Commands.REGISTER:
 					register(data);
@@ -103,7 +106,7 @@ public class ServerThread extends Thread {
 					login(data);
 					break;
 				case Commands.CREATE_HUMON:
-					saveNewHumon(data);
+					createNewHumon(data);
 					break;
 				default:
 					error(Message.BAD_COMMAND);
@@ -151,6 +154,10 @@ public class ServerThread extends Thread {
 		}
 	}
 
+	/**
+	 * Check if the email is in use, and register a new fresh user.
+	 * @param data
+	 */
 	private void register(String data) {
 		log("Trying to register new user");
 		log(data);
@@ -196,6 +203,10 @@ public class ServerThread extends Thread {
 
 	}
 
+	/**
+	 * Check if the account exists, then log them into the server, and send a copy of user data back.
+	 * @param data
+	 */
 	private void login(String data) {
 		log("Trying to login with ");
 		log(data);
@@ -255,16 +266,32 @@ public class ServerThread extends Thread {
 	 * 
 	 * @param data
 	 */
-	private void saveNewHumon(String data) {
+	private void createNewHumon(String data) {
 		try {
+			if (user == null || user.getEmail().isEmpty()) {
+				error(Message.NOT_LOGGEDIN);
+				return;
+			}
 			Humon humon = mapper.readValue(data, Humon.class);
-			// Just print it for now....
-			log("Creating new Humon: " + humon.getName() + ", " + humon.getDescription());
+			
+			// print it
+			log(user.getEmail() + "is creating a new Humon: " + humon.getName() + ", " + humon.getDescription());
+			
+			// Check to make sure it is a unique name / email / description.
+			ResultSet resultSet = databaseConnection
+					.executeSQL("select * from humon where created_by='" + user.getEmail() + "'"
+							+ " and name='" + humon.getName() + "' and description='" +  humon.getDescription() + "';");
+			if (resultSet.next()) {
+				error(Message.DUPLICATE_HUMON);
+				log("User attempted to create a duplicate humon");
+				return;
+			}
+			
 			int hID;
 
 			// Insert into humon Table
 			PreparedStatement ps = databaseConnection.prepareStatement("insert into humon "
-					+ GlobalConstants.HUMON_TABLE_COLUMNS + " values " + humon.toSqlHumonValueString());
+					+ GlobalConstants.HUMON_TABLE_COLUMNS + " values " + humon.toSqlHumonValueString(user));
 			// Should only get 1 row was affected.
 			int rows = ps.executeUpdate();
 			if (rows != 1) {
@@ -272,8 +299,8 @@ public class ServerThread extends Thread {
 			}
 
 			// Get the HID to return to the user
-			ResultSet resultSet = databaseConnection.executeSQL(
-					"select humonID from humon where name='" + humon.getName() + "' and image='" + humon.getImage() + "';");
+			resultSet = databaseConnection.executeSQL(
+					"select humonID from humon where name='" + humon.getName() + "' and description='" + humon.getDescription() + "';");
 			if (!resultSet.next()) {
 				sendResponse(Commands.ERROR, Message.HUMON_CREATION_ERROR);
 				return;
@@ -281,35 +308,19 @@ public class ServerThread extends Thread {
 			
 			// Get the hID of the created humon, and send it as the response, as well as updated hcount. User is also now dirty.
 			hID = resultSet.getInt(1);
-			user.incrementHCount();
-			sendResponse(Commands.SUCCESS, "{\"hID\":\"" + hID + "\",\"hCount\":\"" + user.getHcount() +"\"}");
-			
-			// Set the hID for the object now that we know it.
-			humon.sethID(hID);
-			
-			// Insert into instance Table
-			// TODO: What should instances have for health....?
-			// ps = databaseConnection.prepareStatement("insert into instance "
-			// + GlobalConstants.INSTANCE_TABLE_COLUMNS + " values "
-			// + humon.toSqlInstanceValueString(user));
-			// // // Should only get 1 row was affected.
-			// rows = ps.executeUpdate();
-			// if (rows != 1) {
-			// throw new SQLException();
-			// }
 
-			// Insert into image Table
+			sendResponse(Commands.SUCCESS, "{\"hID\":\"" + hID + "\"}");
+
+			// Insert image into image Table
 			ps = databaseConnection.prepareStatement("insert into image "
 					+ GlobalConstants.IMAGE_TABLE_COLUMNS + " values "
 					+ "('" + hID + "','" + humon.getImage() + "')");
+			
 			// Should only get 1 row was affected.
 			rows = ps.executeUpdate();
 			if (rows != 1) {
 				throw new SQLException();
 			}
-			
-			// Trigger a save. No need to inform the user though.
-			save();
 
 		} catch (IOException e) {
 			log("Recieved malformed data packet");

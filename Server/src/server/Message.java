@@ -14,5 +14,7 @@ public class Message {
 	public static final String SERVER_ERROR_RETRY = 	"004 - Server encountered an error, try request again.";
 	public static final String BAD_COMMAND = 			"005 - Invalid or bad command was issued.";
 	public static final String HUMON_CREATION_ERROR =	"006 - Error creating humon. Try again later.";
+	public static final String DUPLICATE_HUMON = 		"007 - User attempted to create an already existing humon. Try creating a Humon with a different Name or Description";
+	public static final String NOT_LOGGEDIN = 			"008 - Must be logged in to perform this action.";
 
 }

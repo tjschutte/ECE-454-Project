@@ -21,7 +21,7 @@ public class Humon {
     private int attack;             // How much bonehurtingjuice
     private int speed;              // GOTTA GO FAST
     private int defense;            // how much alcohol your humon can drink
-    private String imagePath;		// Not used on server side.
+    private String imagePath;		// server does nothing with this.
 
     // Moves will be a combination of <Name, id> to m ap to template moves.
 
@@ -125,7 +125,7 @@ public class Humon {
 		return mapper.writeValueAsString(this);
 	}
 	
-	public String toSqlHumonValueString() {
+	public String toSqlHumonValueString(User user) {
 		// (name, description, health, attack, defense, speed, luck, moves)
 		String obj = "(";
 		obj += "'" + name + "',";
@@ -135,7 +135,8 @@ public class Humon {
 		obj += "'" + defense + "',";
 		obj += "'" + speed + "',";
 		obj += "'" + luck + "',";
-		obj += "'" + moves + "')";
+		obj += "'" + moves + "',";
+		obj += "'" + user.getEmail() + "')";
 		return obj;
 	}
 	

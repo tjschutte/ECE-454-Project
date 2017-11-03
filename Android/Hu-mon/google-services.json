@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "203538143905",
+    "firebase_url": "https://ece454-humon.firebaseio.com",
+    "project_id": "ece454-humon",
+    "storage_bucket": "ece454-humon.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:203538143905:android:7bc2a22b14a651bb",
+        "android_client_info": {
+          "package_name": "edu.wisc.ece454.hu_mon"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "203538143905-mnrddf6kb65af5gu7n07haoc406mmmck.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSi_65-r5ruzOq_vuKiGjrgP53RlV3O10"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

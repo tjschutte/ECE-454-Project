@@ -5,7 +5,7 @@ android {
     buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "edu.wisc.ece454.hu_mon"
-        minSdkVersion 15
+        minSdkVersion 20
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
@@ -24,10 +24,12 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    //compile 'com.google.firebase:firebase-messaging:11.0.4'
+    compile 'com.google.firebase:firebase-core:11.4.2'
+    compile 'com.google.firebase:firebase-messaging:11.4.2'
+    compile 'com.firebase:firebase-jobdispatcher:0.6.0'
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.google.android.gms:play-services-maps:11.0.4'
+    compile 'com.google.android.gms:play-services-maps:11.4.2'
     testCompile 'junit:junit:4.12'
     compile (
             [group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.6.3'],
@@ -35,3 +37,5 @@ dependencies {
             [group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.3']
     )
 }
+
+apply plugin: 'com.google.gms.google-services'

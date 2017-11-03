@@ -16,6 +16,9 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.iid.FirebaseInstanceId;
+
 import java.io.IOException;
 
 import edu.wisc.ece454.hu_mon.R;
@@ -41,6 +44,9 @@ public class LoginActivity extends AppCompatActivity {
 
         EMAIL_KEY = getString(R.string.emailKey);
         checkPermissions();
+        FirebaseApp.initializeApp(this);
+        String token = FirebaseInstanceId.getInstance().getToken();
+        System.out.println(token);
     }
 
 

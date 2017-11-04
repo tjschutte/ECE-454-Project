@@ -205,7 +205,7 @@ public class ServerThread extends Thread {
 	 * @param data
 	 */
 	private void login(String data) {
-		Global.log(clientNumber, "Trying to Global.login with ");
+		Global.log(clientNumber, "Trying to Login with ");
 		Global.log(clientNumber, data);
 
 		try {
@@ -220,23 +220,15 @@ public class ServerThread extends Thread {
 				return;
 			}
 
-			ResultSetMetaData rsmd = resultSet.getMetaData();
-			int columnsNumber = rsmd.getColumnCount();
-
-			String object = "";
-			for (int i = 1; i <= columnsNumber; i++) {
-				if (i > 1)
-					object += (", ");
-				String columnValue = resultSet.getString(i);
-				object += (rsmd.getColumnName(i) + " " + columnValue);
-			}
-
-			Global.log(clientNumber, "Found user");
-			Global.log(clientNumber, object);
 			// Map from database to object
 			user = new User(resultSet.getString(2), resultSet.getString(3), resultSet.getString(4),
 					resultSet.getString(5), resultSet.getString(6), resultSet.getInt(7), resultSet.getString(8), false);
 			sendResponse(Commands.SUCCESS, user.toJson(mapper));
+			
+			// Check if the user is on a new device. If so, update so we can send notifications to it.
+			if (user.getDeviceToken() != null && !user.getDeviceToken().equals(resultSet.getString(8)) && !user.getDeviceToken().isEmpty()) {
+				save();
+			}
 
 		} catch (JsonParseException e) {
 			Global.log(clientNumber, "Recieved malformed data packet");
@@ -290,7 +282,7 @@ public class ServerThread extends Thread {
 			return;
 		}
 		
-		new NotificationHandler().sendPushNotification(resultSet.getString(1), Message.NEW_FRIEND_REQUEST_TITLE, user.getEmail() + Message.NEW_FRIEND_REQUEST_BODY);
+		NotificationHandler.sendPushNotification(resultSet.getString(1), Message.NEW_FRIEND_REQUEST_TITLE, user.getEmail() + Message.NEW_FRIEND_REQUEST_BODY);
 		sendResponse(Commands.SUCCESS, Message.FRIEND_REQUEST_SENT);
 	}
 

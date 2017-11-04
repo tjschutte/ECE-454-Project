@@ -10,11 +10,18 @@ import java.sql.SQLException;
 
 import org.apache.commons.codec.binary.Base64;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import main.Global;
+import models.Humon;
+import models.User;
 
 public class Database {
 	private Connector connection;
 	
+	private String testHumon1 = "{\"attack\":4,\"defense\":5,\"description\":\"it's a test description\",\"hID\":0,\"health\":3,\"iID\":\"\",\"image\":\"\",\"imagePath\":\"\",\"level\":1,\"luck\":7,\"moves\":[{\"description\":\"Wattup\",\"dmg\":10,\"effect\":null,\"hasEffect\":false,\"id\":0,\"name\":\"Test Move A\",\"selfCast\":false},{\"description\":\"Wattup\",\"dmg\":10,\"effect\":null,\"hasEffect\":false,\"id\":1,\"name\":\"Test Move B\",\"selfCast\":false},{\"description\":\"Wattup\",\"dmg\":10,\"effect\":null,\"hasEffect\":false,\"id\":8,\"name\":\"Test Move I\",\"selfCast\":false},{\"description\":\"Wattup\",\"dmg\":10,\"effect\":null,\"hasEffect\":false,\"id\":9,\"name\":\"Test Move J\",\"selfCast\":false}],\"name\":\"Test Humon 1\",\"speed\":6,\"uID\":\"a\",\"xp\":0}\r\n";
+	private String testHumon2 = "{\"attack\":4,\"defense\":5,\"description\":\"it's a test description\",\"hID\":0,\"health\":3,\"iID\":\"\",\"image\":\"\",\"imagePath\":\"\",\"level\":1,\"luck\":7,\"moves\":[{\"description\":\"Wattup\",\"dmg\":10,\"effect\":null,\"hasEffect\":false,\"id\":0,\"name\":\"Test Move A\",\"selfCast\":false},{\"description\":\"Wattup\",\"dmg\":10,\"effect\":null,\"hasEffect\":false,\"id\":1,\"name\":\"Test Move B\",\"selfCast\":false},{\"description\":\"Wattup\",\"dmg\":10,\"effect\":null,\"hasEffect\":false,\"id\":8,\"name\":\"Test Move I\",\"selfCast\":false},{\"description\":\"Wattup\",\"dmg\":10,\"effect\":null,\"hasEffect\":false,\"id\":9,\"name\":\"Test Move J\",\"selfCast\":false}],\"name\":\"Test Humon 2\",\"speed\":6,\"uID\":\"a\",\"xp\":0}\r\n";
+
 	/**
 	 * Object whose sole purpose is to connect to the database and make sure all needed tables are
 	 * set up for the server.  Will create a connection, create each of the needed tables, and
@@ -78,10 +85,27 @@ public class Database {
 			fileInputStreamReader.read(bytes);
 			image = new String(Base64.encodeBase64(bytes), "UTF-8");
 			
-			PreparedStatement ps = connection
-					.prepareStatement("insert into image (imageid, image) values ('99', '" + image + "');");
-			
+			PreparedStatement ps = connection.prepareStatement("insert into image (imageid, image) values ('1', '" + image + "');");
 			ps.executeUpdate();
+			ps = connection.prepareStatement("insert into image (imageid, image) values ('2', '" + image + "');");
+			ps.executeUpdate();
+			
+			User user = new User("user1@testemail.com", "Password", 0, "", false);
+			ps = connection.prepareStatement("insert into users " + Global.USERS_TABLE_COLUMNS + " values " + user.toSqlValueString() + ";");
+			ps.executeUpdate();
+			
+			user = new User("user2@testemail.com", "Password", 0, "", false);
+			ps = connection.prepareStatement("insert into users " + Global.USERS_TABLE_COLUMNS + " values " + user.toSqlValueString() + ";");
+			ps.executeUpdate();
+			
+			Humon humon = new ObjectMapper().readValue(testHumon1, Humon.class);
+			ps = connection.prepareStatement("insert into humon " + Global.HUMON_TABLE_COLUMNS + " values " + humon.toSqlHumonValueString(user));
+			ps.executeUpdate();
+			
+			humon = new ObjectMapper().readValue(testHumon2, Humon.class);
+			ps = connection.prepareStatement("insert into humon " + Global.HUMON_TABLE_COLUMNS + " values " + humon.toSqlHumonValueString(user));
+			ps.executeUpdate();
+			
 			
 		} catch (SQLException | IOException e) {
 			e.printStackTrace();

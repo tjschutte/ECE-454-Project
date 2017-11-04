@@ -11,7 +11,7 @@ public class UserTest {
 
 	@Test
 	public void test() {
-		User test = new User("Email@email.com", "myPassword", 0, false);
+		User test = new User("Email@email.com", "myPassword", 0, "", false);
         try {
         String testJSON = test.toJson(new ObjectMapper());
         
@@ -27,7 +27,7 @@ public class UserTest {
 	
 	@Test
 	public void testAddAndGetParty() {
-		User test = new User("Email@email.com", "myPassword", 0, false);
+		User test = new User("Email@email.com", "myPassword", 0, "", false);
 		assert(test.getParty() == null);
 		test.addPartyMember("SomeHumon");
 		assert(test.getParty() != null);
@@ -35,7 +35,7 @@ public class UserTest {
 	
 	@Test
 	public void testAddAndGetFriends() {
-		User test = new User("Email@email.com", "myPassword", 0, false);
+		User test = new User("Email@email.com", "myPassword", 0, "", false);
 		assert(test.getFriends() == null);
 		test.addPartyMember("SomeHumon");
 		assert(test.getFriends() != null);
@@ -43,7 +43,7 @@ public class UserTest {
 	
 	@Test
 	public void testAddAndGetEncounteredHumons() {
-		User test = new User("Email@email.com", "myPassword", 0, false);
+		User test = new User("Email@email.com", "myPassword", 0, "", false);
 		assert(test.getEncounteredHumons() == null);
 		test.addPartyMember("SomeHumon");
 		assert(test.getEncounteredHumons() != null);

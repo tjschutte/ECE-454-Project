@@ -1,9 +1,16 @@
 package utilities;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import main.GlobalConstants;
+import org.apache.commons.codec.binary.Base64;
+
+import main.Global;
 
 public class Database {
 	private Connector connection;
@@ -17,8 +24,8 @@ public class Database {
 	 * @throws SQLException
 	 */
 	public Database(boolean cleanTables, boolean testData) throws SQLException {
-		this.connection = new Connector(GlobalConstants.DATABASE_NAME, GlobalConstants.TABLE_NAME, 
-				GlobalConstants.DATABASE_USER_NAME, GlobalConstants.DATABASE_USER_PASSWORD, GlobalConstants.DEFAULT_CONNECTIONS);
+		this.connection = new Connector(Global.DATABASE_NAME, Global.TABLE_NAME, 
+				Global.DATABASE_USER_NAME, Global.DATABASE_USER_PASSWORD, Global.DEFAULT_CONNECTIONS);
 		
 		connection.startConnection();
 		
@@ -61,18 +68,40 @@ public class Database {
 	}
 	
 	private void createTestData() {
-		// TODO Auto-generated method stub
+		try {
+			String image = "";
+		
+			File file =  new File("GooglePlay.png");
+		
+			FileInputStream fileInputStreamReader = new FileInputStream(file);
+			byte[] bytes = new byte[(int)file.length()];
+			fileInputStreamReader.read(bytes);
+			image = new String(Base64.encodeBase64(bytes), "UTF-8");
+			
+			PreparedStatement ps = connection
+					.prepareStatement("insert into image (imageid, image) values ('99', '" + image + "');");
+			
+			ps.executeUpdate();
+			
+		} catch (SQLException | IOException e) {
+			e.printStackTrace();
+		}
+		
+		
+		
+		
 	}
 
 	private void createUserTable() throws SQLException {
 		PreparedStatement ps = connection.prepareStatement("CREATE TABLE IF NOT EXISTS users (" + 
 				"userid int auto_increment," + 
-				"email varchar(" + GlobalConstants.MAX_EMAIL_LENGTH + ") unique not null," + 
+				"email varchar(" + Global.MAX_EMAIL_LENGTH + ") unique not null," + 
 				"password text not null," +
 				"party blob," + 
 				"encountered_humons blob," + 
 				"friends blob," + 
-				"hcount int," +  
+				"hcount int," +
+				"deviceToken text," + 
 				"PRIMARY KEY (userid)" + 
 			");");
 		ps.executeUpdate();
@@ -90,15 +119,15 @@ public class Database {
 	private void createHumonsTable() throws SQLException {
 		PreparedStatement ps = connection.prepareStatement("CREATE TABLE IF NOT EXISTS humon ("
 				+ "humonID int auto_increment,"
-				+ "name varchar(" + GlobalConstants.MAX_NAME_LENGTH + "),"
-				+ "description varchar(" + GlobalConstants.MAX_DESCRIPTION_LENGTH + "),"
+				+ "name varchar(" + Global.MAX_NAME_LENGTH + "),"
+				+ "description varchar(" + Global.MAX_DESCRIPTION_LENGTH + "),"
 				+ "health int,"
 				+ "attack int,"
 				+ "defense int,"
 				+ "speed int,"
 				+ "luck int,"
 				+ "moves blob,"
-				+ "created_by varchar(" + GlobalConstants.MAX_EMAIL_LENGTH + "),"
+				+ "created_by varchar(" + Global.MAX_EMAIL_LENGTH + "),"
 				+ "PRIMARY KEY (humonID)"
 			+ ");");
 		ps.executeUpdate();
@@ -106,12 +135,12 @@ public class Database {
 	
 	private void createInstanceTable() throws SQLException {
 		PreparedStatement ps = connection.prepareStatement("CREATE TABLE IF NOT EXISTS instance ("
-				+ "instanceID varchar(" + GlobalConstants.MAX_INSTANCEID_LENGTH + "),"
+				+ "instanceID varchar(" + Global.MAX_INSTANCEID_LENGTH + "),"
 				+ "humonID int,"
 				+ "level int,"
 				+ "experience int,"
 				+ "health int,"
-				+ "user varchar(" + GlobalConstants.MAX_NAME_LENGTH + "),"
+				+ "user varchar(" + Global.MAX_NAME_LENGTH + "),"
 				+ "PRIMARY KEY (instanceID)"
 			+ ");");
 		ps.executeUpdate();

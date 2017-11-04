@@ -21,6 +21,7 @@ public class User {
 	private ArrayList<String> friends;
 	private int hcount;
 	private boolean isDirty;
+	private String deviceToken;
 
 	/**
 	 * Default Constructor for Jackson.
@@ -36,13 +37,14 @@ public class User {
 	 * @param password - password
 	 * @param hcount - number of humons encountered
 	 */
-	public User(String email, String password, int hcount, boolean isDirty) {
+	public User(String email, String password, int hcount, String deviceToken, boolean isDirty) {
 		this.email = email;
 		this.password = password;
 		this.party = null; 
 		this.encounteredHumons = null;
 		this.friends = null;
 		this.hcount = hcount;
+		this.deviceToken = deviceToken;
 		this.isDirty = isDirty;
 	}
 	
@@ -57,18 +59,23 @@ public class User {
 	 * @param hcount
 	 * @param isDirty
 	 */
-	public User(String email, String password, String party, String encounteredHumons, String friends, int hcount, boolean isDirty) {
+	public User(String email, String password, String party, String encounteredHumons, String friends, int hcount, String deviceToken, boolean isDirty) {
 		this.email = email;
 		this.password = password;
 		this.party = (party != null) ? new ArrayList<String>(Arrays.asList(party.split(","))) : new ArrayList<String>();
 		this.encounteredHumons = (encounteredHumons != null) ? new ArrayList<String>(Arrays.asList(encounteredHumons.split(","))) : new ArrayList<String>();
 		this.friends = (friends != null) ? new ArrayList<String>(Arrays.asList(friends.split(","))) : new ArrayList<String>();
 		this.hcount = hcount;
+		this.deviceToken = deviceToken;
 		this.isDirty = isDirty;
 	}
 
 	public boolean getIsDirty() {
 		return isDirty;
+	}
+	
+	public String getDeviceToken(){
+		return deviceToken;
 	}
 	
 	public void setClean() {
@@ -178,7 +185,8 @@ public class User {
 		obj += "'" + party + "',";
 		obj += "'" + encounteredHumons + "',";
 		obj += "'" + friends + "',";
-		obj += "'" + hcount + "')";
+		obj += "'" + hcount + "',";
+		obj += "'" + deviceToken + "')";
 		
 		return obj;
 	}
@@ -188,14 +196,14 @@ public class User {
 	 * @return
 	 */
 	public String updateSyntax() {
-		//(email, password, party, encountered_humons, friends, hcount)
 		String update = "";
 		update += "email = '" + SQLHelper.sqlString(email) + "',";
 		update += "password = '" + SQLHelper.sqlString(password) + "',";
 		update += "party = '" + party + "',";
 		update += "encountered_humons = '" + encounteredHumons + "',";
 		update += "friends = '" + friends + "',";
-		update += "hcount = '" + hcount + "' ";
+		update += "hcount = '" + hcount + "',";
+		update += "deviceToken = '" + deviceToken + "' ";
 		return update;
 	}
 

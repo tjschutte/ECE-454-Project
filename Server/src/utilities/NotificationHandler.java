@@ -14,6 +14,14 @@ public class NotificationHandler {
 	private final String API_KEY = "AAAAL2PRmqE:APA91bEQ0DxLElgVjsYzuRqi1gyN1r5ly7Ri8ijoqJVDuyvS67ChgpRqCEYTl4uT0kyGpLDc0_p_4VSXLMKDFxdHtPzABt3NJ6NERkLsmM7J-U4Gfc0M0jVCsKGpvgodVcAAmYmfUsLE ";
 	private final String API_URL_FCM = "https://fcm.googleapis.com/fcm/send";
 
+	/**
+	 * Sends a push notification to a single device.
+	 * @param deviceToken - The firebase device ID
+	 * @param notificationTitle - the title of the notification to use
+	 * @param notificationBody - the message body
+	 * @throws IOException
+	 * @throws JSONException
+	 */
 	public void sendPushNotification(String deviceToken, String notificationTitle, String notificationBody) 
 			throws IOException, JSONException {
         URL url = new URL(API_URL_FCM);
@@ -44,16 +52,13 @@ public class NotificationHandler {
                     (conn.getInputStream())));
  
             String output;
-            System.out.println("Output from Server .... \n");
             while ((output = br.readLine()) != null) {
-                System.out.println(output);
+                //System.out.println(output);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-
         }
-        System.out.println("GCM Notification is sent successfully");
  
 	}
 

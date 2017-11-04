@@ -71,8 +71,7 @@ public class Client {
 	public void connectToServer() throws IOException {
 
 		// Get the server address from a dialog box.
-		String serverAddress = JOptionPane.showInputDialog(frame, "Enter IP Address of the Server:",
-				"Welcome to the Simple Client Program", JOptionPane.QUESTION_MESSAGE);
+		String serverAddress = "127.0.0.1";
 
 		// Make connection and initialize streams
 		Socket socket = new Socket(serverAddress, 9898);

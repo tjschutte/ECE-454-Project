@@ -31,6 +31,7 @@ public class LoginActivity extends AppCompatActivity {
     private String EMAIL_KEY;
     private String email;
     private String password;
+    private String deviceToken;
 
     private final String ACTIVITY_TITLE = "Login";
     ServerConnection mServerConnection;
@@ -45,8 +46,7 @@ public class LoginActivity extends AppCompatActivity {
         EMAIL_KEY = getString(R.string.emailKey);
         checkPermissions();
         FirebaseApp.initializeApp(this);
-        String token = FirebaseInstanceId.getInstance().getToken();
-        System.out.println(token);
+        deviceToken = FirebaseInstanceId.getInstance().getToken();
     }
 
 
@@ -181,7 +181,8 @@ public class LoginActivity extends AppCompatActivity {
 
         else {
             if (mServiceBound){
-                mServerConnection.sendMessage("login:{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}");
+                mServerConnection.sendMessage("login:{\"email\":\"" + email + "\",\"password\":\"" + password + "\"," +
+                        "\"deviceToken\":\"" + deviceToken + "\"}");
             } else {
                 // Couldnt talk to server or something?
             }
@@ -220,7 +221,8 @@ public class LoginActivity extends AppCompatActivity {
 
         else {
             if (mServiceBound){
-                mServerConnection.sendMessage("register:{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}");
+                mServerConnection.sendMessage("register:{\"email\":\"" + email + "\",\"password\":\"" + password + "\"," +
+                        "\"deviceToken\":\"" + deviceToken + "\"}");
             } else {
                 // Couldnt talk to server or something?
             }

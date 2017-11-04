@@ -419,7 +419,7 @@ public class CreateHumonActivity extends AppCompatActivity {
 
         //Store image path instead of image locally
         //TODO: replace filename with hID
-        h.setImage(null);
+        //h.setImage(null);
         File imageFile = new File(getFilesDir(),humonName + ".jpg");
         storeImageFile(imageFile);
         h.setImagePath(imageFile.getPath());

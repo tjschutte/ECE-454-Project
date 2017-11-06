@@ -1,8 +1,5 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -11,7 +8,6 @@ import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -42,28 +38,6 @@ public class HumonInfoActivity extends AppCompatActivity {
         moveGridView.setAdapter(moveAdapter);
 
     }
-
-    BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String response = intent.getStringExtra(getString(R.string.serverBroadCastResponseKey));
-            String command;
-            String data;
-            if (response.indexOf(':') == -1) {
-                // Got a bad response from the server. Do nothing.
-                Toast toast = Toast.makeText(context, "Error communicating with server. Try again.", Toast.LENGTH_SHORT);
-                toast.show();
-                return;
-            }
-
-            command = response.substring(0, response.indexOf(':'));
-            command = command.toUpperCase();
-            data = response.substring(response.indexOf(':') + 1, response.length());
-
-            System.out.println(command + ": " + data);
-        }
-    };
-
 
     @Override
     protected void onStart() {

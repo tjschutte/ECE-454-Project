@@ -1,10 +1,8 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -52,7 +50,6 @@ public class CreateHumonActivity extends AppCompatActivity {
     ArrayAdapter<String> moveAdapter;
     ServerConnection mServerConnection;
     boolean mBound;
-    IntentFilter filter = new IntentFilter();
 
     //image data
     private String tempImagePath;
@@ -140,27 +137,6 @@ public class CreateHumonActivity extends AppCompatActivity {
         }
     };
 
-    BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String response = intent.getStringExtra(getString(R.string.serverBroadCastResponseKey));
-            String command;
-            String data;
-            if (response.indexOf(':') == -1) {
-                // Got a bad response from the server. Do nothing.
-                Toast toast = Toast.makeText(context, "Error communicating with server. Try again.", Toast.LENGTH_SHORT);
-                toast.show();
-                return;
-            }
-
-            command = response.substring(0, response.indexOf(':'));
-            command = command.toUpperCase();
-            data = response.substring(response.indexOf(':') + 1, response.length());
-
-            System.out.println(command + ": " + data);
-        }
-    };
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -174,27 +150,11 @@ public class CreateHumonActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        try {
-            unregisterReceiver(receiver);
-            if (mBound) {
-                unbindService(mServiceConnection);
-                mBound = false;
-            }
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage().contains("Receiver not registered")) {
-                // Ignore this exception. This is exactly what is desired
-            } else {
-                // unexpected, re-throw
-                throw e;
-            }
-        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        filter.addAction(getString(R.string.serverBroadCastEvent));
-        registerReceiver(receiver, filter);
         if (!mBound) {
             // Attach to the server communication service
             Intent intent = new Intent(this, ServerConnection.class);

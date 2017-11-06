@@ -58,7 +58,7 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
             inputStream.read(buffer);
             inputStream.close();
             oldIndex = new String(buffer, "UTF-8");
-            System.out.println("Current humon index: " + oldIndex);
+            //System.out.println("Current humon index: " + oldIndex);
         }
         catch(FileNotFoundException e) {
             e.printStackTrace();
@@ -105,7 +105,7 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
 
         try {
             //write object to file
-            System.out.println("Writing: " + indexJSON.toString());
+            //System.out.println("Writing: " + indexJSON.toString());
             System.out.println("Data written to: " + filename);
             outputStream = new FileOutputStream(indexFile);
             outputStream.write(indexJSON.toString().getBytes());

@@ -91,6 +91,11 @@
             android:stopWithTask="true" />
 
         <activity android:name=".Activities.BattleActivity" />
+        <receiver android:name=".Utilities.ServerBroadcastReceiver"  android:exported="true">
+            <intent-filter>
+                <action android:name="edu.wisc.ece454.hu_mon.SERVER_RESPONSE"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

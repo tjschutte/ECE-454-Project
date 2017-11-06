@@ -1,7 +1,5 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,7 +7,6 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,27 +26,6 @@ public class CreateHumonImageActivity extends AppCompatActivity {
         imagePath = "";
         dispatchTakePictureIntent();
     }
-
-    BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String response = intent.getStringExtra(getString(R.string.serverBroadCastResponseKey));
-            String command;
-            String data;
-            if (response.indexOf(':') == -1) {
-                // Got a bad response from the server. Do nothing.
-                Toast toast = Toast.makeText(context, "Error communicating with server. Try again.", Toast.LENGTH_SHORT);
-                toast.show();
-                return;
-            }
-
-            command = response.substring(0, response.indexOf(':'));
-            command = command.toUpperCase();
-            data = response.substring(response.indexOf(':') + 1, response.length());
-
-            System.out.println(command + ": " + data);
-        }
-    };
 
     private File createImageFile() throws IOException {
         // Create an image file name

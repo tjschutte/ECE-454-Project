@@ -4,7 +4,6 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.widget.Toast;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -93,7 +92,9 @@ public class ServerConnection extends Service {
                     }
                 } else {
                     String data = obj.toJson(new ObjectMapper());
-                    System.out.println("Attempting to send: " + msg + ": " + data);
+                    if(msg.length() < 100) {
+                        System.out.println("Attempting to send: " + msg + ": " + data);
+                    }
                     if (out != null && !out.checkError()) {
                         System.out.println("Sending...");
                         out.println( msg + ": " + data);

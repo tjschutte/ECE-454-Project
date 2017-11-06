@@ -354,7 +354,8 @@ public class ServerThread extends Thread {
 		// updated hcount. User is also now dirty.
 		hID = resultSet.getInt(1);
 
-		sendResponse(Commands.SUCCESS, "{\"hID\":\"" + hID + "\"}");
+		sendResponse(Commands.SUCCESS, "{\"hID\":\"" + hID + "\",\"name\":\"" + humon.getName() + "\","
+				+ "\"description\"" + humon.getDescription() + "\"}");
 
 		// Insert image into image Table
 		ps = databaseConnection.prepareStatement("insert into image " + Global.IMAGE_TABLE_COLUMNS + " values " + "('"

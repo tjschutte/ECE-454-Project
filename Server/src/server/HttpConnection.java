@@ -1,21 +1,10 @@
 package server;
 
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import javax.imageio.ImageIO;
-
-import org.apache.commons.codec.binary.Base64;
-
 import main.Global;
 import utilities.Connector;
 
@@ -51,9 +40,6 @@ public class HttpConnection extends Thread {
 					} else if (Headers[1].equalsIgnoreCase("/download")) {
 						// Send them the app to install
 						download();
-					} else if (Headers[1].contains("get-image")) {
-						// Send them a page with the requested image
-						getImage(Headers[1]);
 					} else {
 						// Do nothing, probably not the header we want.
 					}
@@ -63,7 +49,7 @@ public class HttpConnection extends Thread {
 			
 			in.close();
 			socket.close();
-		} catch (IOException | SQLException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -99,50 +85,6 @@ public class HttpConnection extends Thread {
 		out.println("</body></html>");
 		out.close();
 		
-	}
-
-	private void getImage(String connectionString) throws IOException, SQLException {
-		System.out.println("Connection to Images");
-		System.out.println(connectionString);
-		OutputStream out;
-		
-		try {
-			int imageNum = Integer.parseInt(connectionString.split("/")[2]);
-			
-			ResultSet resultSet = databaseConnection
-					.executeSQL("select * from image where imageID='" + imageNum + "';");
-			
-			if (!resultSet.next()) {
-				System.out.println("Connection to Homepage.");
-				PrintWriter outPW = new PrintWriter(socket.getOutputStream());
-				outPW.print("HTTP/1.1 200 \r\n"); // Version & status code
-				outPW.print("Content-Type: text/html\r\n"); // The type of data
-				outPW.print("Connection: close\r\n"); // Will close stream
-				outPW.print("\r\n"); // End of headers
-
-				outPW.println("<html><body>");
-				outPW.println("<p>Could not find image: " + imageNum + "</p>");
-				outPW.println("</body></html>");
-				outPW.close();
-				return;
-			} 
-			out = socket.getOutputStream();
-			
-			String image = resultSet.getString(2);
-			
-			byte[] bytes = Base64.decodeBase64(image);
-			BufferedImage img = ImageIO.read(new ByteArrayInputStream(bytes));
-			
-			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-	        ImageIO.write(img, "png", byteArrayOutputStream);
-	        
-	        out.write(byteArrayOutputStream.toByteArray());
-	        out.flush();
-	        out.close();
-			
-		} catch (ArrayIndexOutOfBoundsException e) {
-			
-		}
 	}
 
 }

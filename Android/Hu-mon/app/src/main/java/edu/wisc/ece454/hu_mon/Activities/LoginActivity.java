@@ -140,7 +140,7 @@ public class LoginActivity extends AppCompatActivity {
             command = command.toUpperCase();
             data = response.substring(response.indexOf(':') + 1, response.length());
 
-            if (command.equals("SUCCESS")) {
+            if (command.equals(getString(R.string.ServerCommandLogin)) || command.equals(getString(R.string.ServerCommandRegister))) {
 
                 AsyncTask<String, String, String> userSaveTask = new UserObjectSaver(email, context);
                 userSaveTask.execute(data);
@@ -187,7 +187,7 @@ public class LoginActivity extends AppCompatActivity {
 
         else {
             if (mServiceBound){
-                mServerConnection.sendMessage("login:{\"email\":\"" + email + "\",\"password\":\"" + password + "\"," +
+                mServerConnection.sendMessage(getString(R.string.ServerCommandLogin) + ":{\"email\":\"" + email + "\",\"password\":\"" + password + "\"," +
                         "\"deviceToken\":\"" + deviceToken + "\"}");
             } else {
                 // Couldnt talk to server or something?
@@ -227,7 +227,7 @@ public class LoginActivity extends AppCompatActivity {
 
         else {
             if (mServiceBound){
-                mServerConnection.sendMessage("register:{\"email\":\"" + email + "\",\"password\":\"" + password + "\"," +
+                mServerConnection.sendMessage(getString(R.string.ServerCommandRegister) + ":{\"email\":\"" + email + "\",\"password\":\"" + password + "\"," +
                         "\"deviceToken\":\"" + deviceToken + "\"}");
             } else {
                 // Couldnt talk to server or something?

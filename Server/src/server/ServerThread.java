@@ -185,7 +185,7 @@ public class ServerThread extends Thread {
 			}
 
 			// Send success, and the user JSON string so client has it as well.
-			sendResponse(Commands.SUCCESS, user.toJson(mapper));
+			sendResponse(Commands.REGISTER, user.toJson(mapper));
 
 		} catch (JsonParseException e) {
 			Global.log(clientNumber, "Recieved malformed data packet");
@@ -234,7 +234,7 @@ public class ServerThread extends Thread {
 				save();
 			}
 
-			sendResponse(Commands.SUCCESS, user.toJson(mapper));
+			sendResponse(Commands.LOGIN, user.toJson(mapper));
 
 
 		} catch (JsonParseException e) {
@@ -294,7 +294,7 @@ public class ServerThread extends Thread {
 
 		NotificationHandler.sendPushNotification(resultSet.getString(1), Message.NEW_FRIEND_REQUEST_TITLE,
 				user.getEmail() + Message.NEW_FRIEND_REQUEST_BODY, notificationData);
-		sendResponse(Commands.SUCCESS, Message.FRIEND_REQUEST_SENT);
+		sendResponse(Commands.FRIEND_REQUEST, Message.FRIEND_REQUEST_SENT);
 	}
 
 	/**
@@ -354,8 +354,8 @@ public class ServerThread extends Thread {
 		// updated hcount. User is also now dirty.
 		hID = resultSet.getInt(1);
 
-		sendResponse(Commands.SUCCESS, "{\"hID\":\"" + hID + "\",\"name\":\"" + humon.getName() + "\","
-				+ "\"description\"" + humon.getDescription() + "\"}");
+		sendResponse(Commands.CREATE_HUMON, "{\"hID\":\"" + hID + "\",\"name\":\"" + humon.getName() + "\","
+				+ "\"description\":\"" + humon.getDescription() + "\"}");
 
 		// Insert image into image Table
 		ps = databaseConnection.prepareStatement("insert into image " + Global.IMAGE_TABLE_COLUMNS + " values " + "('"

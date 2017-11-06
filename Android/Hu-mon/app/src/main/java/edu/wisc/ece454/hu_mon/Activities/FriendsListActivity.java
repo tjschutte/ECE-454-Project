@@ -197,16 +197,16 @@ public class FriendsListActivity extends AppCompatActivity {
         friendRequestDialog.show();
     }
 
-    //TODO: Send a battle invite to friend
     private void sendBattleInvite(String friendName) {
-        String displayString = "Invited " + friendName;
-        Toast toast = Toast.makeText(this, displayString, Toast.LENGTH_SHORT);
-        toast.show();
+        if (mBound) {
+            mServerConnection.sendMessage(getString(R.string.ServerCommandBattleRequest) + ":{\"email\":\"" + friendName + "\"}");
+        }
     }
 
-    //TODO: Send friend request
     private void sendFriendRequest(String friendName) {
-        mServerConnection.sendMessage("friend-request:{\"email\":\"" + friendName + "\"}");
+        if (mBound) {
+            mServerConnection.sendMessage(getString(R.string.ServerCommandFriendRequest) + ":{\"email\":\"" + friendName + "\"}");
+        }
     }
 
 }

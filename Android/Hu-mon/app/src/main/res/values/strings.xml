@@ -17,4 +17,9 @@
     <string name="humonsKey">humons</string>
     <string name="ServerCommandLogin">LOGIN</string>
     <string name="ServerCommandRegister">REGISTER</string>
+    <string name="ServerCommandFriendRequest">FRIEND-REQUEST</string>
+    <string name="ServerCommandBattleRequest">BATTLE-REQUEST</string>
+    <string name="ServerCommandCreateHumon">CREATE-HUMON</string>
+    <string name="ServerCommandSaveUser">SAVE-USER</string>
+
 </resources>

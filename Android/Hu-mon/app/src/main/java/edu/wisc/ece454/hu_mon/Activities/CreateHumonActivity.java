@@ -376,7 +376,7 @@ public class CreateHumonActivity extends AppCompatActivity {
         //TODO: Create Humon object here and save
         // String name, String description, Bitmap image, int level, int xp, int hID, String uID, String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense
         Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, userEmail, "", movesArrayList, health, luck, attack, speed, defense, "");
-        mServerConnection.sendMessage("CREATE-HUMON", h);
+        mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), h);
 
         //Store image path instead of image locally
         //TODO: replace filename with hID

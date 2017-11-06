@@ -81,6 +81,17 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
             }
 
             for(int i = 0; i < humons.length; i++) {
+                //check that name is not duplicated (for user's email only)
+                for(int j = 0; j < humonsArray.length(); j++) {
+                    JSONObject dupCheck = new JSONObject(humonsArray.getString(j));
+                    if(dupCheck.getString("name").equals(humons[i].getName())) {
+                        if(dupCheck.getString("uID").equals(email)) {
+                            if(dupCheck.getString("description").equals(humons[i].getDescription())) {
+                                return false;
+                            }
+                        }
+                    }
+                }
                 humonsArray.put(humons[i].toJson(new ObjectMapper()));
             }
 

@@ -45,29 +45,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             data = remoteMessage.getData();
 
             if (data.containsKey("FRIEND-REQUEST")) {
-                //TODO: Something with pending intents to accept / decline
+                // TODO: Make a pending friend-request object or something that is put into the friends list area
+
             } else if (data.containsKey("BATTLE-REQUEST")) {
                 //TODO: Something with pending intents to accept / decline
             }
-
-            // If there was a data payload it was a request (friend / battle)
-            NotificationManager mNotificationManager =
-                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-            Intent notificationIntent = new Intent(this, MenuActivity.class);
-            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-
-            Notification notification = new Notification.Builder(this)
-                    .setContentTitle(remoteMessage.getNotification().getTitle())
-                    .setContentText(remoteMessage.getNotification().getBody())
-                    .setContentIntent(pendingIntent) // This is the activity they are brought to if they click the notification
-                                                     // Not the activity they are brought to if they click a button.
-                    .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
-                    .addAction(R.drawable.common_google_signin_btn_icon_light, "Accept", null) // Accept the request
-                    .addAction(R.drawable.common_google_signin_btn_icon_light, "Decline", null) // decline the request
-                    .build();
-            mNotificationManager.notify(69, notification);
-
         }
 
         // Check if message contains a notification payload.

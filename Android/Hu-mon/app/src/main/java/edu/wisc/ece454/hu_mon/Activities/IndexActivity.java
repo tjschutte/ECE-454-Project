@@ -152,7 +152,7 @@ public class IndexActivity extends AppCompatActivity {
 
                         humonList.add(loadedHumon);
 
-                        System.out.println(loadedHumon.getName() + " added");
+                        System.out.println(loadedHumon.getName() + " with HID: " + loadedHumon.gethID() + " added");
                     }
                     inputStream.close();
                 } catch (FileNotFoundException e) {

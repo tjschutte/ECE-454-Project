@@ -379,18 +379,17 @@ public class CreateHumonActivity extends AppCompatActivity {
         mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), h);
 
         //Store image path instead of image locally
-        //TODO: replace filename with hID
-        //h.setImage(null);
+        Humon localHumon = new Humon(humonName, humonDescription, null, 1, 0, 0, userEmail, "", movesArrayList, health, luck, attack, speed, defense, "");
         File imageFile = new File(getFilesDir(),humonName + ".jpg");
         storeImageFile(imageFile);
-        h.setImagePath(imageFile.getPath());
+        localHumon.setImagePath(imageFile.getPath());
         System.out.println("Old image path: " + tempImagePath);
-        System.out.println("New image path: " + h.getImagePath());
+        System.out.println("New image path: " + localHumon.getImagePath());
 
         //save humon data to index
         AsyncTask<Humon, Integer, Boolean> indexSaveTask = new HumonIndexSaver(userEmail + getString(R.string.indexFile),
                 userEmail, this, getString(R.string.humonsKey));
-        indexSaveTask.execute(h);
+        indexSaveTask.execute(localHumon);
 
         //return to the menu
         finish();

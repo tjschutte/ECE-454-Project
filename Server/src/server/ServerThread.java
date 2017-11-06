@@ -30,7 +30,8 @@ public class ServerThread extends Thread {
 
 	/**
 	 * A private thread to handle requests on a particular socket. The client
-	 * terminates the diaGlobal.logue by sending a single line containing only a period.
+	 * terminates the diaGlobal.logue by sending a single line containing only a
+	 * period.
 	 */
 	private Socket socket;
 	private int clientNumber;
@@ -39,16 +40,14 @@ public class ServerThread extends Thread {
 	private BufferedReader clientIn;
 	private PrintWriter clientOut;
 	private User user;
-	
 
 	public ServerThread(Socket socket, int clientNumber) throws IOException {
 		this.socket = socket;
 		this.clientNumber = clientNumber;
 		Global.log(clientNumber, "connected at " + socket);
 		mapper = new ObjectMapper();
-		databaseConnection = new Connector(Global.DATABASE_NAME, Global.TABLE_NAME,
-				Global.DATABASE_USER_NAME, Global.DATABASE_USER_PASSWORD,
-				Global.DEFAULT_CONNECTIONS);
+		databaseConnection = new Connector(Global.DATABASE_NAME, Global.TABLE_NAME, Global.DATABASE_USER_NAME,
+				Global.DATABASE_USER_PASSWORD, Global.DEFAULT_CONNECTIONS);
 		// Connect to the database and table
 		databaseConnection.startConnection();
 
@@ -91,7 +90,7 @@ public class ServerThread extends Thread {
 				data = input.substring(input.indexOf(':') + 1, input.length());
 
 				Global.log(clientNumber, command);
-				
+
 				switch (command) {
 				case Commands.REGISTER:
 					register(data);
@@ -132,12 +131,11 @@ public class ServerThread extends Thread {
 		Global.log(clientNumber, "Save was issued");
 		if (user != null && user.getIsDirty()) {
 			Global.log(clientNumber, "User data was updated. Saving to database");
-			
+
 			PreparedStatement ps;
 			try {
-				ps = databaseConnection.prepareStatement("update users set "
-						+ user.updateSyntax()
-						+ "where email='" + user.getEmail() + "' and password='" + user.getPassword() + "';");
+				ps = databaseConnection.prepareStatement("update users set " + user.updateSyntax() + "where email='"
+						+ user.getEmail() + "' and password='" + user.getPassword() + "';");
 				int rows = ps.executeUpdate();
 				// Should only get 1 row was affected.
 				if (rows != 1) {
@@ -147,12 +145,13 @@ public class ServerThread extends Thread {
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}			
+			}
 		}
 	}
 
 	/**
 	 * Check if the email is in use, and register a new fresh user.
+	 * 
 	 * @param data
 	 */
 	private void register(String data) {
@@ -174,8 +173,8 @@ public class ServerThread extends Thread {
 			// Unique email, create a new user
 			User newUser = new User(u.getEmail(), u.getPassword(), 0, u.getDeviceToken(), false);
 			// Insert into the database.
-			PreparedStatement ps = databaseConnection.prepareStatement("insert into users "
-					+ Global.USERS_TABLE_COLUMNS + " values " + newUser.toSqlValueString());
+			PreparedStatement ps = databaseConnection.prepareStatement(
+					"insert into users " + Global.USERS_TABLE_COLUMNS + " values " + newUser.toSqlValueString());
 			// Should only get 1 row was affected.
 			int rows = ps.executeUpdate();
 			if (rows == 1) {
@@ -201,7 +200,9 @@ public class ServerThread extends Thread {
 	}
 
 	/**
-	 * Check if the account exists, then Global.log them into the server, and send a copy of user data back.
+	 * Check if the account exists, then Global.log them into the server, and send a
+	 * copy of user data back.
+	 * 
 	 * @param data
 	 */
 	private void login(String data) {
@@ -223,12 +224,17 @@ public class ServerThread extends Thread {
 			// Map from database to object
 			user = new User(resultSet.getString(2), resultSet.getString(3), resultSet.getString(4),
 					resultSet.getString(5), resultSet.getString(6), resultSet.getInt(7), resultSet.getString(8), false);
-			sendResponse(Commands.SUCCESS, user.toJson(mapper));
-			
-			// Check if the user is on a new device. If so, update so we can send notifications to it.
-			if (user.getDeviceToken() != null && !user.getDeviceToken().equals(resultSet.getString(8)) && !user.getDeviceToken().isEmpty()) {
+
+			// Check if the user is on a new device. If so, update so we can send
+			// notifications to it.
+			if (user.getDeviceToken() != null && !user.getDeviceToken().equals(u.getDeviceToken())
+					&& !user.getDeviceToken().isEmpty()) {
+				user.setDeviceToken(u.getDeviceToken());
 				save();
 			}
+
+			sendResponse(Commands.SUCCESS, user.toJson(mapper));
+
 
 		} catch (JsonParseException e) {
 			Global.log(clientNumber, "Recieved malformed data packet");
@@ -242,47 +248,48 @@ public class ServerThread extends Thread {
 		}
 
 	}
-	
+
 	private void friendRequest(String data) throws JsonParseException, IOException, JSONException, SQLException {
 		Global.log(clientNumber, "Sending friend Request");
 		Global.log(clientNumber, data);
-		
+
 		if (user == null || user.getEmail().isEmpty()) {
 			error(Message.NOT_LOGGEDIN);
 			return;
 		}
-		
+
 		String email = null;
-		
+
 		JsonFactory factory = new JsonFactory();
 		JsonParser parser = factory.createParser(data);
-		
+
 		while (!parser.isClosed()) {
 			JsonToken token = parser.nextToken();
 			if (token == null) {
 				break;
 			}
-			
+
 			if (JsonToken.FIELD_NAME.equals(token) && "email".equals(parser.getCurrentName())) {
 				token = parser.nextToken();
 				email = parser.getText();
 			}
 		}
-		
+
 		if (email == null || email.isEmpty()) {
 			error(Message.MALFORMED_DATA_PACKET);
 			return;
 		}
-		
-		ResultSet resultSet = databaseConnection.executeSQL(
-				"select deviceToken from users where email='" + email + "';");
+
+		ResultSet resultSet = databaseConnection
+				.executeSQL("select deviceToken from users where email='" + email + "';");
 
 		if (!resultSet.next()) {
 			sendResponse(Commands.ERROR, Message.USER_DOES_NOT_EXIST);
 			return;
 		}
-		
-		NotificationHandler.sendPushNotification(resultSet.getString(1), Message.NEW_FRIEND_REQUEST_TITLE, user.getEmail() + Message.NEW_FRIEND_REQUEST_BODY);
+
+		NotificationHandler.sendPushNotification(resultSet.getString(1), Message.NEW_FRIEND_REQUEST_TITLE,
+				user.getEmail() + Message.NEW_FRIEND_REQUEST_BODY);
 		sendResponse(Commands.SUCCESS, Message.FRIEND_REQUEST_SENT);
 	}
 
@@ -291,37 +298,39 @@ public class ServerThread extends Thread {
 	 * the HumonId (hID)
 	 * 
 	 * @param data
-	 * @throws IOException 
-	 * @throws JsonMappingException 
-	 * @throws JsonParseException 
-	 * @throws SQLException 
+	 * @throws IOException
+	 * @throws JsonMappingException
+	 * @throws JsonParseException
+	 * @throws SQLException
 	 */
-	private void createNewHumon(String data) throws JsonParseException, JsonMappingException, IOException, SQLException {
+	private void createNewHumon(String data)
+			throws JsonParseException, JsonMappingException, IOException, SQLException {
 
 		if (user == null || user.getEmail().isEmpty()) {
 			error(Message.NOT_LOGGEDIN);
 			return;
 		}
 		Humon humon = mapper.readValue(data, Humon.class);
-		
+
 		// print it
-		Global.log(clientNumber, user.getEmail() + " is creating a new Humon: " + humon.getName() + ", " + humon.getDescription());
-		
+		Global.log(clientNumber,
+				user.getEmail() + " is creating a new Humon: " + humon.getName() + ", " + humon.getDescription());
+
 		// Check to make sure it is a unique name / email / description.
-		ResultSet resultSet = databaseConnection
-				.executeSQL("select * from humon where created_by='" + SQLHelper.sqlString(user.getEmail()) + "'"
-						+ " and name='" + SQLHelper.sqlString(humon.getName()) + "' and description='" +  SQLHelper.sqlString(humon.getDescription()) + "';");
+		ResultSet resultSet = databaseConnection.executeSQL("select * from humon where created_by='"
+				+ SQLHelper.sqlString(user.getEmail()) + "'" + " and name='" + SQLHelper.sqlString(humon.getName())
+				+ "' and description='" + SQLHelper.sqlString(humon.getDescription()) + "';");
 		if (resultSet.next()) {
 			error(Message.DUPLICATE_HUMON);
 			Global.log(clientNumber, "User attempted to create a duplicate humon");
 			return;
 		}
-		
+
 		int hID;
 
 		// Insert into humon Table
-		PreparedStatement ps = databaseConnection.prepareStatement("insert into humon "
-				+ Global.HUMON_TABLE_COLUMNS + " values " + humon.toSqlHumonValueString(user));
+		PreparedStatement ps = databaseConnection.prepareStatement(
+				"insert into humon " + Global.HUMON_TABLE_COLUMNS + " values " + humon.toSqlHumonValueString(user));
 		// Should only get 1 row was affected.
 		int rows = ps.executeUpdate();
 		if (rows != 1) {
@@ -329,23 +338,24 @@ public class ServerThread extends Thread {
 		}
 
 		// Get the HID to return to the user
-		resultSet = databaseConnection.executeSQL(
-				"select humonID from humon where name='" + SQLHelper.sqlString(humon.getName()) + "' and description='" + SQLHelper.sqlString(humon.getDescription()) + "';");
+		resultSet = databaseConnection
+				.executeSQL("select humonID from humon where name='" + SQLHelper.sqlString(humon.getName())
+						+ "' and description='" + SQLHelper.sqlString(humon.getDescription()) + "';");
 		if (!resultSet.next()) {
 			sendResponse(Commands.ERROR, Message.HUMON_CREATION_ERROR);
 			return;
 		}
-		
-		// Get the hID of the created humon, and send it as the response, as well as updated hcount. User is also now dirty.
+
+		// Get the hID of the created humon, and send it as the response, as well as
+		// updated hcount. User is also now dirty.
 		hID = resultSet.getInt(1);
 
 		sendResponse(Commands.SUCCESS, "{\"hID\":\"" + hID + "\"}");
 
 		// Insert image into image Table
-		ps = databaseConnection.prepareStatement("insert into image "
-				+ Global.IMAGE_TABLE_COLUMNS + " values "
-				+ "('" + hID + "','" + humon.getImage() + "')");
-		
+		ps = databaseConnection.prepareStatement("insert into image " + Global.IMAGE_TABLE_COLUMNS + " values " + "('"
+				+ hID + "','" + humon.getImage() + "')");
+
 		// Should only get 1 row was affected.
 		rows = ps.executeUpdate();
 		if (rows != 1) {

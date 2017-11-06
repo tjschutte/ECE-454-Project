@@ -207,4 +207,8 @@ public class User {
 		return update;
 	}
 
+	public void setDeviceToken(String deviceToken) {
+		this.deviceToken = deviceToken;
+	}
+
 }

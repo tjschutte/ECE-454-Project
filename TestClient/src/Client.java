@@ -71,7 +71,7 @@ public class Client {
 	public void connectToServer() throws IOException {
 
 		// Get the server address from a dialog box.
-		String serverAddress = "127.0.0.1";
+		String serverAddress = "68.185.171.192";
 
 		// Make connection and initialize streams
 		Socket socket = new Socket(serverAddress, 9898);

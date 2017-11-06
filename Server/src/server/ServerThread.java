@@ -11,6 +11,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -287,9 +288,12 @@ public class ServerThread extends Thread {
 			sendResponse(Commands.ERROR, Message.USER_DOES_NOT_EXIST);
 			return;
 		}
+		
+		JSONObject notificationData = new JSONObject();
+		notificationData.put(Commands.FRIEND_REQUEST, user.getEmail());
 
 		NotificationHandler.sendPushNotification(resultSet.getString(1), Message.NEW_FRIEND_REQUEST_TITLE,
-				user.getEmail() + Message.NEW_FRIEND_REQUEST_BODY);
+				user.getEmail() + Message.NEW_FRIEND_REQUEST_BODY, notificationData);
 		sendResponse(Commands.SUCCESS, Message.FRIEND_REQUEST_SENT);
 	}
 

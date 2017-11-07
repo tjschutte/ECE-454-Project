@@ -89,7 +89,6 @@ public class IndexActivity extends AppCompatActivity {
         super.onResume();
     }
 
-    //TODO: Read in moves
     private void loadHumons() {
 
         humonList.clear();
@@ -148,7 +147,7 @@ public class IndexActivity extends AppCompatActivity {
                         }
 
                         Humon loadedHumon = new Humon(name, description, image, level, xp, hID, uID,
-                                iID, moveList, health, luck, attack, speed, defense, imagePath);
+                                iID, moveList, health, luck, attack, speed, defense, imagePath, health);
 
                         humonList.add(loadedHumon);
 

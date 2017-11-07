@@ -2,6 +2,7 @@ package edu.wisc.ece454.hu_mon.Activities;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -11,7 +12,9 @@ import android.graphics.Matrix;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -21,10 +24,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -33,6 +42,7 @@ import edu.wisc.ece454.hu_mon.Models.Move;
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 import edu.wisc.ece454.hu_mon.Utilities.HumonIndexSaver;
+import edu.wisc.ece454.hu_mon.Utilities.HumonPartySaver;
 
 public class CreateHumonActivity extends AppCompatActivity {
 
@@ -50,6 +60,7 @@ public class CreateHumonActivity extends AppCompatActivity {
     ArrayAdapter<String> moveAdapter;
     ServerConnection mServerConnection;
     boolean mBound;
+    private String userEmail;
 
     //image data
     private String tempImagePath;
@@ -370,16 +381,18 @@ public class CreateHumonActivity extends AppCompatActivity {
         //retrieve email of the user
         SharedPreferences sharedPref = this.getSharedPreferences(
                 getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
-        String userEmail = sharedPref.getString(getString(R.string.emailKey), "");
+        userEmail = sharedPref.getString(getString(R.string.emailKey), "");
 
 
         //TODO: Create Humon object here and save
         // String name, String description, Bitmap image, int level, int xp, int hID, String uID, String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense
-        Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, userEmail, "", movesArrayList, health, luck, attack, speed, defense, "");
+        Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, userEmail, "",
+                movesArrayList, health, luck, attack, speed, defense, "", health);
         mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), h);
 
         //Store image path instead of image locally
-        Humon localHumon = new Humon(humonName, humonDescription, null, 1, 0, 0, userEmail, "", movesArrayList, health, luck, attack, speed, defense, "");
+        Humon localHumon = new Humon(humonName, humonDescription, null, 1, 0, 0, userEmail, "",
+                movesArrayList, health, luck, attack, speed, defense, "", health);
         File imageFile = new File(getFilesDir(),humonName + ".jpg");
         storeImageFile(imageFile);
         localHumon.setImagePath(imageFile.getPath());
@@ -391,8 +404,17 @@ public class CreateHumonActivity extends AppCompatActivity {
                 userEmail, this, getString(R.string.humonsKey));
         indexSaveTask.execute(localHumon);
 
-        //return to the menu
-        finish();
+        //Create an instance if first humon
+        //TODO:Add hCount to iID
+        if(!hasHumons()) {
+            Humon partyHumon = new Humon(humonName, humonDescription, null, 1, 5, 0, userEmail, userEmail + "-0-0",
+                    movesArrayList, health, luck, attack, speed, defense, localHumon.getImagePath(), health);
+            nameHumonDialog(partyHumon);
+        }
+        else {
+            //return to the menu
+            finish();
+        }
 
     }
 
@@ -416,5 +438,87 @@ public class CreateHumonActivity extends AppCompatActivity {
         };
 
         moveThread.run();
+    }
+
+    //check if the user has a humon in their party
+    private boolean hasHumons() {
+        boolean hasHumons = true;
+
+        //TODO: Instead check user model (return true if hCount == 0)
+        File partyFile = new File(this.getFilesDir(), userEmail + getString(R.string.partyFile));
+        String partyFileText;
+
+        //read in current index (if it exists)
+        try {
+            FileInputStream inputStream = new FileInputStream(partyFile);
+            int inputBytes = inputStream.available();
+            byte[] buffer = new byte[inputBytes];
+            inputStream.read(buffer);
+            inputStream.close();
+            partyFileText = new String(buffer, "UTF-8");
+
+            //check number of humons in file
+            JSONObject pObject = new JSONObject(partyFileText);
+            JSONArray humonsArray = pObject.getJSONArray(getString(R.string.humonsKey));
+            if(humonsArray.length() == 0) {
+                hasHumons = false;
+            }
+        } catch(FileNotFoundException e) {
+            System.out.println("No party file for " + userEmail);
+            hasHumons = false;
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+            hasHumons = false;
+        }
+
+        return hasHumons;
+    }
+
+    //Create a dialog for user to input name for new party humon
+    private void nameHumonDialog(Humon humon) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        LayoutInflater inflater = this.getLayoutInflater();
+
+        View dialogView = inflater.inflate(R.layout.name_humon_dialog, null);
+        builder.setView(dialogView);
+        builder.setTitle("Name Hu-mon");
+
+        //Assign the textboxes so they can be accessed by buttons
+        final EditText nameText = (EditText) dialogView.findViewById(R.id.nameEditText);
+        nameText.setText(humon.getName());
+
+        //set to final (required to save)
+        final Humon saveHumon = humon;
+
+        //Add Element to list
+        builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton)
+            {
+                String humonName = nameText.getText().toString();
+                if(humonName.isEmpty()) {
+                    //save humon data to party
+                    AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext());
+                    partySaveTask.execute(saveHumon);
+                }
+                else {
+                    //save humon data to index
+                    saveHumon.setName(humonName);
+                    AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext());
+                    partySaveTask.execute(saveHumon);
+                }
+
+                //return to the menu
+                finish();
+            }
+        });
+
+        //display the dialog
+        final AlertDialog nameHumonDialog = builder.create();
+        nameHumonDialog.show();
     }
 }

@@ -20,9 +20,10 @@ public class Humon extends Jsonable implements Parcelable{
     private String imagePath;       // location of image file on phone
     private int level;              // The current level of the humon-instance
     private int xp;                 // current amount of xp
+    private int hp;                 // current amount of hp
     private int hID;     			// hID will map a humon to is details in storage (picture, name, moves, etc)
     private String uID; 			// uID will map a humon instance to a user
-    private String iID;				// iID will map a humon to an instance. iID will be a concatination of hID, uID and a 3 digit count
+    private String iID;				// iID will map a humon to an instance. iID will be a concatination of hID, uID and a 3 digit count <hID-uID-count>
     private ArrayList<Move> moves;  // list of moves a humon can perform
     private int health; 		    // the health of a humon. All humons start with 100 hp.
     private int luck;               // How lucky your humon is
@@ -33,13 +34,15 @@ public class Humon extends Jsonable implements Parcelable{
     // Moves will be a combination of <Name, id> to m ap to template moves.
 
     public Humon(String name, String description, Bitmap image, int level, int xp, int hID, String uID,
-                 String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense, String imagePath) {
+                 String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense,
+                 String imagePath, int hp) {
         this.name = name;
         this.description = description;
         this.image = image;
         this.imagePath = imagePath;
         this.level = level;
         this.xp = xp;
+        this.hp = hp;
         this.hID = hID;
         this.uID = uID;
         this.iID = iID;
@@ -58,6 +61,8 @@ public class Humon extends Jsonable implements Parcelable{
     public String getName() {
         return name;
     }
+
+    public void setName(String name) {this.name = name;}
 
     public String getDescription() {
         return description;
@@ -110,6 +115,8 @@ public class Humon extends Jsonable implements Parcelable{
     public int getXp() {
         return xp;
     }
+
+    public int getHp() { return hp;}
 
     public int getLuck() {
         return luck;
@@ -164,6 +171,7 @@ public class Humon extends Jsonable implements Parcelable{
         dest.writeString(imagePath);
         dest.writeInt(level);
         dest.writeInt(xp);
+        dest.writeInt(hp);
         dest.writeInt(hID);
         dest.writeString(uID);
         dest.writeString(iID);
@@ -196,6 +204,7 @@ public class Humon extends Jsonable implements Parcelable{
         imagePath = in.readString();
         level = in.readInt();
         xp = in.readInt();
+        hp = in.readInt();
         hID = in.readInt();
         uID = in.readString();
         iID = in.readString();

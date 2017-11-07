@@ -158,11 +158,15 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
                 //check that parameters match
                 for (int j = 0; j < humonsArray.length(); j++) {
                     JSONObject dupCheck = new JSONObject(humonsArray.getString(j));
-                    if (dupCheck.getString("name").equals(hName)) {
+                    if (dupCheck.getString("hID").equals("0")) {
                         if (dupCheck.getString("uID").equals(email)) {
                             if (dupCheck.getString("description").equals(hDescription)) {
                                 System.out.println("Updating " + dupCheck.getString("name") + " with HID:" + hIDs[0]);
                                 dupCheck.put("hID", hIDs[0]);
+                                String oldIID = dupCheck.getString("iID");
+                                String startIID = oldIID.substring(0, oldIID.indexOf("-") + 1);
+                                String endIID = oldIID.substring(oldIID.lastIndexOf("-"));
+                                dupCheck.put("iID", startIID + hIDs[0] + endIID);
                                 humonsArray.remove(j);
                                 humonsArray.put(dupCheck);
                                 foundHumon = true;

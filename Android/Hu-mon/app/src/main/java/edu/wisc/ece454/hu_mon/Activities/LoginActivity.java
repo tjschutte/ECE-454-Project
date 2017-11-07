@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
@@ -16,23 +17,23 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.iid.FirebaseInstanceId;
+
 import java.io.IOException;
 
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Services.ServerConnection;
+import edu.wisc.ece454.hu_mon.Utilities.UserObjectSaver;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private final String SIGN_IN_FAILURE = "Sign in Failed";
-    private final String SIGN_IN_SUCCESS = "Sign in Succeeded";
-    private final String REGISTER_FAILURE = "Register Failed";
-    private final String REGISTER_SUCCESS = "Register Succeeded";
+    private final String FIELD_MISSING = "Make sure all fields are filled in.";
     private final String PERMISSION_FAILURE = "Must Allow Permissions to Proceed";
     private String EMAIL_KEY;
     private String email;
     private String password;
-
-    private String issuedCommand;
+    private String deviceToken;
 
     private final String ACTIVITY_TITLE = "Login";
     ServerConnection mServerConnection;
@@ -46,7 +47,11 @@ public class LoginActivity extends AppCompatActivity {
 
         EMAIL_KEY = getString(R.string.emailKey);
         checkPermissions();
+        FirebaseApp.initializeApp(this);
+        deviceToken = FirebaseInstanceId.getInstance().getToken();
     }
+
+
 
     @Override
     protected void onStart() {
@@ -71,7 +76,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        filter.addAction("edu.wisc.ece454.hu_mon.SERVER_RESPONSE");
+        filter.addAction(getString(R.string.serverBroadCastEvent));
         registerReceiver(receiver, filter);
     }
 
@@ -121,7 +126,7 @@ public class LoginActivity extends AppCompatActivity {
     BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String response = intent.getStringExtra("Response");
+            String response = intent.getStringExtra(getString(R.string.serverBroadCastResponseKey));
             String command;
             String data;
             if (response.indexOf(':') == -1) {
@@ -135,7 +140,11 @@ public class LoginActivity extends AppCompatActivity {
             command = command.toUpperCase();
             data = response.substring(response.indexOf(':') + 1, response.length());
 
-            if (command.equals("SUCCESS")) {
+            if (command.equals(getString(R.string.ServerCommandLogin)) || command.equals(getString(R.string.ServerCommandRegister))) {
+
+                AsyncTask<String, String, String> userSaveTask = new UserObjectSaver(email, context);
+                userSaveTask.execute(data);
+
                 //Send email to next activity to retrieve user info
                 Intent i = new Intent(context, MenuActivity.class);
                 i.putExtra(EMAIL_KEY, email);
@@ -168,7 +177,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         if(email.isEmpty() || password.isEmpty()) {
-            Toast toast = Toast.makeText(this, SIGN_IN_FAILURE, Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(this, FIELD_MISSING, Toast.LENGTH_SHORT);
             toast.show();
         }
         else if(!checkPermissions()) {
@@ -178,7 +187,8 @@ public class LoginActivity extends AppCompatActivity {
 
         else {
             if (mServiceBound){
-                mServerConnection.sendMessage("login:{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}");
+                mServerConnection.sendMessage(getString(R.string.ServerCommandLogin) + ":{\"email\":\"" + email + "\",\"password\":\"" + password + "\"," +
+                        "\"deviceToken\":\"" + deviceToken + "\"}");
             } else {
                 // Couldnt talk to server or something?
             }
@@ -207,7 +217,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         if(emailText.getText().toString().isEmpty() || passwordText.getText().toString().isEmpty()) {
-            Toast toast = Toast.makeText(getApplicationContext(), REGISTER_FAILURE, Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(getApplicationContext(), FIELD_MISSING, Toast.LENGTH_SHORT);
             toast.show();
         }
         else if(!checkPermissions()) {
@@ -217,7 +227,8 @@ public class LoginActivity extends AppCompatActivity {
 
         else {
             if (mServiceBound){
-                mServerConnection.sendMessage("register:{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}");
+                mServerConnection.sendMessage(getString(R.string.ServerCommandRegister) + ":{\"email\":\"" + email + "\",\"password\":\"" + password + "\"," +
+                        "\"deviceToken\":\"" + deviceToken + "\"}");
             } else {
                 // Couldnt talk to server or something?
             }

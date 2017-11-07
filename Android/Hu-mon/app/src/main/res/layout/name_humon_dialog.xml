@@ -3,12 +3,19 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <EditText
-        android:id="@+id/addFriendEditText"
+
+    <TextView
+        android:id="@+id/humonNameTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Username"
-        android:inputType="textEmailAddress"
+        android:text="Congrats! Name your first Hu-mon!" />
+
+    <EditText
+        android:id="@+id/nameEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nickname"
+        android:inputType="text"
         android:imeOptions="actionDone"/>
 
 </LinearLayout>

@@ -24,7 +24,6 @@ public class Client {
 	private JFrame frame = new JFrame("Client");
 	private JTextField dataField = new JTextField(40);
 	private JTextArea messageArea = new JTextArea(8, 60);
-	private boolean getReply = false;
 
 	/**
 	 * Constructs the client by laying out the GUI and registering a listener with
@@ -72,8 +71,7 @@ public class Client {
 	public void connectToServer() throws IOException {
 
 		// Get the server address from a dialog box.
-		String serverAddress = JOptionPane.showInputDialog(frame, "Enter IP Address of the Server:",
-				"Welcome to the Simple Client Program", JOptionPane.QUESTION_MESSAGE);
+		String serverAddress = "68.185.171.192";
 
 		// Make connection and initialize streams
 		Socket socket = new Socket(serverAddress, 9898);

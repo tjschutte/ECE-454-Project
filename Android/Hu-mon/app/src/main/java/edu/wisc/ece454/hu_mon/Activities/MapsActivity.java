@@ -38,7 +38,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onStop();
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
 
+    protected void onResume() {
+        super.onResume();
+    }
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.

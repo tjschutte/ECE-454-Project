@@ -1,7 +1,11 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
+import android.content.ComponentName;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
@@ -16,6 +20,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import edu.wisc.ece454.hu_mon.R;
+import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 
 public class FriendsListActivity extends AppCompatActivity {
 
@@ -23,6 +28,9 @@ public class FriendsListActivity extends AppCompatActivity {
 
     private ArrayList<String> friendsList;
     private ListView friendsListView;
+
+    ServerConnection mServerConnection;
+    boolean mBound;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,14 +65,57 @@ public class FriendsListActivity extends AppCompatActivity {
             }
         });
 
-
+        // Attach to the server communication service
+        Intent intent = new Intent(this, ServerConnection.class);
+        startService(intent);
+        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
     }
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            ServerConnection.LocalBinder myBinder = (ServerConnection.LocalBinder) service;
+            mServerConnection = myBinder.getService();
+            mBound = true;
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            mServiceConnection = null;
+            mBound = false;
+        }
+    };
 
     @Override
     protected void onStart() {
         super.onStart();
-
         loadFriends();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // make sure to unbind
+        if (mBound) {
+            unbindService(mServiceConnection);
+            mBound = false;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!mBound) {
+            // Attach to the server communication service
+            Intent intent = new Intent(this, ServerConnection.class);
+            startService(intent);
+            bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+        }
     }
 
     //TODO: Read in all encountered humons and populate list
@@ -146,18 +197,16 @@ public class FriendsListActivity extends AppCompatActivity {
         friendRequestDialog.show();
     }
 
-    //TODO: Send a battle invite to friend
     private void sendBattleInvite(String friendName) {
-        String displayString = "Invited " + friendName;
-        Toast toast = Toast.makeText(this, displayString, Toast.LENGTH_SHORT);
-        toast.show();
+        if (mBound) {
+            mServerConnection.sendMessage(getString(R.string.ServerCommandBattleRequest) + ":{\"email\":\"" + friendName + "\"}");
+        }
     }
 
-    //TODO: Send friend request
     private void sendFriendRequest(String friendName) {
-        String displayString = "Friend Request Sent to " + friendName;
-        Toast toast = Toast.makeText(this, displayString, Toast.LENGTH_SHORT);
-        toast.show();
+        if (mBound) {
+            mServerConnection.sendMessage(getString(R.string.ServerCommandFriendRequest) + ":{\"email\":\"" + friendName + "\"}");
+        }
     }
 
 }

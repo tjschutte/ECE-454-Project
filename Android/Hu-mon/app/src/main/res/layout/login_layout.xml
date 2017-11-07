@@ -17,7 +17,8 @@
         android:layout_alignParentTop="true"
         android:ems="10"
         android:text="@string/app_name"
-        android:textSize="10mm" />
+        android:textSize="30dp"
+        />
 
     <EditText
         android:id="@+id/emailEditText"
@@ -29,7 +30,8 @@
         android:layout_marginTop="8dp"
         android:hint="Email Address"
         android:inputType="textWebEmailAddress"
-        android:textSize="3mm" />
+        android:textSize="20dp"
+        android:imeOptions="actionDone"/>
 
     <EditText
         android:id="@+id/passwordEditText"
@@ -41,7 +43,8 @@
         android:layout_marginTop="8dp"
         android:hint="Password"
         android:inputType="textPassword"
-        android:textSize="3mm" />
+        android:textSize="20dp"
+        android:imeOptions="actionDone"/>
 
     <Button
         android:id="@+id/signInButton"

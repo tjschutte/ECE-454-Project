@@ -13,7 +13,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.support.annotation.RequiresApi;
 
-import edu.wisc.ece454.hu_mon.Activities.BattleActivity;
+import edu.wisc.ece454.hu_mon.Activities.WildBattleActivity;
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Utilities.StepJobScheduler;
 
@@ -70,7 +70,7 @@ public class StepService extends JobService implements SensorEventListener {
         NotificationManager mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        Intent notificationIntent = new Intent(this, BattleActivity.class);
+        Intent notificationIntent = new Intent(this, WildBattleActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
         Notification notification = new Notification.Builder(this)
@@ -78,6 +78,7 @@ public class StepService extends JobService implements SensorEventListener {
                 .setContentText("A Wild Hu-mon appeared")
                 .setContentIntent(pendingIntent)
                 .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
+                .setAutoCancel(true)
                 .build();
 
         mNotificationManager.notify(69, notification);

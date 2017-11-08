@@ -20,13 +20,13 @@ public class Global {
 	public static final int MAX_INSTANCEID_LENGTH = 50;
 	
 	// Table columns
-	public static final String USERS_TABLE_COLUMNS = "(email, password, party, encountered_humons, friends, hcount, deviceToken)";
+	public static final String USERS_TABLE_COLUMNS = "(email, password, party, encountered_humons, friends, friendRequests, hcount, deviceToken)";
 	
 	public static final String IMAGE_TABLE_COLUMNS = "(imageid, image)";	
 	
 	public static final String HUMON_TABLE_COLUMNS = "(name, description, health, attack, defense, speed, luck, moves, created_by)";
-	
-	public static final String INSTANCE_TABLE_COLUMNS = "(instanceID, humonID, level, expereince, health, user)";
+
+	public static final String INSTANCE_TABLE_COLUMNS = "(instanceID, humonID, level, expereince, health, hp, attack, defence, speed, luck, user)";
 	
 	
 	private static DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");

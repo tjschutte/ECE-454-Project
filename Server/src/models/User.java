@@ -19,6 +19,7 @@ public class User {
 	private ArrayList<String> party;
 	private ArrayList<String> encounteredHumons;
 	private ArrayList<String> friends;
+	private ArrayList<String> friendRequests;
 	private int hcount;
 	private boolean isDirty;
 	private String deviceToken;
@@ -43,6 +44,7 @@ public class User {
 		this.party = null; 
 		this.encounteredHumons = null;
 		this.friends = null;
+		this.friendRequests = null;
 		this.hcount = hcount;
 		this.deviceToken = deviceToken;
 		this.isDirty = isDirty;
@@ -59,12 +61,13 @@ public class User {
 	 * @param hcount
 	 * @param isDirty
 	 */
-	public User(String email, String password, String party, String encounteredHumons, String friends, int hcount, String deviceToken, boolean isDirty) {
+	public User(String email, String password, String party, String encounteredHumons, String friends, String friendRequests, int hcount, String deviceToken, boolean isDirty) {
 		this.email = email;
 		this.password = password;
 		this.party = (party != null) ? new ArrayList<String>(Arrays.asList(party.split(","))) : new ArrayList<String>();
 		this.encounteredHumons = (encounteredHumons != null) ? new ArrayList<String>(Arrays.asList(encounteredHumons.split(","))) : new ArrayList<String>();
 		this.friends = (friends != null) ? new ArrayList<String>(Arrays.asList(friends.split(","))) : new ArrayList<String>();
+		this.friendRequests = (friendRequests != null) ? new ArrayList<String>(Arrays.asList(friendRequests.split(","))) : new ArrayList<String>();
 		this.hcount = hcount;
 		this.deviceToken = deviceToken;
 		this.isDirty = isDirty;
@@ -90,6 +93,10 @@ public class User {
 		return friends;
 	}
 	
+	public ArrayList<String> getfriendRequests() {
+		return friendRequests;
+	}
+	
 	public void addFriend(String email) {
 		if (friends == null) {
 			friends = new ArrayList<String>();
@@ -98,6 +105,16 @@ public class User {
 			friends.add(email);
 			isDirty = true;
 		}	
+	}
+	
+	public void addFriendRequest(String email) {
+		if (friendRequests == null) {
+			friendRequests = new ArrayList<String>();
+		}	
+		if (!friendRequests.contains(email)) {
+			friendRequests.add(email);
+			isDirty = true;
+		}
 	}
 	
 	public boolean removeFriend(String email) {
@@ -138,7 +155,7 @@ public class User {
 			return true;
 		} else {
 			for (String id : party) {
-				if (id.equals(instanceID)) {
+				if (id.equals(instanceID + "")) {
 					party.remove(instanceID);
 					isDirty = true;
 					return true;
@@ -185,6 +202,7 @@ public class User {
 		obj += "'" + party + "',";
 		obj += "'" + encounteredHumons + "',";
 		obj += "'" + friends + "',";
+		obj += "'" + friendRequests + "',";
 		obj += "'" + hcount + "',";
 		obj += "'" + deviceToken + "')";
 		
@@ -202,6 +220,7 @@ public class User {
 		update += "party = '" + party + "',";
 		update += "encountered_humons = '" + encounteredHumons + "',";
 		update += "friends = '" + friends + "',";
+		update += "friendRequests = '" + friendRequests + "',";
 		update += "hcount = '" + hcount + "',";
 		update += "deviceToken = '" + deviceToken + "' ";
 		return update;

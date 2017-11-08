@@ -223,8 +223,9 @@ public class ServerThread extends Thread {
 			}
 
 			// Map from database to object
+			//String email, String password, String party, String encounteredHumons, String friends, String friendRequests, int hcount, String deviceToken, boolean isDirty
 			user = new User(resultSet.getString(2), resultSet.getString(3), resultSet.getString(4),
-					resultSet.getString(5), resultSet.getString(6), resultSet.getInt(7), resultSet.getString(8), false);
+					resultSet.getString(5), resultSet.getString(6), resultSet.getString(7), resultSet.getInt(8), resultSet.getString(9), false);
 
 			// Check if the user is on a new device. If so, update so we can send
 			// notifications to it.

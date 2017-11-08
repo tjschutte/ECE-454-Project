@@ -18,7 +18,8 @@ public class Humon {
     private String uID; 			// uID will map a humon instance to a user
     private String iID;				// iID will map a humon to an instance. iID will be a concatination of hID, uID and a 3 digit count
     private ArrayList<Move> moves;  // list of moves a humon can perform
-    private int health; 		    // the health of a humon. All humons start with 100 hp.
+    private int health; 		    // the health of a humon.
+    private int hp;					// The current hp of the humon
     private int luck;               // How lucky your humon is
     private int attack;             // How much bonehurtingjuice
     private int speed;              // GOTTA GO FAST
@@ -35,7 +36,7 @@ public class Humon {
     }
     
     public Humon(String name, String description, String image, int level, int xp, int hID, String uID,
-                 String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense) {
+                 String iID, ArrayList<Move> moves, int health, int hp, int luck, int attack, int speed, int defense) {
         this.name = name;
         this.description = description;
         this.image = image;
@@ -46,6 +47,7 @@ public class Humon {
         this.iID = iID;
         this.moves = moves;
         this.health = health;
+        this.hp = hp;
         this.luck = luck;
         this.attack = attack;
         this.speed = speed;
@@ -86,6 +88,10 @@ public class Humon {
 
     public int getHealth() {
         return health;
+    }
+    
+    public int getHp() {
+    	return hp;
     }
 
     public ArrayList<Move> getMoves() {
@@ -143,14 +149,18 @@ public class Humon {
 	}
 	
 	public String toSqlInstanceValueString(User user) {
-		// (instanceID, humonID, level, expereince, user)
+		// (instanceID, humonID, level, expereince, health, hp, attack, defence, speed, luck, user)
 		String obj = "(";
-		obj += "'" + user.getEmail() + "-" + user.getHcount() + "',";
+		obj += "'" + iID + "',";
 		obj += "'" + hID + "',";
 		obj += "'" + level + "',";
 		obj += "'" + xp + "',";
 		obj += "'" + health + "',";
-		obj += "'" + user.getEmail() + "')";
+		obj += "'" + attack + "',";
+		obj += "'" + defense + "',";
+		obj += "'" + speed + "',";
+		obj += "'" + luck + "',";
+		obj += "'" + SQLHelper.sqlString(user.getEmail()) + "')";
 		return obj;
 	}
 

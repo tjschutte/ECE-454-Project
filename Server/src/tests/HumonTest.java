@@ -13,7 +13,7 @@ public class HumonTest {
 	@Test
 	public void test() {
 		try {
-		Humon h = new Humon("Name", "Description", "No image", 0, 0, 0, "", "", null, 0, 0, 0, 0, 0);
+		Humon h = new Humon("Name", "Description", "No image", 0, 0, 0, "", "", null, 0, 0, 0, 0, 0, 0);
 		String testJSON = h.toJson(new ObjectMapper());
 		
 		Humon h2 = new ObjectMapper().readValue(testJSON, Humon.class);

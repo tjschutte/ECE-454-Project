@@ -124,6 +124,7 @@ public class Database {
 				"party blob," + 
 				"encountered_humons blob," + 
 				"friends blob," + 
+				"friendRequests blob," + 
 				"hcount int," +
 				"deviceToken text," + 
 				"PRIMARY KEY (userid)" + 
@@ -164,6 +165,11 @@ public class Database {
 				+ "level int,"
 				+ "experience int,"
 				+ "health int,"
+				+ "hp int,"
+				+ "attack int,"
+				+ "defense int,"
+				+ "speed int,"
+				+ "luck int,"
 				+ "user varchar(" + Global.MAX_NAME_LENGTH + "),"
 				+ "PRIMARY KEY (instanceID)"
 			+ ");");

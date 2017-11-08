@@ -1,10 +1,16 @@
 package server;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+
+import com.mysql.cj.api.log.Log;
+
 import main.Global;
 import utilities.Connector;
 
@@ -40,8 +46,8 @@ public class HttpConnection extends Thread {
 					} else if (Headers[1].equalsIgnoreCase("/download")) {
 						// Send them the app to install
 						download();
-					} else {
-						// Do nothing, probably not the header we want.
+					} else if (Headers[1].equalsIgnoreCase("/log")){
+						log();
 					}
 				}
 			}
@@ -85,6 +91,27 @@ public class HttpConnection extends Thread {
 		out.println("</body></html>");
 		out.close();
 		
+	}
+	
+	private void log() throws IOException {
+		System.out.println("Connection to log");
+		PrintWriter out;
+		
+		out = new PrintWriter(socket.getOutputStream());
+		out.print("HTTP/1.1 200 \r\n"); // Version & status code
+		out.print("Content-Type: text/plain\r\n"); // The type of data
+		out.print("Connection: close\r\n"); // Will close stream
+		out.print("\r\n"); // End of headers
+
+		BufferedReader br = new BufferedReader(new FileReader(new File("nohup.out")));
+		String string = br.readLine();
+		while (string != null) {
+			out.println(string);
+			string = br.readLine();
+		}
+		
+		br.close();
+		out.close();
 	}
 
 }

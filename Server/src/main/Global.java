@@ -9,7 +9,7 @@ public class Global {
 	public static final long UPDATE_TIME = 					300000000000l;
 	
 	public static final String DATABASE_NAME = 				"jdbc:mysql://localhost:3306/";
-	public static final String TABLE_NAME = 				"humon_test";
+	public static final String TABLE_NAME = 				"humon_test?useSSL=false";
 	public static final String DATABASE_USER_NAME = 		"ece454";
 	public static final String DATABASE_USER_PASSWORD = 	"zYFqzVgW3t2Y";
 	public static final String DEFAULT_CONNECTIONS = 		"5";

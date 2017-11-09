@@ -23,7 +23,7 @@ public class Humon extends Jsonable implements Parcelable{
     private int hp;                 // current amount of hp
     private int hID;     			// hID will map a humon to is details in storage (picture, name, moves, etc)
     private String uID; 			// uID will map a humon instance to a user
-    private String iID;				// iID will map a humon to an instance. iID will be a concatination of hID, uID and a 3 digit count <hID-uID-count>
+    private String iID;				// iID will map a humon to an instance. iID will be a concatination of uID and a count <uID-count>
     private ArrayList<Move> moves;  // list of moves a humon can perform
     private int health; 		    // the health of a humon. All humons start with 100 hp.
     private int luck;               // How lucky your humon is

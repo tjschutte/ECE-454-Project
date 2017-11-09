@@ -383,12 +383,9 @@ public class CreateHumonActivity extends AppCompatActivity {
                 getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
         userEmail = sharedPref.getString(getString(R.string.emailKey), "");
 
-
-        //TODO: Create Humon object here and save
         // String name, String description, Bitmap image, int level, int xp, int hID, String uID, String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense
         Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, userEmail, "",
                 movesArrayList, health, luck, attack, speed, defense, "", health);
-        mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), h);
 
         //Store image path instead of image locally
         Humon localHumon = new Humon(humonName, humonDescription, null, 1, 0, 0, userEmail, "",
@@ -407,11 +404,15 @@ public class CreateHumonActivity extends AppCompatActivity {
         //Create an instance if first humon
         //TODO:Add hCount to iID
         if(!hasHumons()) {
-            Humon partyHumon = new Humon(humonName, humonDescription, null, 1, 5, 0, userEmail, userEmail + "-0-0",
+            Humon partyHumon = new Humon(humonName, humonDescription, null, 1, 5, 0, userEmail, userEmail + "-0",
                     movesArrayList, health, luck, attack, speed, defense, localHumon.getImagePath(), health);
-            nameHumonDialog(partyHumon);
+            nameHumonDialog(partyHumon, h);
         }
         else {
+
+            //Send new humon to server
+            mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), h);
+
             //return to the menu
             finish();
         }
@@ -479,7 +480,7 @@ public class CreateHumonActivity extends AppCompatActivity {
     }
 
     //Create a dialog for user to input name for new party humon
-    private void nameHumonDialog(Humon humon) {
+    private void nameHumonDialog(Humon humon, final Humon serverHumon) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         LayoutInflater inflater = this.getLayoutInflater();
@@ -511,6 +512,9 @@ public class CreateHumonActivity extends AppCompatActivity {
                     AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext());
                     partySaveTask.execute(saveHumon);
                 }
+
+                //send humon object to server
+                mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), serverHumon);
 
                 //return to the menu
                 finish();

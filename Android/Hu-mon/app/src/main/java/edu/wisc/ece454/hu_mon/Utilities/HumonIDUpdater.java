@@ -1,6 +1,7 @@
 package edu.wisc.ece454.hu_mon.Utilities;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
@@ -12,6 +13,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
+import edu.wisc.ece454.hu_mon.R;
 
 /**
  * Created by Michael on 10/30/2017.
@@ -33,14 +36,21 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
     private Context context;
     private String HUMONS_KEY = "";
 
-    public HumonIDUpdater(String iFilename, String pFilename, String email, String hName, String hDescription, Context context, String key) {
-        this.iFilename = iFilename;
-        this.pFilename = pFilename;
-        this.email = email;
+    public HumonIDUpdater(Context context, String hName, String hDescription) {
+        this.context = context;
         this.hName = hName;
         this.hDescription = hDescription;
-        this.context = context;
-        HUMONS_KEY = key;
+
+        //retrieve email of the user
+        SharedPreferences sharedPref = this.context.getSharedPreferences(
+                this.context.getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+        this.email = sharedPref.getString(this.context.getString(R.string.emailKey), "");
+
+        //Set filenames for index and party
+        this.iFilename = this.email + this.context.getString(R.string.indexFile);
+        this.pFilename = this.email + this.context.getString(R.string.partyFile);
+        HUMONS_KEY = this.context.getString(R.string.humonsKey);
+
     }
 
     @Override
@@ -163,10 +173,6 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
                             if (dupCheck.getString("description").equals(hDescription)) {
                                 System.out.println("Updating " + dupCheck.getString("name") + " with HID:" + hIDs[0]);
                                 dupCheck.put("hID", hIDs[0]);
-                                String oldIID = dupCheck.getString("iID");
-                                String startIID = oldIID.substring(0, oldIID.indexOf("-") + 1);
-                                String endIID = oldIID.substring(oldIID.lastIndexOf("-"));
-                                dupCheck.put("iID", startIID + hIDs[0] + endIID);
                                 humonsArray.remove(j);
                                 humonsArray.put(dupCheck);
                                 foundHumon = true;

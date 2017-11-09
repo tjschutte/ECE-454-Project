@@ -13,7 +13,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -44,7 +43,7 @@ import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 import edu.wisc.ece454.hu_mon.Utilities.HumonIndexSaver;
 import edu.wisc.ece454.hu_mon.Utilities.HumonPartySaver;
 
-public class CreateHumonActivity extends AppCompatActivity {
+public class CreateHumonActivity extends SettingsActivity {
 
     private final String ACTIVITY_TITLE = "Create Hu-mon";
     private final int MOVE_REQUEST_CODE = 1;

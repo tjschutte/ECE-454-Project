@@ -34,12 +34,11 @@ import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 import edu.wisc.ece454.hu_mon.Utilities.JobServiceScheduler;
 
-public class MenuActivity extends AppCompatActivity {
+public class MenuActivity extends SettingsActivity {
 
     private ListView menuListView;
     private String[] menuOption;
     private String userEmail;
-    private ServerConnection mServerConnection;
     private boolean mBound;
 
     private String EMAIL_KEY;
@@ -88,11 +87,6 @@ public class MenuActivity extends AppCompatActivity {
                 }
         );
 
-        // Attach to the server communication service
-        Intent intent = new Intent(this, ServerConnection.class);
-        startService(intent);
-        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -115,12 +109,6 @@ public class MenuActivity extends AppCompatActivity {
             saveHumonsToServer();
         }
 
-        // make sure to unbind
-        if (mBound) {
-            unbindService(mServiceConnection);
-            mBound = false;
-        }
-
         super.onDestroy();
     }
 
@@ -132,21 +120,6 @@ public class MenuActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
     }
-
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            ServerConnection.LocalBinder myBinder = (ServerConnection.LocalBinder) service;
-            mServerConnection = myBinder.getService();
-            mBound = true;
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            // This is called when the connection with the service has been
-            // unexpectedly disconnected -- that is, its process crashed.
-            mServiceConnection = null;
-            mBound = false;
-        }
-    };
 
     //changes activity to the next screen based off menu button hit
     @RequiresApi(api = Build.VERSION_CODES.M)

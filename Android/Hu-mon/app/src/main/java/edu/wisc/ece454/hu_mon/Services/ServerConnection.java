@@ -169,6 +169,7 @@ public class ServerConnection extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+
         try {
             socket.close();
         } catch (Exception e) {

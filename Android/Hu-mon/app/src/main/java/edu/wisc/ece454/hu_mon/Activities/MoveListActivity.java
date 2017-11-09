@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -15,7 +14,7 @@ import java.util.ArrayList;
 import edu.wisc.ece454.hu_mon.Models.Move;
 import edu.wisc.ece454.hu_mon.R;
 
-public class MoveListActivity extends AppCompatActivity {
+public class MoveListActivity extends SettingsActivity {
     private final String ACTIVITY_TITLE = "Select Move";
     private String MOVE_KEY;
     private String MOVE_POSITION_KEY;

@@ -63,9 +63,8 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
 
             if(goodPayload) {
                 //update HIDS in index and party
-                AsyncTask<String, Integer, Boolean> hidUpdateTask = new HumonIDUpdater(userEmail + context.getString(R.string.indexFile),
-                        userEmail + context.getString(R.string.partyFile), userEmail, hName, hDescription,
-                        context, context.getString(R.string.humonsKey));
+                AsyncTask<String, Integer, Boolean> hidUpdateTask = new HumonIDUpdater(context,
+                        hName, hDescription);
                 hidUpdateTask.execute(hID);
             }
         }

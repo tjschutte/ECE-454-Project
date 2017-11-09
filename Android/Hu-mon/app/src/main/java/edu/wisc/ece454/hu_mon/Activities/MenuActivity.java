@@ -1,11 +1,14 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
 import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -23,15 +26,21 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 
+import edu.wisc.ece454.hu_mon.Models.Humon;
+import edu.wisc.ece454.hu_mon.Models.Move;
 import edu.wisc.ece454.hu_mon.R;
-import edu.wisc.ece454.hu_mon.Utilities.StepJobScheduler;
+import edu.wisc.ece454.hu_mon.Services.ServerConnection;
+import edu.wisc.ece454.hu_mon.Utilities.JobServiceScheduler;
 
 public class MenuActivity extends AppCompatActivity {
 
     private ListView menuListView;
     private String[] menuOption;
     private String userEmail;
+    private ServerConnection mServerConnection;
+    private boolean mBound;
 
     private String EMAIL_KEY;
     private final String ACTIVITY_TITLE = "Main Menu";
@@ -79,6 +88,11 @@ public class MenuActivity extends AppCompatActivity {
                 }
         );
 
+        // Attach to the server communication service
+        Intent intent = new Intent(this, ServerConnection.class);
+        startService(intent);
+        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -95,6 +109,18 @@ public class MenuActivity extends AppCompatActivity {
 
         JobScheduler jobScheduler = this.getSystemService(JobScheduler.class);
         jobScheduler.cancel(stepJobId);
+
+        //save current party to server
+        if(hasHumons()) {
+            saveHumonsToServer();
+        }
+
+        // make sure to unbind
+        if (mBound) {
+            unbindService(mServiceConnection);
+            mBound = false;
+        }
+
         super.onDestroy();
     }
 
@@ -106,6 +132,21 @@ public class MenuActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
     }
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            ServerConnection.LocalBinder myBinder = (ServerConnection.LocalBinder) service;
+            mServerConnection = myBinder.getService();
+            mBound = true;
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            mServiceConnection = null;
+            mBound = false;
+        }
+    };
 
     //changes activity to the next screen based off menu button hit
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -138,7 +179,7 @@ public class MenuActivity extends AppCompatActivity {
                 if(hasHumons()) {
                     toast.setText("Began searching for hu-mons, will notify when hu-mon found.");
                     toast.show();
-                    StepJobScheduler.scheduleJob(getApplicationContext());
+                    JobServiceScheduler.scheduleStepJob(getApplicationContext());
                 }
                 else {
                     toast.setText("Cannot search without a humon.");
@@ -149,6 +190,68 @@ public class MenuActivity extends AppCompatActivity {
                 toast.setText("Error: Bad Menu Item");
                 toast.show();
                 return;
+        }
+
+    }
+
+    //Save all humons in party to server (happens on sign out and destruction of app)
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void saveHumonsToServer() {
+
+        //read in current party(if it exists)
+        boolean hasPartyFile = true;
+        FileInputStream inputStream;
+        String oldParty = "";
+        File partyFile = new File(getFilesDir(), userEmail + getString(R.string.partyFile));
+        JSONObject partyJSON;
+        JSONArray humonsArray;
+        String HUMONS_KEY = getString(R.string.humonsKey);
+
+        try {
+            inputStream = new FileInputStream(partyFile);
+            int inputBytes = inputStream.available();
+            byte[] buffer = new byte[inputBytes];
+            inputStream.read(buffer);
+            inputStream.close();
+            oldParty = new String(buffer, "UTF-8");
+        }
+        catch(FileNotFoundException e) {
+            e.printStackTrace();
+            System.out.println("No party currently exists for: " + userEmail);
+            hasPartyFile = false;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if(hasPartyFile) {
+            //update HID in party
+            try {
+                //append humon on to current object
+                if (oldParty.length() == 0) {
+                    System.out.println("Party is empty.");
+                    return;
+                } else {
+                    partyJSON = new JSONObject(oldParty);
+                    humonsArray = partyJSON.getJSONArray(HUMONS_KEY);
+                }
+
+                String [] saveHumons = new String[humonsArray.length()];
+
+                //store all humons as JSON strings to pass to service
+                for (int j = 0; j < humonsArray.length(); j++) {
+                    JSONObject humonJSON = new JSONObject(humonsArray.getString(j));
+                    humonJSON.put("imagePath", "");
+                    saveHumons[j] = humonJSON.toString();
+                }
+                JobServiceScheduler.scheduleServerSaveJob(getApplicationContext(), saveHumons);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            Toast toast = Toast.makeText(getApplicationContext(), "Unable to find party file", Toast.LENGTH_LONG);
+            toast.show();
         }
 
     }

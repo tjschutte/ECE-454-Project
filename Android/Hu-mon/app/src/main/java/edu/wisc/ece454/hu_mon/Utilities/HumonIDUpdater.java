@@ -35,6 +35,8 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
     private String hDescription = "";
     private Context context;
     private String HUMONS_KEY = "";
+    private File oldImageFile;
+    private File newImageFile;
 
     public HumonIDUpdater(Context context, String hName, String hDescription) {
         this.context = context;
@@ -98,13 +100,22 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
                 }
 
                 //check that parameters match
-                for (int j = 0; j < humonsArray.length(); j++) {
+                for (int j = humonsArray.length() - 1; j >= 0; j--) {
                     JSONObject dupCheck = new JSONObject(humonsArray.getString(j));
                     if (dupCheck.getString("name").equals(hName)) {
                         if (dupCheck.getString("uID").equals(email)) {
                             if (dupCheck.getString("description").equals(hDescription)) {
                                 System.out.println("Updating " + dupCheck.getString("name") + " with HID:" + hIDs[0]);
                                 dupCheck.put("hID", hIDs[0]);
+
+                                //rename image file to hID
+                                oldImageFile = new File(dupCheck.getString("imagePath"));
+                                //System.out.println("Old image path: " + oldImageFile.getPath());
+                                newImageFile = new File(context.getFilesDir(), hIDs[0] + ".jpg");
+                                oldImageFile.renameTo(newImageFile);
+                                //System.out.println("New image path: " + newImageFile.getPath());
+                                dupCheck.put("imagePath", newImageFile.getPath());
+
                                 humonsArray.remove(j);
                                 humonsArray.put(dupCheck);
                                 foundHumon = true;
@@ -166,13 +177,19 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
                 }
 
                 //check that parameters match
-                for (int j = 0; j < humonsArray.length(); j++) {
+                for (int j = humonsArray.length() - 1; j >= 0; j--) {
                     JSONObject dupCheck = new JSONObject(humonsArray.getString(j));
                     if (dupCheck.getString("hID").equals("0")) {
                         if (dupCheck.getString("uID").equals(email)) {
                             if (dupCheck.getString("description").equals(hDescription)) {
                                 System.out.println("Updating " + dupCheck.getString("name") + " with HID:" + hIDs[0]);
                                 dupCheck.put("hID", hIDs[0]);
+
+                                //rename path to new image file
+                                if(newImageFile != null) {
+                                    dupCheck.put("imagePath", newImageFile.getPath());
+                                }
+
                                 humonsArray.remove(j);
                                 humonsArray.put(dupCheck);
                                 foundHumon = true;

@@ -1,7 +1,5 @@
 package server;
 
-import org.apache.http.impl.cookie.PublicSuffixDomainFilter;
-
 public class Message {
 	
 	/**
@@ -19,6 +17,9 @@ public class Message {
 	public static final String DUPLICATE_HUMON = 		"007 - User attempted to create an already existing humon. Try creating a Humon with a different Name or Description";
 	public static final String NOT_LOGGEDIN = 			"008 - Must be logged in to perform this action.";
 	public static final String USER_DOES_NOT_EXIST =	"009 - User does not exist.";
+	public static final String COULD_NOT_SAVE_ACCOUNT = "010 - Server was unable to save user account.";
+	
+	public static final String COMMAND_NOT_SUPPORTED = 	"666 - The command you issued was valid, but ther sever does nothing for it as this time.";
 	
 	/**
 	 * Other user messages

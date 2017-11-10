@@ -2,14 +2,11 @@ package server;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-
-import com.mysql.cj.api.log.Log;
 
 import main.Global;
 import utilities.Connector;
@@ -63,7 +60,6 @@ public class HttpConnection extends Thread {
 	private void homePage() throws IOException {
 		PrintWriter out;
 		out = new PrintWriter(socket.getOutputStream());
-		System.out.println("Connection to Homepage.");
 		out.print("HTTP/1.1 200 \r\n"); // Version & status code
 		out.print("Content-Type: text/html\r\n"); // The type of data
 		out.print("Connection: close\r\n"); // Will close stream
@@ -77,7 +73,6 @@ public class HttpConnection extends Thread {
 	}
 
 	private void download() throws IOException {
-		System.out.println("Connection to Download");
 		PrintWriter out;
 		out = new PrintWriter(socket.getOutputStream());
 		out.print("HTTP/1.1 200 \r\n"); // Version & status code
@@ -94,7 +89,6 @@ public class HttpConnection extends Thread {
 	}
 	
 	private void log() throws IOException {
-		System.out.println("Connection to log");
 		PrintWriter out;
 		
 		out = new PrintWriter(socket.getOutputStream());

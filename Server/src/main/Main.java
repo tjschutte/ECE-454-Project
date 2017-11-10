@@ -28,6 +28,7 @@ class ServerConnectionListener extends Thread {
 			humonListener = new ServerSocket(9898);
 
 			// Ensure that the database is set up, and has tables set up.
+			@SuppressWarnings("unused")
 			Database database = new Database(true, true);
 
 			System.out.println("Waiting for Humon-Service connections.");

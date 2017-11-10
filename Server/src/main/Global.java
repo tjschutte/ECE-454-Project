@@ -26,7 +26,7 @@ public class Global {
 	
 	public static final String HUMON_TABLE_COLUMNS = "(name, description, health, attack, defense, speed, luck, moves, created_by)";
 
-	public static final String INSTANCE_TABLE_COLUMNS = "(instanceID, humonID, level, expereince, health, hp, attack, defence, speed, luck, user)";
+	public static final String INSTANCE_TABLE_COLUMNS = "(instanceID, name, humonID, level, experience, health, hp, attack, defense, speed, luck, user)";
 	
 	
 	private static DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");

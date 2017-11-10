@@ -2,10 +2,8 @@ package utilities;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.apache.commons.codec.binary.Base64;
@@ -79,7 +77,7 @@ public class Database {
 			String image = "";
 		
 			File file =  new File("GooglePlay.png");
-		
+			
 			FileInputStream fileInputStreamReader = new FileInputStream(file);
 			byte[] bytes = new byte[(int)file.length()];
 			fileInputStreamReader.read(bytes);
@@ -99,13 +97,14 @@ public class Database {
 			ps.executeUpdate();
 			
 			Humon humon = new ObjectMapper().readValue(testHumon1, Humon.class);
-			ps = connection.prepareStatement("insert into humon " + Global.HUMON_TABLE_COLUMNS + " values " + humon.toSqlHumonValueString(user));
+			ps = connection.prepareStatement("insert into humon " + Global.HUMON_TABLE_COLUMNS + " values " + humon.toSqlHumonValueString());
 			ps.executeUpdate();
 			
 			humon = new ObjectMapper().readValue(testHumon2, Humon.class);
-			ps = connection.prepareStatement("insert into humon " + Global.HUMON_TABLE_COLUMNS + " values " + humon.toSqlHumonValueString(user));
+			ps = connection.prepareStatement("insert into humon " + Global.HUMON_TABLE_COLUMNS + " values " + humon.toSqlHumonValueString());
 			ps.executeUpdate();
 			
+			fileInputStreamReader.close();
 			
 		} catch (SQLException | IOException e) {
 			e.printStackTrace();
@@ -161,6 +160,7 @@ public class Database {
 	private void createInstanceTable() throws SQLException {
 		PreparedStatement ps = connection.prepareStatement("CREATE TABLE IF NOT EXISTS instance ("
 				+ "instanceID varchar(" + Global.MAX_INSTANCEID_LENGTH + "),"
+				+ "name varchar(" + Global.MAX_NAME_LENGTH + "),"
 				+ "humonID int,"
 				+ "level int,"
 				+ "experience int,"

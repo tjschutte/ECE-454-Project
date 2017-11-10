@@ -9,6 +9,8 @@ import java.net.URL;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import main.Global;
+
 public class NotificationHandler {
 	
 	private static final String API_KEY = "AAAAL2PRmqE:APA91bEQ0DxLElgVjsYzuRqi1gyN1r5ly7Ri8ijoqJVDuyvS67ChgpRqCEYTl4uT0kyGpLDc0_p_4VSXLMKDFxdHtPzABt3NJ6NERkLsmM7J-U4Gfc0M0jVCsKGpvgodVcAAmYmfUsLE ";
@@ -55,8 +57,11 @@ public class NotificationHandler {
  
             String output;
             while ((output = br.readLine()) != null) {
-                //System.out.println(output);
+                Global.log(-1, "NOTIFICATION DEBUG: " + output);
             }
+            
+            br.close();
+            wr.close();
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -1,6 +1,6 @@
 package server;
 
-public class Commands {
+public class Command {
 	/**
 	 * Static definitions of valid commands the server supports
 	 * More commands should always be added here.

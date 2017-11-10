@@ -1,8 +1,11 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -20,8 +23,8 @@ public class HumonInfoActivity extends SettingsActivity {
     private final String ACTIVITY_TITLE = "Humon Info";
 
     private Humon humon;
-    private ArrayAdapter<String> moveAdapter;
-    private ArrayList<String> moveList;
+    private ArrayAdapter<Move> moveAdapter;
+    private ArrayList<Move> moveList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,11 +33,20 @@ public class HumonInfoActivity extends SettingsActivity {
         setTitle(ACTIVITY_TITLE);
 
         HUMON_KEY = getString(R.string.humonKey);
-        moveList = new ArrayList<String>();
+        moveList = new ArrayList<Move>();
         GridView moveGridView = (GridView) findViewById(R.id.moveGridView);
-        moveAdapter = new ArrayAdapter<String>(this,
+        moveAdapter = new ArrayAdapter<Move>(this,
                 android.R.layout.simple_list_item_1, moveList);
         moveGridView.setAdapter(moveAdapter);
+
+        moveGridView.setOnItemClickListener(
+                new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        viewMove(moveList.get(position));
+                    }
+                }
+        );
 
     }
 
@@ -74,7 +86,7 @@ public class HumonInfoActivity extends SettingsActivity {
                 //load moves into grid
                 ArrayList<Move> humonMoves = humon.getMoves();
                 for(int i = 0; i < humonMoves.size(); i++) {
-                    moveList.add(humonMoves.get(i).getName());
+                    moveList.add(humonMoves.get(i));
                 }
                 moveAdapter.notifyDataSetChanged();
 
@@ -90,5 +102,12 @@ public class HumonInfoActivity extends SettingsActivity {
             }
         });
 
+    }
+
+    //View info about move in its own activity
+    private void viewMove(Move move) {
+        Intent intent = new Intent(this, MoveInfoActivity.class);
+        intent.putExtra(getString(R.string.moveKey), move);
+        startActivity(intent);
     }
 }

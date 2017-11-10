@@ -137,11 +137,33 @@ public class IndexActivity extends SettingsActivity {
                             String moveName = moveJson.getString("name");
                             boolean moveSelfCast = moveJson.getBoolean("selfCast");
                             int dmg = moveJson.getInt("dmg");
-                            //Move.Effect moveEffect = (Move.Effect) moveJson.get("effect");
+
+                            Move.Effect moveEffect;
+                            String moveEffectString = moveJson.getString("effect");
+                            switch(moveEffectString) {
+                                case "CONFUSED":
+                                    moveEffect = Move.Effect.CONFUSED;
+                                    break;
+                                case "PARALYZED":
+                                    moveEffect = Move.Effect.PARALYZED;
+                                    break;
+                                case "EMBARRASSED":
+                                    moveEffect = Move.Effect.EMBARRASSED;
+                                    break;
+                                case "POISONED":
+                                    moveEffect = Move.Effect.POISONED;
+                                    break;
+                                case "SLEPT":
+                                    moveEffect = Move.Effect.SLEPT;
+                                    break;
+                                default:
+                                    moveEffect = null;
+                            }
+
                             boolean moveHasEffect = moveJson.getBoolean("hasEffect");
                             String moveDescription = moveJson.getString("description");
 
-                            moveList.add(new Move(moveId, moveName, moveSelfCast, dmg, null,
+                            moveList.add(new Move(moveId, moveName, moveSelfCast, dmg, moveEffect,
                                     moveHasEffect, moveDescription));
                         }
 

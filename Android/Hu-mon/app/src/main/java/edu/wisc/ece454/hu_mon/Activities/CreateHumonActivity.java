@@ -356,7 +356,8 @@ public class CreateHumonActivity extends SettingsActivity {
                     toast.show();
                     return;
                 }
-                if(moveDisplayList[i].equals(moveDisplayList[j])) {
+                if(moveList[i].getName().equals(moveList[j].getName()) ||
+                        moveList[i].getId() == moveList[j].getId()) {
                     Toast toast = Toast.makeText(this, "Cannot Have Duplicate Moves", Toast.LENGTH_SHORT);
                     toast.show();
                     return;

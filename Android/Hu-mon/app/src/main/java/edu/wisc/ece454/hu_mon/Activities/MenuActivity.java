@@ -223,8 +223,7 @@ public class MenuActivity extends SettingsActivity {
             }
         }
         else {
-            Toast toast = Toast.makeText(getApplicationContext(), "Unable to find party file", Toast.LENGTH_LONG);
-            toast.show();
+            System.out.println("Unable to find party file");
         }
 
     }

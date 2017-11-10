@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -51,7 +52,6 @@ public class CreateHumonActivity extends SettingsActivity {
     private String MOVE_POSITION_KEY;
     private String MOVE_KEY;
     private final int MAX_WIDTH = 1920;
-    private final int MAX_HEIGHT = 1080;
 
     private TextView statTextView;
     private String[] moveDisplayList;
@@ -67,7 +67,7 @@ public class CreateHumonActivity extends SettingsActivity {
     Bitmap humonImage;
     int imageOrientation;
     int imageWidth;
-    int imageHeight;
+    int heightAdjusted;
 
 
     @Override
@@ -87,14 +87,20 @@ public class CreateHumonActivity extends SettingsActivity {
 
         //obtain dimensions of the image
         imageWidth = Math.min(rawHumonImage.getWidth(), MAX_WIDTH);
-        imageHeight = Math.min(rawHumonImage.getHeight(), MAX_HEIGHT);
 
         //Change the image to the correct size and orientation
         Matrix m = new Matrix();
         imageOrientation = -90;
         m.postRotate(imageOrientation);
-        humonImage = Bitmap.createScaledBitmap(rawHumonImage, imageWidth, imageHeight, true);
 
+        // Caclulate the raw image aspect ratio.  We need to maintain this to make the image
+        // not look like it was squeezed in one direction.
+        float aspectRatio = (float)rawHumonImage.getHeight() / (float)rawHumonImage.getWidth();
+
+        heightAdjusted = (int)(aspectRatio * (float)imageWidth);
+
+        humonImage = Bitmap.createScaledBitmap(rawHumonImage, imageWidth, heightAdjusted, true);
+        Log.d("Image dimenstions", "Height: " + heightAdjusted + " Width: " + imageWidth);
 
         //display the image
         ImageView humonImageView = (ImageView) findViewById(R.id.humonImageView);

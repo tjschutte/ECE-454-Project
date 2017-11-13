@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -126,9 +128,7 @@ public class UserAction {
 			}
 
 			// Map from database to object
-			//String email, String password, String party, String encounteredHumons, String friends, String friendRequests, int hcount, String deviceToken, boolean isDirty
-			connection.user = new User(resultSet.getString(2), resultSet.getString(3), resultSet.getString(4),
-					resultSet.getString(5), resultSet.getString(6), resultSet.getString(7), resultSet.getInt(8), resultSet.getString(9), false);
+			connection.user = new User(resultSet);
 
 			// Check if the user is on a new device. If so, update so we can send
 			// notifications to it.
@@ -158,6 +158,7 @@ public class UserAction {
 		Global.log(connection.clientNumber, "Sending friend Request");
 		Global.log(connection.clientNumber, data);
 
+		// Check if issuing user is logged in
 		if (connection.user == null || connection.user.getEmail().isEmpty()) {
 			connection.error(Message.NOT_LOGGEDIN);
 			return;
@@ -168,6 +169,7 @@ public class UserAction {
 		JsonFactory factory = new JsonFactory();
 		JsonParser parser = factory.createParser(data);
 
+		// Get the email of the user they want to be friends with
 		while (!parser.isClosed()) {
 			JsonToken token = parser.nextToken();
 			if (token == null) {
@@ -180,19 +182,58 @@ public class UserAction {
 			}
 		}
 
+		// Make sure data was valid
 		if (email == null || email.isEmpty()) {
 			connection.error(Message.MALFORMED_DATA_PACKET);
 			return;
 		}
 
 		ResultSet resultSet = connection.databaseConnection
-				.executeSQL("select deviceToken from users where email='" + email + "';");
+				.executeSQL("select deviceToken, friends, friendRequests from users where email='" + email + "';");
 
+		// check to make sure the requested user exists...
 		if (!resultSet.next()) {
 			connection.sendResponse(Command.ERROR, Message.USER_DOES_NOT_EXIST);
 			return;
 		}
 		
+		// Get requested users friends / pending friends
+		ArrayList<String> friends = new ArrayList<String>(Arrays.asList(resultSet.getString(2).split(",")));
+		ArrayList<String> friendRequests = new ArrayList<String>(Arrays.asList(resultSet.getString(3).split(",")));
+		
+		// Check if we are already friends
+		for (String friend : friends) {
+			if (connection.user.getEmail().equals(friend)) {
+				connection.sendResponse(Command.ERROR, Message.USERS_ALREADY_FRIENDS);
+				return;
+			}
+		}
+		
+		// Check if we are already in their pending requests
+		for (String request : friendRequests) {
+			if (connection.user.getEmail().equals(request)) {
+				connection.sendResponse(Command.ERROR, Message.REQUEST_ALREADY_PENDING);
+				return;
+			}
+		}
+		
+		// Made it here, valid friend request.  Add us to their pending friend requests, this way if they are not
+		// currently logged in, the client gets accurate info from the server.  Means client also needs to verify
+		// That is does not add duplicate users to friends / requests.
+		friendRequests.add(connection.user.getEmail());
+		PreparedStatement ps = connection.databaseConnection.prepareStatement("update users set friendRequests='" + friendRequests + "' where email='"
+				+ email + "';");
+		
+		int rows = ps.executeUpdate();
+		// Should only get 1 row was affected.
+		if (rows != 1) {
+			// If we are here, something went wonky
+			connection.sendResponse(Command.ERROR, Message.SERVER_ERROR_RETRY);
+			throw new SQLException();
+		}
+		
+		// Send notification to user. If they are logged in they can add user to pending friends and on close will overwrite the server data.
+		// If they were not logged in, then they will need to make sure to check for duplicates.
 		JSONObject notificationData = new JSONObject();
 		notificationData.put(Command.FRIEND_REQUEST, connection.user.getEmail());
 
@@ -233,10 +274,27 @@ public class UserAction {
 		}
 
 		ResultSet resultSet = connection.databaseConnection
-				.executeSQL("select deviceToken from users where email='" + email + "';");
+				.executeSQL("select deviceToken,friends from users where email='" + email + "';");
 
 		if (!resultSet.next()) {
 			connection.sendResponse(Command.ERROR, Message.USER_DOES_NOT_EXIST);
+			return;
+		}
+		
+		// Get requested users friends
+		ArrayList<String> friends = new ArrayList<String>(Arrays.asList(resultSet.getString(2).split(",")));
+		// Check if we are already friends
+		boolean areFriends = false;
+		for (String friend : friends) {
+			if (connection.user.getEmail().equals(friend)) {
+				areFriends = true;
+				break;
+			}
+		}
+		
+		// If users are not friends, they can't battle.
+		if (!areFriends) {
+			connection.sendResponse(Command.ERROR, Message.MUST_BE_FRIENDS_TODO);
 			return;
 		}
 		
@@ -255,7 +313,7 @@ public class UserAction {
 
 		PreparedStatement ps;
 		try {
-			ps = connection.databaseConnection.prepareStatement("update users set " + user.updateSyntax() + "where email='"
+			ps = connection.databaseConnection.prepareStatement("update users set " + user.updateSyntax() + " where email='"
 					+ user.getEmail() + "' and password='" + user.getPassword() + "';");
 			
 			int rows = ps.executeUpdate();

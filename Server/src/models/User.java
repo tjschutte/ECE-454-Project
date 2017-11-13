@@ -1,5 +1,7 @@
 package models;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -71,6 +73,12 @@ public class User {
 		this.hcount = hcount;
 		this.deviceToken = deviceToken;
 		this.isDirty = isDirty;
+	}
+	
+	public User(ResultSet resultSet) throws SQLException {
+		//String email, String password, String party, String encounteredHumons, String friends, String friendRequests, int hcount, String deviceToken, boolean isDirty
+		this(resultSet.getString(2), resultSet.getString(3), resultSet.getString(4),
+				resultSet.getString(5), resultSet.getString(6), resultSet.getString(7), resultSet.getInt(8), resultSet.getString(9), false);
 	}
 
 	public boolean getIsDirty() {

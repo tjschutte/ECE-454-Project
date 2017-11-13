@@ -13,12 +13,13 @@ public class Command {
 	public static final String SUCCESS = 		"SUCCESS";
 	public static final String SAVE_USER = 		"SAVE-USER";
 	public static final String GET_IMAGE = 		"GET-IMAGE";
-	public static final String SET_IMAGE = 		"SET-IMAGE";
+	public static final String SET_IMAGE = 		"SET-IMAGE"; // Not currently used.
 	public static final String GET_INSTANCE = 	"GET-INSTANCE";
 	public static final String SAVE_INSTANCE =	"SAVE-INSTANCE";
 	public static final String GET_HUMON = 		"GET-HUMON";
 	public static final String CREATE_HUMON = 	"CREATE-HUMON";
 	public static final String FRIEND_REQUEST = "FRIEND-REQUEST";
+	public static final String FRIEND_ADDED = 	"FRIEND-ADDED"; // Not currently used.
 	public static final String BATTLE_REQUEST = "BATTLE-REQUEST";
 
 }

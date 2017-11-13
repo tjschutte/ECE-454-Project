@@ -17,6 +17,7 @@
     <string name="partyFile">-party.json</string>
     <string name="humonKey">humon</string>
     <string name="humonsKey">humons</string>
+    <string name="userKey">user</string>
     <string name="ServerCommandLogin">LOGIN</string>
     <string name="ServerCommandRegister">REGISTER</string>
     <string name="ServerCommandFriendRequest">FRIEND-REQUEST</string>

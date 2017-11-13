@@ -39,7 +39,6 @@ public class MenuActivity extends SettingsActivity {
     private ListView menuListView;
     private String[] menuOption;
     private String userEmail;
-    private boolean mBound;
 
     private String EMAIL_KEY;
     private final String ACTIVITY_TITLE = "Main Menu";
@@ -89,13 +88,11 @@ public class MenuActivity extends SettingsActivity {
 
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onStart() {
         super.onStart();
     }
 
-    @RequiresApi(api = 23)
     @Override
     protected void onDestroy() {
         //Obtain ID of Step JobService
@@ -104,10 +101,8 @@ public class MenuActivity extends SettingsActivity {
         JobScheduler jobScheduler = this.getSystemService(JobScheduler.class);
         jobScheduler.cancel(stepJobId);
 
-        //save current party to server
-        if(hasHumons()) {
-            saveHumonsToServer();
-        }
+        // Save any pertinant data back to the server.
+        saveToServer();
 
         super.onDestroy();
     }
@@ -122,7 +117,6 @@ public class MenuActivity extends SettingsActivity {
     }
 
     //changes activity to the next screen based off menu button hit
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void changeMenu(String nextMenu) {
         Toast toast = Toast.makeText(getApplicationContext(), nextMenu, Toast.LENGTH_LONG);
 
@@ -168,63 +162,101 @@ public class MenuActivity extends SettingsActivity {
     }
 
     //Save all humons in party to server (happens on sign out and destruction of app)
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private void saveHumonsToServer() {
+    private void saveToServer() {
 
         //read in current party(if it exists)
         boolean hasPartyFile = true;
+        boolean hasUserFile = true;
         FileInputStream inputStream;
         String oldParty = "";
+        String oldUser = "";
         File partyFile = new File(getFilesDir(), userEmail + getString(R.string.partyFile));
+        File userFile = new File(getFilesDir(), userEmail);
         JSONObject partyJSON;
+        JSONObject userJSON;
         JSONArray humonsArray;
-        String HUMONS_KEY = getString(R.string.humonsKey);
 
+        String[] saveHumons = null;
+        String[] saveUser = null;
+
+        if (hasHumons()) {
+            try {
+                inputStream = new FileInputStream(partyFile);
+                int inputBytes = inputStream.available();
+                byte[] buffer = new byte[inputBytes];
+                inputStream.read(buffer);
+                inputStream.close();
+                oldParty = new String(buffer, "UTF-8");
+            }
+            catch(FileNotFoundException e) {
+                e.printStackTrace();
+                System.out.println("No party currently exists for: " + userEmail);
+                hasPartyFile = false;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if(hasPartyFile) {
+                //update HID in party
+                try {
+                    //append humon on to current object
+                    if (oldParty.length() == 0) {
+                        System.out.println("Party is empty.");
+                        return;
+                    } else {
+                        partyJSON = new JSONObject(oldParty);
+                        humonsArray = partyJSON.getJSONArray(getString(R.string.humonsKey));
+                    }
+
+                    saveHumons = new String[humonsArray.length()];
+
+                    //store all humons as JSON strings to pass to service
+                    for (int j = 0; j < humonsArray.length(); j++) {
+                        JSONObject humonJSON = new JSONObject(humonsArray.getString(j));
+                        humonJSON.put("imagePath", "");
+                        saveHumons[j] = humonJSON.toString();
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            else {
+                System.out.println("Unable to find party file");
+            }
+        }
+
+        // Save the user
         try {
-            inputStream = new FileInputStream(partyFile);
+            inputStream = new FileInputStream(userFile);
             int inputBytes = inputStream.available();
             byte[] buffer = new byte[inputBytes];
             inputStream.read(buffer);
             inputStream.close();
-            oldParty = new String(buffer, "UTF-8");
+            oldUser = new String(buffer, "UTF-8");
         }
         catch(FileNotFoundException e) {
             e.printStackTrace();
-            System.out.println("No party currently exists for: " + userEmail);
-            hasPartyFile = false;
+            System.out.println("User file could not be found for: " + userEmail);
+            hasUserFile = false;
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        if(hasPartyFile) {
-            //update HID in party
+        if(hasUserFile) {
             try {
-                //append humon on to current object
-                if (oldParty.length() == 0) {
-                    System.out.println("Party is empty.");
-                    return;
-                } else {
-                    partyJSON = new JSONObject(oldParty);
-                    humonsArray = partyJSON.getJSONArray(HUMONS_KEY);
-                }
-
-                String [] saveHumons = new String[humonsArray.length()];
-
-                //store all humons as JSON strings to pass to service
-                for (int j = 0; j < humonsArray.length(); j++) {
-                    JSONObject humonJSON = new JSONObject(humonsArray.getString(j));
-                    humonJSON.put("imagePath", "");
-                    saveHumons[j] = humonJSON.toString();
-                }
-                JobServiceScheduler.scheduleServerSaveJob(getApplicationContext(), saveHumons);
-
+                userJSON = new JSONObject(oldUser);
+                saveUser = new String[] {userJSON.toString()};
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         else {
-            System.out.println("Unable to find party file");
+            System.out.println("Unable to find user file");
         }
+
+        // Save user and party.
+        JobServiceScheduler.scheduleServerSaveJob(getApplicationContext(), saveHumons, saveUser);
 
     }
 

@@ -45,10 +45,27 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             data = remoteMessage.getData();
 
             if (data.containsKey("FRIEND-REQUEST")) {
-                // TODO: Make a pending friend-request object or something that is put into the friends list area
+                // TODO: Add this to the user object as a pending friend request
+                System.out.println(data);
 
             } else if (data.containsKey("BATTLE-REQUEST")) {
                 //TODO: Something with pending intents to accept / decline
+                NotificationManager mNotificationManager =
+                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+                Intent notificationIntent = new Intent(this, MenuActivity.class);
+                PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+                Notification notification = new Notification.Builder(this)
+                        .setContentTitle("Battle Request")
+                        .setContentText("It's t-t-t-t-time to duel!")
+                        .setContentIntent(pendingIntent)
+                        .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
+                        .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "I GOT THIS", null) // #0
+                        .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "I DON'T GOT THIS", null)  // #1
+                        .build();
+
+                mNotificationManager.notify(69, notification);
             }
         }
 

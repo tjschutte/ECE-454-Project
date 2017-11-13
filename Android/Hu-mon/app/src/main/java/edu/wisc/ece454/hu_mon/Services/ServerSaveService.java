@@ -17,10 +17,6 @@ import java.net.Socket;
 
 import edu.wisc.ece454.hu_mon.R;
 
-/**
- * Created by Michael on 11/8/2017.
- */
-
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class ServerSaveService extends JobService {
 
@@ -33,6 +29,7 @@ public class ServerSaveService extends JobService {
     private boolean socketConnected;
 
     private String[] humons;
+    private String user;
     private Thread[] messThreads;
     private boolean threadsStarted = false;
     private int numThreadsStarted = 0;
@@ -49,19 +46,42 @@ public class ServerSaveService extends JobService {
         //wait for socket to connect before sending
         while(!socketConnected);
 
-        //unpackage humons (as json strings) to be sent
+        //unpackage json strings to be sent
         if(!threadsStarted) {
             if(numThreadsStarted == 0) {
-                humons = params.getExtras().getStringArray(getString(R.string.humonsKey));
-                messThreads = new Thread[humons.length];
+                int threadCount = 0;
+                if (params.getExtras().containsKey(getString(R.string.humonsKey))) {
+                    humons = params.getExtras().getStringArray(getString(R.string.humonsKey));
+                    //messThreads = new Thread[humons.length]; // + 1 for the user save thread.
+                    threadCount += humons.length;
+                }
+                if (params.getExtras().containsKey(getString(R.string.userKey))) {
+                    user = params.getExtras().getStringArray(getString(R.string.userKey))[0];
+                    threadCount++;
+                }
+
+                messThreads = new Thread[threadCount];
             }
 
             //send all humons to server
-            for (;numThreadsStarted < humons.length; numThreadsStarted++) {
-                Runnable sendSocket = new sendSocket(getString(R.string.ServerCommandSaveInstance), humons[numThreadsStarted]);
+            for (/* Nothing */; params.getExtras().containsKey(getString(R.string.humonsKey))
+                    && numThreadsStarted < humons.length; numThreadsStarted++) {
+
+                Runnable sendSocket = new sendSocket(getString(R.string.ServerCommandSaveInstance),
+                        humons[numThreadsStarted]);
+
                 messThreads[numThreadsStarted] = new Thread(sendSocket);
                 messThreads[numThreadsStarted].start();
             }
+
+            // Send the user back to the server on the alst available thread
+            if (params.getExtras().containsKey(getString(R.string.userKey))) {
+                Runnable sendSocket = new sendSocket(getString(R.string.ServerCommandSaveUser), user);
+
+                messThreads[numThreadsStarted] = new Thread(sendSocket);
+                messThreads[numThreadsStarted].start();
+            }
+
             threadsStarted = true;
         }
 

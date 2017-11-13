@@ -141,8 +141,8 @@ public class LoginActivity extends AppCompatActivity {
             command = command.toUpperCase();
             data = response.substring(response.indexOf(':') + 1, response.length());
 
+            // Server data is always assumed correct on login. Save to file and overwrite existing data.
             if (command.equals(getString(R.string.ServerCommandLogin)) || command.equals(getString(R.string.ServerCommandRegister))) {
-
                 AsyncTask<String, String, String> userSaveTask = new UserObjectSaver(email, context);
                 userSaveTask.execute(data);
 

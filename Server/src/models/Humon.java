@@ -171,19 +171,19 @@ public class Humon {
 
 	public String toSqlInstanceUpdateSyntax() {
 		// (instanceID, name, humonID, level, experience, health, hp, attack, defense, speed, luck, user)
-		String obj = "(";
-		obj += "instandID = '" + iID + "',";
+		String obj = "";
+		obj += "instanceID = '" + iID + "',";
 		obj += "name = '" + SQLHelper.sqlString(name) + "',";
-		obj += "humonID = '" + hID + "',";
-		obj += "level = '" + level + "',";
-		obj += "experience = '" + xp + "',";
-		obj += "health = '" + health + "',";
-		obj += "hp = '" + hp + "',";
-		obj += "attack = '" + attack + "',";
-		obj += "defense = '" + defense + "',";
-		obj += "speed = '" + speed + "',";
-		obj += "luck = '" + luck + "',";
-		obj += "user = '" + SQLHelper.sqlString(uID) + "')";
+		obj += "humonID = " + hID + ",";
+		obj += "level = " + level + ",";
+		obj += "experience = " + xp + ",";
+		obj += "health = " + health + ",";
+		obj += "hp = " + hp + ",";
+		obj += "attack = " + attack + ",";
+		obj += "defense = " + defense + ",";
+		obj += "speed = " + speed + ",";
+		obj += "luck = " + luck + ",";
+		obj += "user = '" + SQLHelper.sqlString(uID) + "'";
 		return obj;
 	}
 

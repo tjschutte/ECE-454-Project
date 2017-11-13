@@ -309,7 +309,7 @@ public class UserAction {
 	public static void saveAccount(ServerThread connection, String data) throws JsonParseException, JsonMappingException, IOException {	
 		User user = connection.mapper.readValue(data, User.class);
 		
-		Global.log(connection.clientNumber, "User data was updated. Saving to database");
+		Global.log(connection.clientNumber, "Saving client account data back to server.");
 
 		PreparedStatement ps;
 		try {
@@ -322,7 +322,7 @@ public class UserAction {
 				connection.sendResponse(Command.ERROR, Message.COULD_NOT_SAVE_ACCOUNT);
 				throw new SQLException();
 			}
-			connection.user.setClean();
+			
 		} catch (SQLException e) {
 			connection.sendResponse(Command.ERROR, Message.COULD_NOT_SAVE_ACCOUNT);
 			e.printStackTrace();

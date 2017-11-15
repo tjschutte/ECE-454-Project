@@ -307,9 +307,10 @@ public class UserAction {
 	}
 
 	public static void saveAccount(ServerThread connection, String data) throws JsonParseException, JsonMappingException, IOException {	
+		Global.log(connection.clientNumber, data);
 		User user = connection.mapper.readValue(data, User.class);
 		
-		Global.log(connection.clientNumber, "Saving client account data back to server.");
+		Global.log(connection.clientNumber, "Saving client account data back to server for: " + user.getEmail());
 
 		PreparedStatement ps;
 		try {

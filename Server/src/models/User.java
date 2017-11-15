@@ -1,11 +1,14 @@
 package models;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import utilities.SQLHelper;
@@ -43,10 +46,10 @@ public class User {
 	public User(String email, String password, int hcount, String deviceToken, boolean isDirty) {
 		this.email = email;
 		this.password = password;
-		this.party = null; 
-		this.encounteredHumons = null;
-		this.friends = null;
-		this.friendRequests = null;
+		this.party = new ArrayList<String>(); 
+		this.encounteredHumons = new ArrayList<String>();
+		this.friends = new ArrayList<String>();
+		this.friendRequests = new ArrayList<String>();
 		this.hcount = hcount;
 		this.deviceToken = deviceToken;
 		this.isDirty = isDirty;
@@ -62,20 +65,23 @@ public class User {
 	 * @param friends
 	 * @param hcount
 	 * @param isDirty
+	 * @throws IOException 
+	 * @throws JsonMappingException 
+	 * @throws JsonParseException 
 	 */
-	public User(String email, String password, String party, String encounteredHumons, String friends, String friendRequests, int hcount, String deviceToken, boolean isDirty) {
+	public User(String email, String password, String party, String encounteredHumons, String friends, String friendRequests, int hcount, String deviceToken, boolean isDirty) throws JsonParseException, JsonMappingException, IOException {
 		this.email = email;
 		this.password = password;
-		this.party = (party != null) ? new ArrayList<String>(Arrays.asList(party.split(","))) : new ArrayList<String>();
-		this.encounteredHumons = (encounteredHumons != null) ? new ArrayList<String>(Arrays.asList(encounteredHumons.split(","))) : new ArrayList<String>();
-		this.friends = (friends != null) ? new ArrayList<String>(Arrays.asList(friends.split(","))) : new ArrayList<String>();
-		this.friendRequests = (friendRequests != null) ? new ArrayList<String>(Arrays.asList(friendRequests.split(","))) : new ArrayList<String>();
+		this.party = (party == null) ? new ArrayList<String>() : new ArrayList<String>(Arrays.asList(party.substring(party.indexOf('[') + 1, party.indexOf(']')).split(",")));
+		this.encounteredHumons = (encounteredHumons == null) ? new ArrayList<String>() : new ArrayList<String>(Arrays.asList(encounteredHumons.substring(encounteredHumons.indexOf('[') + 1, encounteredHumons.indexOf(']')).split(",")));
+		this.friends =  (friends == null) ? new ArrayList<String>() : new ArrayList<String>(Arrays.asList(friends.substring(friends.indexOf('[') + 1, friends.indexOf(']')).split(",")));
+		this.friendRequests =  (friendRequests == null) ? new ArrayList<String>() : new ArrayList<String>(Arrays.asList(friendRequests.substring(friendRequests.indexOf('[') + 1, friendRequests.indexOf(']')).split(",")));
 		this.hcount = hcount;
 		this.deviceToken = deviceToken;
 		this.isDirty = isDirty;
 	}
 	
-	public User(ResultSet resultSet) throws SQLException {
+	public User(ResultSet resultSet) throws SQLException, JsonParseException, JsonMappingException, IOException {
 		//String email, String password, String party, String encounteredHumons, String friends, String friendRequests, int hcount, String deviceToken, boolean isDirty
 		this(resultSet.getString(2), resultSet.getString(3), resultSet.getString(4),
 				resultSet.getString(5), resultSet.getString(6), resultSet.getString(7), resultSet.getInt(8), resultSet.getString(9), false);

@@ -29,7 +29,7 @@ class ServerConnectionListener extends Thread {
 
 			// Ensure that the database is set up, and has tables set up.
 			@SuppressWarnings("unused")
-			Database database = new Database(false, false);
+			Database database = new Database(true, false);
 
 			System.out.println("Waiting for Humon-Service connections.");
 			while (true) {

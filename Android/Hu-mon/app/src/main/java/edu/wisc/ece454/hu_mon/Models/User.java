@@ -2,6 +2,7 @@ package edu.wisc.ece454.hu_mon.Models;
 
 
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,13 +58,13 @@ public class User {
      * @param hcount
      * @param isDirty
      */
-    public User(String email, String password, String party, String encounteredHumons, String friends, String friendRequests, int hcount, String deviceToken, boolean isDirty) {
+    public User(String email, String password, String party, String encounteredHumons, String friends, String friendRequests, int hcount, String deviceToken, boolean isDirty) throws IOException {
         this.email = email;
         this.password = password;
-        this.party = (party != null) ? new ArrayList<String>(Arrays.asList(party.split(","))) : new ArrayList<String>();
-        this.encounteredHumons = (encounteredHumons != null) ? new ArrayList<String>(Arrays.asList(encounteredHumons.split(","))) : new ArrayList<String>();
-        this.friends = (friends != null) ? new ArrayList<String>(Arrays.asList(friends.split(","))) : new ArrayList<String>();
-        this.friendRequests = (friendRequests != null) ? new ArrayList<String>(Arrays.asList(friendRequests.split(","))) : new ArrayList<String>();
+        this.party = (party == null) ? new ArrayList<String>() : new ObjectMapper().readValue(party, ArrayList.class);
+        this.encounteredHumons = (encounteredHumons != null) ? new ArrayList<String>() : new ObjectMapper().readValue(party, ArrayList.class);;
+        this.friends = (friends == null) ? new ArrayList<String>() : new ObjectMapper().readValue(party, ArrayList.class);;
+        this.friendRequests = (friendRequests == null) ? new ArrayList<String>() : new ObjectMapper().readValue(party, ArrayList.class);;
         this.hcount = hcount;
         this.deviceToken = deviceToken;
         this.isDirty = isDirty;

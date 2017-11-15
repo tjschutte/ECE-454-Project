@@ -52,6 +52,9 @@ public class ServerSaveService extends JobService {
                 int threadCount = 0;
                 if (params.getExtras().containsKey(getString(R.string.humonsKey))) {
                     humons = params.getExtras().getStringArray(getString(R.string.humonsKey));
+                    if(humons == null) {
+                        return false;
+                    }
                     //messThreads = new Thread[humons.length]; // + 1 for the user save thread.
                     threadCount += humons.length;
                 }

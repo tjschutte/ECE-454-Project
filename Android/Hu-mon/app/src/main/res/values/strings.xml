@@ -9,6 +9,7 @@
     <string name="title_activity_maps">Map</string>
     <string name="google_maps_key">AIzaSyAQm7fVEPSgc-AJLBlOtgkgutrQPRbsSrE</string>
     <string name="stepJobId">1</string>
+    <string name="serverSaveJobId">2</string>
     <string name="serverBroadCastEvent">edu.wisc.ece454.hu_mon.SERVER_RESPONSE</string>
     <string name="serverBroadCastResponseKey">RESPONSE</string>
     <string name="sharedPreferencesFile">edu.wisc.ece454.hu_mon.sharedPreferences</string>
@@ -16,11 +17,13 @@
     <string name="partyFile">-party.json</string>
     <string name="humonKey">humon</string>
     <string name="humonsKey">humons</string>
+    <string name="userKey">user</string>
     <string name="ServerCommandLogin">LOGIN</string>
     <string name="ServerCommandRegister">REGISTER</string>
     <string name="ServerCommandFriendRequest">FRIEND-REQUEST</string>
     <string name="ServerCommandBattleRequest">BATTLE-REQUEST</string>
     <string name="ServerCommandCreateHumon">CREATE-HUMON</string>
     <string name="ServerCommandSaveUser">SAVE-USER</string>
+    <string name="ServerCommandSaveInstance">SAVE-INSTANCE</string>
 
 </resources>

@@ -13,7 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -44,7 +44,7 @@ import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 import edu.wisc.ece454.hu_mon.Utilities.HumonIndexSaver;
 import edu.wisc.ece454.hu_mon.Utilities.HumonPartySaver;
 
-public class CreateHumonActivity extends AppCompatActivity {
+public class CreateHumonActivity extends SettingsActivity {
 
     private final String ACTIVITY_TITLE = "Create Hu-mon";
     private final int MOVE_REQUEST_CODE = 1;
@@ -52,7 +52,6 @@ public class CreateHumonActivity extends AppCompatActivity {
     private String MOVE_POSITION_KEY;
     private String MOVE_KEY;
     private final int MAX_WIDTH = 1920;
-    private final int MAX_HEIGHT = 1080;
 
     private TextView statTextView;
     private String[] moveDisplayList;
@@ -68,7 +67,7 @@ public class CreateHumonActivity extends AppCompatActivity {
     Bitmap humonImage;
     int imageOrientation;
     int imageWidth;
-    int imageHeight;
+    int heightAdjusted;
 
 
     @Override
@@ -88,14 +87,20 @@ public class CreateHumonActivity extends AppCompatActivity {
 
         //obtain dimensions of the image
         imageWidth = Math.min(rawHumonImage.getWidth(), MAX_WIDTH);
-        imageHeight = Math.min(rawHumonImage.getHeight(), MAX_HEIGHT);
 
         //Change the image to the correct size and orientation
         Matrix m = new Matrix();
         imageOrientation = -90;
         m.postRotate(imageOrientation);
-        humonImage = Bitmap.createScaledBitmap(rawHumonImage, imageWidth, imageHeight, true);
 
+        // Caclulate the raw image aspect ratio.  We need to maintain this to make the image
+        // not look like it was squeezed in one direction.
+        float aspectRatio = (float)rawHumonImage.getHeight() / (float)rawHumonImage.getWidth();
+
+        heightAdjusted = (int)(aspectRatio * (float)imageWidth);
+
+        humonImage = Bitmap.createScaledBitmap(rawHumonImage, imageWidth, heightAdjusted, true);
+        Log.d("Image dimenstions", "Height: " + heightAdjusted + " Width: " + imageWidth);
 
         //display the image
         ImageView humonImageView = (ImageView) findViewById(R.id.humonImageView);
@@ -357,7 +362,8 @@ public class CreateHumonActivity extends AppCompatActivity {
                     toast.show();
                     return;
                 }
-                if(moveDisplayList[i].equals(moveDisplayList[j])) {
+                if(moveList[i].getName().equals(moveList[j].getName()) ||
+                        moveList[i].getId() == moveList[j].getId()) {
                     Toast toast = Toast.makeText(this, "Cannot Have Duplicate Moves", Toast.LENGTH_SHORT);
                     toast.show();
                     return;
@@ -383,12 +389,9 @@ public class CreateHumonActivity extends AppCompatActivity {
                 getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
         userEmail = sharedPref.getString(getString(R.string.emailKey), "");
 
-
-        //TODO: Create Humon object here and save
         // String name, String description, Bitmap image, int level, int xp, int hID, String uID, String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense
         Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, userEmail, "",
                 movesArrayList, health, luck, attack, speed, defense, "", health);
-        mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), h);
 
         //Store image path instead of image locally
         Humon localHumon = new Humon(humonName, humonDescription, null, 1, 0, 0, userEmail, "",
@@ -407,11 +410,15 @@ public class CreateHumonActivity extends AppCompatActivity {
         //Create an instance if first humon
         //TODO:Add hCount to iID
         if(!hasHumons()) {
-            Humon partyHumon = new Humon(humonName, humonDescription, null, 1, 5, 0, userEmail, userEmail + "-0-0",
+            Humon partyHumon = new Humon(humonName, humonDescription, null, 1, 5, 0, userEmail, userEmail + "-0",
                     movesArrayList, health, luck, attack, speed, defense, localHumon.getImagePath(), health);
-            nameHumonDialog(partyHumon);
+            nameHumonDialog(partyHumon, h);
         }
         else {
+
+            //Send new humon to server
+            mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), h);
+
             //return to the menu
             finish();
         }
@@ -479,7 +486,7 @@ public class CreateHumonActivity extends AppCompatActivity {
     }
 
     //Create a dialog for user to input name for new party humon
-    private void nameHumonDialog(Humon humon) {
+    private void nameHumonDialog(Humon humon, final Humon serverHumon) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         LayoutInflater inflater = this.getLayoutInflater();
@@ -511,6 +518,9 @@ public class CreateHumonActivity extends AppCompatActivity {
                     AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext());
                     partySaveTask.execute(saveHumon);
                 }
+
+                //send humon object to server
+                mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), serverHumon);
 
                 //return to the menu
                 finish();

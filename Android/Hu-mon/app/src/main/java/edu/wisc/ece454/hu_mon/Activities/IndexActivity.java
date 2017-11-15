@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -26,7 +25,7 @@ import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.Models.Move;
 import edu.wisc.ece454.hu_mon.R;
 
-public class IndexActivity extends AppCompatActivity {
+public class IndexActivity extends SettingsActivity {
 
     private final String ACTIVITY_TITLE = "Hu-mon Index";
     private String HUMON_KEY;
@@ -138,11 +137,33 @@ public class IndexActivity extends AppCompatActivity {
                             String moveName = moveJson.getString("name");
                             boolean moveSelfCast = moveJson.getBoolean("selfCast");
                             int dmg = moveJson.getInt("dmg");
-                            //Move.Effect moveEffect = (Move.Effect) moveJson.get("effect");
+
+                            Move.Effect moveEffect;
+                            String moveEffectString = moveJson.getString("effect");
+                            switch(moveEffectString) {
+                                case "CONFUSED":
+                                    moveEffect = Move.Effect.CONFUSED;
+                                    break;
+                                case "PARALYZED":
+                                    moveEffect = Move.Effect.PARALYZED;
+                                    break;
+                                case "EMBARRASSED":
+                                    moveEffect = Move.Effect.EMBARRASSED;
+                                    break;
+                                case "POISONED":
+                                    moveEffect = Move.Effect.POISONED;
+                                    break;
+                                case "SLEPT":
+                                    moveEffect = Move.Effect.SLEPT;
+                                    break;
+                                default:
+                                    moveEffect = null;
+                            }
+
                             boolean moveHasEffect = moveJson.getBoolean("hasEffect");
                             String moveDescription = moveJson.getString("description");
 
-                            moveList.add(new Move(moveId, moveName, moveSelfCast, dmg, null,
+                            moveList.add(new Move(moveId, moveName, moveSelfCast, dmg, moveEffect,
                                     moveHasEffect, moveDescription));
                         }
 

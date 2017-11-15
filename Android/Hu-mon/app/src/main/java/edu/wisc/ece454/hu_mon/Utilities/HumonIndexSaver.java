@@ -127,4 +127,5 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
             toast.show();
         }
     }
+
 }

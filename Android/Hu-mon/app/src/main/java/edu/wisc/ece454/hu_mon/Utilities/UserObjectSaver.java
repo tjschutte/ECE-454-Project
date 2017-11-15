@@ -43,7 +43,7 @@ public class UserObjectSaver extends AsyncTask<String, String, String> {
             e.printStackTrace();
             return "Failed to save user";
         }
-        return "Saved User";
+        return "Saved User: " + user[0];
     }
 
     protected void onPostExecute(String result) {

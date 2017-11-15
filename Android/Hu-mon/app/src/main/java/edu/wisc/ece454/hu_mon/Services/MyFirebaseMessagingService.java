@@ -5,16 +5,27 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Map;
 
 import edu.wisc.ece454.hu_mon.Activities.MenuActivity;
+import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
+import edu.wisc.ece454.hu_mon.Utilities.UserObjectSaver;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
@@ -44,11 +55,55 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             Map<String, String> data;
             data = remoteMessage.getData();
 
-            if (data.containsKey("FRIEND-REQUEST")) {
-                // TODO: Make a pending friend-request object or something that is put into the friends list area
+            // Friend request
+            if (data.containsKey(getString(R.string.ServerCommandFriendRequest))) {
+                try {
+                    final String email = getApplicationContext().getSharedPreferences(getString(R.string.sharedPreferencesFile), MODE_PRIVATE).getString(getString(R.string.emailKey), "");
+                    File file = new File(getApplicationContext().getFilesDir(), email);
+                    FileInputStream inputStream = new FileInputStream(file);
+                    int inputBytes = inputStream.available();
+                    byte[] buffer = new byte[inputBytes];
+                    inputStream.read(buffer);
+                    inputStream.close();
+                    final User user = new ObjectMapper().readValue(new String(buffer, "UTF-8"), User.class);
+                    user.addFriendRequest(data.get(getString(R.string.ServerCommandFriendRequest)));
+                    Handler handler = new Handler(Looper.getMainLooper());
+                    handler.post(new Runnable() {
+                        public void run() {
+                            AsyncTask<String, String, String> userSaveTask = new UserObjectSaver(email, getApplicationContext());
+                            try {
+                                userSaveTask.execute(user.toJson(new ObjectMapper()));
+                            } catch (JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                }
+                catch(FileNotFoundException e) {
+                    e.printStackTrace();
+                    System.out.println("User file could not be found.");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-            } else if (data.containsKey("BATTLE-REQUEST")) {
+            } else if (data.containsKey(getString(R.string.ServerCommandBattleRequest))) {
                 //TODO: Something with pending intents to accept / decline
+                NotificationManager mNotificationManager =
+                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+                Intent notificationIntent = new Intent(this, MenuActivity.class);
+                PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+                Notification notification = new Notification.Builder(this)
+                        .setContentTitle("Battle Request")
+                        .setContentText("It's t-t-t-t-time to duel!")
+                        .setContentIntent(pendingIntent)
+                        .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
+                        .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "I GOT THIS", null) // #0
+                        .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "I DON'T GOT THIS", null)  // #1
+                        .build();
+
+                mNotificationManager.notify(69, notification);
             }
         }
 

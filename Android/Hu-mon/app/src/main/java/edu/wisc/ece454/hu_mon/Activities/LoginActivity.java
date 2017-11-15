@@ -23,6 +23,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import java.io.IOException;
 
 import edu.wisc.ece454.hu_mon.R;
+import edu.wisc.ece454.hu_mon.Services.MyFirebaseInstanceIDService;
 import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 import edu.wisc.ece454.hu_mon.Utilities.UserObjectSaver;
 
@@ -140,8 +141,8 @@ public class LoginActivity extends AppCompatActivity {
             command = command.toUpperCase();
             data = response.substring(response.indexOf(':') + 1, response.length());
 
+            // Server data is always assumed correct on login. Save to file and overwrite existing data.
             if (command.equals(getString(R.string.ServerCommandLogin)) || command.equals(getString(R.string.ServerCommandRegister))) {
-
                 AsyncTask<String, String, String> userSaveTask = new UserObjectSaver(email, context);
                 userSaveTask.execute(data);
 
@@ -187,10 +188,19 @@ public class LoginActivity extends AppCompatActivity {
 
         else {
             if (mServiceBound){
-                mServerConnection.sendMessage(getString(R.string.ServerCommandLogin) + ":{\"email\":\"" + email + "\",\"password\":\"" + password + "\"," +
-                        "\"deviceToken\":\"" + deviceToken + "\"}");
+                if (deviceToken != null) {
+                    mServerConnection.sendMessage(getString(R.string.ServerCommandLogin) + ":{\"email\":\"" + email + "\",\"password\":\"" + password + "\"," +
+                            "\"deviceToken\":\"" + deviceToken + "\"}");
+                } else {
+                    deviceToken = FirebaseInstanceId.getInstance().getToken();
+                    if (deviceToken != null) {
+                        mServerConnection.sendMessage(getString(R.string.ServerCommandLogin) + ":{\"email\":\"" + email + "\",\"password\":\"" + password + "\"," +
+                                "\"deviceToken\":\"" + deviceToken + "\"}");
+                    }
+                }
             } else {
-                // Couldnt talk to server or something?
+                Toast toast = Toast.makeText(this, "Error connecting to server. Try again.", Toast.LENGTH_SHORT);
+                toast.show();
             }
         }
 
@@ -227,10 +237,19 @@ public class LoginActivity extends AppCompatActivity {
 
         else {
             if (mServiceBound){
-                mServerConnection.sendMessage(getString(R.string.ServerCommandRegister) + ":{\"email\":\"" + email + "\",\"password\":\"" + password + "\"," +
-                        "\"deviceToken\":\"" + deviceToken + "\"}");
+                if (deviceToken != null) {
+                    mServerConnection.sendMessage(getString(R.string.ServerCommandRegister) + ":{\"email\":\"" + email + "\",\"password\":\"" + password + "\"," +
+                            "\"deviceToken\":\"" + deviceToken + "\"}");
+                } else {
+                    deviceToken = FirebaseInstanceId.getInstance().getToken();
+                    if (deviceToken != null) {
+                        mServerConnection.sendMessage(getString(R.string.ServerCommandRegister) + ":{\"email\":\"" + email + "\",\"password\":\"" + password + "\"," +
+                                "\"deviceToken\":\"" + deviceToken + "\"}");
+                    }
+                }
             } else {
-                // Couldnt talk to server or something?
+                Toast toast = Toast.makeText(this, "Error connecting to server. Try again.", Toast.LENGTH_SHORT);
+                toast.show();
             }
         }
 

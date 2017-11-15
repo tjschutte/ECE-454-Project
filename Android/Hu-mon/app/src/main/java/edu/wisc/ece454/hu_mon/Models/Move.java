@@ -43,7 +43,7 @@ public class Move extends Jsonable implements Parcelable {
         name = in.readString();
         selfCast = (boolean) in.readValue(null);
         dmg = in.readInt();
-        effect = (Effect) in.readValue(null);
+        effect = (Effect) in.readValue(Effect.class.getClassLoader());
         hasEffect = (boolean) in.readValue(null);
         description = in.readString();
     }

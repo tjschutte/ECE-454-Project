@@ -15,7 +15,7 @@ import android.support.annotation.RequiresApi;
 
 import edu.wisc.ece454.hu_mon.Activities.WildBattleActivity;
 import edu.wisc.ece454.hu_mon.R;
-import edu.wisc.ece454.hu_mon.Utilities.StepJobScheduler;
+import edu.wisc.ece454.hu_mon.Utilities.JobServiceScheduler;
 
 @RequiresApi(api = 23)
 public class StepService extends JobService implements SensorEventListener {
@@ -26,7 +26,7 @@ public class StepService extends JobService implements SensorEventListener {
 
     @Override
     public boolean onStartJob(JobParameters params) {
-        StepJobScheduler.scheduleJob(getApplicationContext());
+        JobServiceScheduler.scheduleStepJob(getApplicationContext());
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
 

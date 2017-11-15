@@ -72,10 +72,10 @@ public class User {
 	public User(String email, String password, String party, String encounteredHumons, String friends, String friendRequests, int hcount, String deviceToken, boolean isDirty) throws JsonParseException, JsonMappingException, IOException {
 		this.email = email;
 		this.password = password;
-		this.party = (party == null) ? new ArrayList<String>() : new ArrayList<String>(Arrays.asList(party.substring(party.indexOf('[') + 1, party.indexOf(']')).split(",")));
-		this.encounteredHumons = (encounteredHumons == null) ? new ArrayList<String>() : new ArrayList<String>(Arrays.asList(encounteredHumons.substring(encounteredHumons.indexOf('[') + 1, encounteredHumons.indexOf(']')).split(",")));
-		this.friends =  (friends == null) ? new ArrayList<String>() : new ArrayList<String>(Arrays.asList(friends.substring(friends.indexOf('[') + 1, friends.indexOf(']')).split(",")));
-		this.friendRequests =  (friendRequests == null) ? new ArrayList<String>() : new ArrayList<String>(Arrays.asList(friendRequests.substring(friendRequests.indexOf('[') + 1, friendRequests.indexOf(']')).split(",")));
+		this.party = (party == null) ? new ArrayList<String>() : arrayCleaner(new ArrayList<String>(Arrays.asList(party.substring(party.indexOf('[') + 1, party.indexOf(']')).split(","))));
+		this.encounteredHumons = (encounteredHumons == null) ? new ArrayList<String>() : arrayCleaner(new ArrayList<String>(Arrays.asList(encounteredHumons.substring(encounteredHumons.indexOf('[') + 1, encounteredHumons.indexOf(']')).split(","))));
+		this.friends =  (friends == null) ? new ArrayList<String>() : arrayCleaner(new ArrayList<String>(Arrays.asList(friends.substring(friends.indexOf('[') + 1, friends.indexOf(']')).split(","))));
+		this.friendRequests =  (friendRequests == null) ? new ArrayList<String>() : arrayCleaner(new ArrayList<String>(Arrays.asList(friendRequests.substring(friendRequests.indexOf('[') + 1, friendRequests.indexOf(']')).split(","))));
 		this.hcount = hcount;
 		this.deviceToken = deviceToken;
 		this.isDirty = isDirty;
@@ -85,6 +85,19 @@ public class User {
 		//String email, String password, String party, String encounteredHumons, String friends, String friendRequests, int hcount, String deviceToken, boolean isDirty
 		this(resultSet.getString(2), resultSet.getString(3), resultSet.getString(4),
 				resultSet.getString(5), resultSet.getString(6), resultSet.getString(7), resultSet.getInt(8), resultSet.getString(9), false);
+	}
+	
+	// Remove any empty entries and all whitespace characters
+	private ArrayList<String> arrayCleaner(ArrayList<String> array) {
+		ArrayList<String> cleaned = new ArrayList<String>();
+		for (String item : array) {
+			if (item.length() != 0) {
+				// Remove all whitespace characters...
+				String itemToAdd = item.replaceAll("\\s+","");
+				cleaned.add(itemToAdd);
+			}
+		}
+		return cleaned;
 	}
 
 	public boolean getIsDirty() {

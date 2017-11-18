@@ -1,26 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="edu.wisc.ece454.hu_mon.Activities.MenuActivity">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="fill_parent"
+android:layout_height="wrap_content"
+android:fillViewport="true" >
 
-    <ListView
-        android:id="@+id/friendsListView"
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dip" >
+
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.75">
+        android:gravity="center_vertical"
+        android:text="Friends" />
+
+    <ListView
+        android:id="@+id/friendListView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dip" >
     </ListView>
 
-    <Button
-        android:id="@+id/addFriendButton"
-        android:layout_width="wrap_content"
+    <TextView
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/friendsListView"
-        android:layout_centerHorizontal="true"
-        android:text="Add Friend"
-        android:layout_weight="0.25"/>
+        android:layout_marginTop="10dip"
+        android:gravity="center_vertical"
+        android:text="Friend Requests" />
+
+    <ListView
+        android:id="@+id/friendRequestListView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dip" >
+    </ListView>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/addFriendButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="10dip"
+            android:text="Add Friend"
+            android:layout_weight="0.25"/>
+
+    </RelativeLayout>
 
 
+</LinearLayout>
 
-</RelativeLayout>
+</ScrollView>

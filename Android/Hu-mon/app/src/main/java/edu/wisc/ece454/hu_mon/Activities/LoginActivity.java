@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
@@ -20,12 +19,8 @@ import android.widget.Toast;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.iid.FirebaseInstanceId;
 
-import java.io.IOException;
-
 import edu.wisc.ece454.hu_mon.R;
-import edu.wisc.ece454.hu_mon.Services.MyFirebaseInstanceIDService;
 import edu.wisc.ece454.hu_mon.Services.ServerConnection;
-import edu.wisc.ece454.hu_mon.Utilities.UserObjectSaver;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -143,12 +138,10 @@ public class LoginActivity extends AppCompatActivity {
 
             // Server data is always assumed correct on login. Save to file and overwrite existing data.
             if (command.equals(getString(R.string.ServerCommandLogin)) || command.equals(getString(R.string.ServerCommandRegister))) {
-                AsyncTask<String, String, String> userSaveTask = new UserObjectSaver(email, context);
-                userSaveTask.execute(data);
-
                 //Send email to next activity to retrieve user info
                 Intent i = new Intent(context, MenuActivity.class);
                 i.putExtra(EMAIL_KEY, email);
+                i.putExtra(getString(R.string.userObjectKey), data);
                 startActivity(i);
             } else {
                 Toast toast = Toast.makeText(context, response, Toast.LENGTH_SHORT);

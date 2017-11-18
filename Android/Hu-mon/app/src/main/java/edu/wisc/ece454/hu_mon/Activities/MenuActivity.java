@@ -1,16 +1,10 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
 import android.app.job.JobScheduler;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.support.annotation.RequiresApi;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -26,12 +20,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 
-import edu.wisc.ece454.hu_mon.Models.Humon;
-import edu.wisc.ece454.hu_mon.Models.Move;
 import edu.wisc.ece454.hu_mon.R;
-import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 import edu.wisc.ece454.hu_mon.Utilities.JobServiceScheduler;
 
 public class MenuActivity extends SettingsActivity {
@@ -39,6 +29,7 @@ public class MenuActivity extends SettingsActivity {
     private ListView menuListView;
     private String[] menuOption;
     private String userEmail;
+    private String userObject;
 
     private String EMAIL_KEY;
     private final String ACTIVITY_TITLE = "Main Menu";
@@ -60,11 +51,23 @@ public class MenuActivity extends SettingsActivity {
         //save email to shared preferences so all activities have access
         EMAIL_KEY  = getString(R.string.emailKey);
         userEmail = getIntent().getStringExtra(EMAIL_KEY);
+        // Get the user object so all activities have access to it.
+        userObject = getIntent().getStringExtra(getString(R.string.userObjectKey));
+        System.out.println("User string (Menu) was: " + userObject);
+
+        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+        // Save user Email to the sharedPreferences
         if(userEmail != null) {
-            SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
-                    Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPref.edit();
             editor.putString(getString(R.string.emailKey), userEmail);
+            editor.commit();
+        }
+        // Save User object to the sharedPreferences
+        if (userObject != null) {
+            System.out.println("Saving user object to shared prefs");
+            editor.putString(getString(R.string.userObjectKey), userObject);
             editor.commit();
         }
 
@@ -85,7 +88,6 @@ public class MenuActivity extends SettingsActivity {
                     }
                 }
         );
-
     }
 
     @Override

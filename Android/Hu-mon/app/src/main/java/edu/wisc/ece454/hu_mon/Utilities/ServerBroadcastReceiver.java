@@ -7,13 +7,15 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.json.JSONObject;
 
-import edu.wisc.ece454.hu_mon.R;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
-/**
- * Created by Michael on 11/6/2017.
- */
+import edu.wisc.ece454.hu_mon.Models.User;
+import edu.wisc.ece454.hu_mon.R;
 
 public class ServerBroadcastReceiver extends BroadcastReceiver {
     final String RESPONSE_KEY = "RESPONSE";
@@ -66,6 +68,31 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                 AsyncTask<String, Integer, Boolean> hidUpdateTask = new HumonIDUpdater(context,
                         hName, hDescription);
                 hidUpdateTask.execute(hID);
+            }
+        }
+
+        //  If the email was found by the server, add it to the user object.
+        if (command.equals("FRIEND-REQUEST")) {
+            SharedPreferences sharedPref = context.getSharedPreferences(
+                    context.getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+            // User object reader.
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                String userString = sharedPref.getString("userObjectKey", null);
+                System.out.println("User String was: " + userString);
+                User user = mapper.readValue(userString, User.class);
+                User friend = mapper.readValue(data, User.class);
+                user.addFriend(friend.getEmail());
+
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putString("userObjectKey", user.toJson(mapper));
+                editor.commit();
+
+            }
+            catch(FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }

@@ -5,19 +5,14 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Looper;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
@@ -25,7 +20,6 @@ import java.util.Map;
 import edu.wisc.ece454.hu_mon.Activities.MenuActivity;
 import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
-import edu.wisc.ece454.hu_mon.Utilities.UserObjectSaver;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
@@ -57,31 +51,22 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
             // Friend request
             if (data.containsKey(getString(R.string.ServerCommandFriendRequest))) {
+                SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(
+                        getApplicationContext().getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+                // User object reader.
                 try {
-                    final String email = getApplicationContext().getSharedPreferences(getString(R.string.sharedPreferencesFile), MODE_PRIVATE).getString(getString(R.string.emailKey), "");
-                    File file = new File(getApplicationContext().getFilesDir(), email);
-                    FileInputStream inputStream = new FileInputStream(file);
-                    int inputBytes = inputStream.available();
-                    byte[] buffer = new byte[inputBytes];
-                    inputStream.read(buffer);
-                    inputStream.close();
-                    final User user = new ObjectMapper().readValue(new String(buffer, "UTF-8"), User.class);
+                    ObjectMapper mapper = new ObjectMapper();
+                    String userString = sharedPref.getString("userObjectKey", null);
+                    User user = mapper.readValue(userString, User.class);
                     user.addFriendRequest(data.get(getString(R.string.ServerCommandFriendRequest)));
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    handler.post(new Runnable() {
-                        public void run() {
-                            AsyncTask<String, String, String> userSaveTask = new UserObjectSaver(email, getApplicationContext());
-                            try {
-                                userSaveTask.execute(user.toJson(new ObjectMapper()));
-                            } catch (JsonProcessingException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
+
+                    SharedPreferences.Editor editor = sharedPref.edit();
+                    editor.putString("userObjectKey", user.toJson(mapper));
+                    editor.commit();
+                    System.out.println("Got friend request. Request added to user");
                 }
                 catch(FileNotFoundException e) {
                     e.printStackTrace();
-                    System.out.println("User file could not be found.");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

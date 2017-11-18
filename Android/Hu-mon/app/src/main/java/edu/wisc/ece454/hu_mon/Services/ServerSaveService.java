@@ -2,12 +2,17 @@ package edu.wisc.ece454.hu_mon.Services;
 
 import android.app.job.JobParameters;
 import android.app.job.JobService;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -15,6 +20,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -59,7 +65,9 @@ public class ServerSaveService extends JobService {
                     threadCount += humons.length;
                 }
                 if (params.getExtras().containsKey(getString(R.string.userKey))) {
-                    user = params.getExtras().getStringArray(getString(R.string.userKey))[0];
+                    SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                            Context.MODE_PRIVATE);
+                    user = sharedPref.getString(getString(R.string.userObjectKey), null);
                     threadCount++;
                 }
 

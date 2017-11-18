@@ -175,7 +175,6 @@ public class UserAction {
 			if (token == null) {
 				break;
 			}
-
 			if (JsonToken.FIELD_NAME.equals(token) && "email".equals(parser.getCurrentName())) {
 				token = parser.nextToken();
 				email = parser.getText();
@@ -239,7 +238,9 @@ public class UserAction {
 
 		NotificationHandler.sendPushNotification(resultSet.getString(1), Message.NEW_FRIEND_REQUEST_TITLE,
 				connection.user.getEmail() + Message.NEW_FRIEND_REQUEST_BODY, notificationData);
-		connection.sendResponse(Command.FRIEND_REQUEST, Message.FRIEND_REQUEST_SENT);
+		
+		// Data was good. Send it back and let device add friend.
+		connection.sendResponse(Command.FRIEND_REQUEST, data);
 	}
 
 	static void battleRequest(ServerThread connection, String data) throws JsonParseException, IOException, JSONException, SQLException {

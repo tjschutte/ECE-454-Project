@@ -11,6 +11,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.places.PlaceDetectionClient;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,6 +25,7 @@ import java.io.UnsupportedEncodingException;
 
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Utilities.JobServiceScheduler;
+import edu.wisc.ece454.hu_mon.Services.PlaceDetectionService;
 
 public class MenuActivity extends SettingsActivity {
 
@@ -149,6 +152,7 @@ public class MenuActivity extends SettingsActivity {
                     toast.setText("Began searching for hu-mons, will notify when hu-mon found.");
                     toast.show();
                     JobServiceScheduler.scheduleStepJob(getApplicationContext());
+                    startService(new Intent(this, PlaceDetectionService.class));
                 }
                 else {
                     toast.setText("Cannot search without a humon.");

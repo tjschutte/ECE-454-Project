@@ -116,6 +116,13 @@ public class LoginActivity extends AppCompatActivity {
             hasPermissions = false;
         }
 
+        //check for fine_location permission
+        if ( ContextCompat.checkSelfPermission( this, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED ) {
+            //activate dialog to ask for permission
+            ActivityCompat.requestPermissions( this, new String[] {  android.Manifest.permission.ACCESS_FINE_LOCATION  }, 0);
+            hasPermissions = false;
+        }
+
         return hasPermissions;
     }
 

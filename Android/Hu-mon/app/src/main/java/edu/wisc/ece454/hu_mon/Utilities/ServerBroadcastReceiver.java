@@ -71,8 +71,9 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
             }
         }
 
-        //  If the email was found by the server, add it to the user object.
-        if (command.equals("FRIEND-REQUEST")) {
+        //  If the email was found by the server, add it to the user object. We do this here and in
+        // Friendlist activity for redundancy to make sure it is added.
+        else if (command.equals("FRIEND-REQUEST")) {
             SharedPreferences sharedPref = context.getSharedPreferences(
                     context.getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
             // User object reader.
@@ -83,6 +84,30 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                 User user = mapper.readValue(userString, User.class);
                 User friend = mapper.readValue(data, User.class);
                 user.addFriend(friend.getEmail());
+
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putString("userObjectKey", user.toJson(mapper));
+                editor.commit();
+
+            }
+            catch(FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        else if (command.equals("FRIEND-REQUEST-SUCCESS")) {
+            SharedPreferences sharedPref = context.getSharedPreferences(
+                    context.getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+            // User object reader.
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                String userString = sharedPref.getString("userObjectKey", null);
+                System.out.println("User String was: " + userString);
+                User user = mapper.readValue(userString, User.class);
+                User friend = mapper.readValue(data, User.class);
+                user.addFriendRequest(friend.getEmail());
 
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putString("userObjectKey", user.toJson(mapper));

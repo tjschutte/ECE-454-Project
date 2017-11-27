@@ -1,9 +1,11 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -18,7 +20,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
@@ -35,10 +39,10 @@ public class FriendsListActivity extends SettingsActivity {
 
     private final String ACTIVITY_TITLE = "Friends List";
 
-    private ArrayList<String> friendList;
-    private ArrayList<String> friendRequestList;
     private ListView friendListView;
+    ArrayAdapter<String> friendsListAdapter;
     private ListView friendRequestListView;
+    ArrayAdapter<String> friendRequestListAdapter;
     private User user;
 
     ServerConnection mServerConnection;
@@ -49,86 +53,65 @@ public class FriendsListActivity extends SettingsActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.friends_list_layout);
         setTitle(ACTIVITY_TITLE);
-        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
-                Context.MODE_PRIVATE);
 
-        // User object reader.
-        try {
-            String userString = sharedPref.getString(getString(R.string.userObjectKey), null);
-            System.out.println("User String was: " + userString);
-            user = new ObjectMapper().readValue(userString, User.class);
-        }
-        catch(FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        loadUser();
 
-        friendList = user.getFriends();
-        friendRequestList = user.getfriendRequests();
-
-        //setup listview for friends list
-        friendListView = (ListView) findViewById(R.id.friendListView);
-        ArrayAdapter<String> friendsListAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, friendList);
-        friendListView.setAdapter(friendsListAdapter);
-
-        //setup listview for friend requests list
-        friendRequestListView = (ListView) findViewById(R.id.friendRequestListView);
-        ArrayAdapter<String> friendRequestListAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, friendRequestList);
-        friendRequestListView.setAdapter(friendRequestListAdapter);
-
-        if (friendList.size() > 0) {
-            friendListView.setOnItemClickListener(
-                    new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            battleInviteDialog(friendList.get(position));
-                        }
-                    }
-            );
-        } else {
-            friendList.add("No friends yet!");
-            friendsListAdapter.notifyDataSetChanged();
-        }
-
-        if (friendRequestList.size() > 0) {
-            friendRequestListView.setOnItemClickListener(
-                    new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            // Add a accept / decline dialog.
-                            // For decline, just remove from request list.  Other user can always delete
-                            // and request again. (Or we could tell server / other device to delete)
-                            // For accept need to tell server so it can issue a notification / update DB
-                            friendRequestChoiceDialog(friendRequestList.get(position));
-                        }
-                    }
-            );
-        } else {
-            friendRequestList.add("No pending friend requests.");
-            friendRequestListAdapter.notifyDataSetChanged();
-        }
-
-        setDynamicHeight(friendListView);
-        setDynamicHeight(friendRequestListView);
-
-        //setup add friend button
-        Button addFriendButton = (Button) findViewById(R.id.addFriendButton);
-
-        addFriendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                friendRequestDialog();
-            }
-        });
+        //setup listview for friends list and requests
+        refreshContent();
 
         // Attach to the server communication service
         Intent intent = new Intent(this, ServerConnection.class);
         startService(intent);
         bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
     }
+
+    BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+        String response = intent.getStringExtra(getString(R.string.serverBroadCastResponseKey));
+        String command;
+        String data;
+
+        command = response.substring(0, response.indexOf(':'));
+        command = command.toUpperCase();
+        data = response.substring(response.indexOf(':') + 1, response.length());
+
+        System.out.println("In friendslist");
+
+        // Server data is always assumed correct on login. Save to file and overwrite existing data.
+        //  If the email was found by the server, add it to the user object.
+        if (command.equals(getString(R.string.ServerCommandFriendRequestSuccess))) {
+            System.out.println("Caught in friendslist");
+            loadUser();
+
+            try {
+                User friend = new ObjectMapper().readValue(data, User.class);
+                user.addFriend(friend.getEmail());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            saveUser();
+            refreshContent();
+        } else if (command.equals(getString(R.string.ServerCommandFriendRequest))) {
+            System.out.println("Caught in friendslist");
+            loadUser();
+
+            try {
+                User friend = new ObjectMapper().readValue(data, User.class);
+                user.addFriendRequest(friend.getEmail());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            saveUser();
+            refreshContent();
+        }
+
+        }
+    };
+
+    IntentFilter filter = new IntentFilter();
 
     /**
      * Set listview height based on listview children
@@ -184,15 +167,24 @@ public class FriendsListActivity extends SettingsActivity {
             unbindService(mServiceConnection);
             mBound = false;
         }
-        // Check if we have accepted any friend requests.  If we have, get the user from shared pref
-        // again (incase it was updated by us adding a friend or getting a friend request)
-        // update it.  And write it back out to shared pref
-        // TODO: That.
+
+        saveUser();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        try {
+            unregisterReceiver(receiver);
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("Receiver not registered")) {
+                // Ignore this exception. This is exactly what is desired
+            } else {
+                // unexpected, re-throw
+                throw e;
+            }
+        }
+        saveUser();
     }
 
     @Override
@@ -205,21 +197,65 @@ public class FriendsListActivity extends SettingsActivity {
             bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
         }
 
-        // On Resume called, need to make sure to pull user object out again in case it has updated
-        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
-                Context.MODE_PRIVATE);
-        try {
-            String userString = sharedPref.getString(getString(R.string.userObjectKey), null);
-            System.out.println("User String was: " + userString);
-            user = new ObjectMapper().readValue(userString, User.class);
-        }
-        catch(FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        loadUser();
+
+        filter.addAction(getString(R.string.serverBroadCastEvent));
+        registerReceiver(receiver, filter);
+
+    }
+
+    private void refreshContent() {
+        friendListView = (ListView) findViewById(R.id.friendListView);
+        friendsListAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1, user.getFriends());
+        friendListView.setAdapter(friendsListAdapter);
+
+        //setup listview for friend requests list
+        friendRequestListView = (ListView) findViewById(R.id.friendRequestListView);
+        friendRequestListAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1, user.getfriendRequests());
+        friendRequestListView.setAdapter(friendRequestListAdapter);
+
+        if (user.getFriends().size() > 0) {
+            friendListView.setOnItemClickListener(
+                    new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            battleInviteDialog(user.getFriends().get(position));
+                        }
+                    }
+            );
+        } else {
+            //user.addFriend("No friends yet!");
+            //friendsListAdapter.notifyDataSetChanged();
         }
 
+        if (user.getfriendRequests().size() > 0) {
+            friendRequestListView.setOnItemClickListener(
+                    new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            friendRequestChoiceDialog(user.getfriendRequests().get(position));
+                        }
+                    }
+            );
+        } else {
+            //user.addFriendRequest("No pending friend requests.");
+            //friendRequestListAdapter.notifyDataSetChanged();
+        }
 
+        setDynamicHeight(friendListView);
+        setDynamicHeight(friendRequestListView);
+
+        //setup add friend button
+        Button addFriendButton = (Button) findViewById(R.id.addFriendButton);
+
+        addFriendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                friendRequestDialog();
+            }
+        });
     }
 
     //ask user if they would like to battle the given friend, then invite to battle
@@ -233,8 +269,7 @@ public class FriendsListActivity extends SettingsActivity {
 
         //Add Element to list
         builder.setPositiveButton("Invite", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton)
-            {
+            public void onClick(DialogInterface dialog, int whichButton) {
                 sendBattleInvite(friendName);
             }
         });
@@ -243,6 +278,15 @@ public class FriendsListActivity extends SettingsActivity {
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
                 dialog.cancel();
+            }
+        });
+
+        builder.setNeutralButton("Remove Friend", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                loadUser();
+                user.removeFriend(friendName);
+                saveUser();
+                refreshContent();
             }
         });
 
@@ -266,10 +310,9 @@ public class FriendsListActivity extends SettingsActivity {
 
         //Add Element to list
         builder.setPositiveButton("Send Request", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton)
-            {
+            public void onClick(DialogInterface dialog, int whichButton) {
                 String friendName = friendText.getText().toString();
-                if(!friendName.isEmpty()) {
+                if (!friendName.isEmpty()) {
                     sendFriendRequest(friendName);
                 }
             }
@@ -288,7 +331,7 @@ public class FriendsListActivity extends SettingsActivity {
     }
 
     //Create a dialog for user to input new friend name
-    private void friendRequestChoiceDialog(String friendName) {
+    private void friendRequestChoiceDialog(final String friendName) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         //LayoutInflater inflater = this.getLayoutInflater();
@@ -296,15 +339,27 @@ public class FriendsListActivity extends SettingsActivity {
         builder.setMessage("Accept friend request from " + friendName + "?");
         builder.setTitle("Pending Friend Request");
 
-        builder.setPositiveButton("Accpet", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                // Accpet the friend request
+                // Update the server right away so they can battle.
+                requestAccepted(friendName);
+
+                // update the object so UI is accurate
+                loadUser();
+                user.addFriend(friendName);
+                user.removeFriendRequest(friendName);
+                saveUser();
+
+                refreshContent();
             }
         });
 
         builder.setNegativeButton("Decline", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                // Decline the request
+                loadUser();
+                user.removeFriendRequest(friendName);
+                saveUser();
+                refreshContent();
             }
         });
 
@@ -334,6 +389,35 @@ public class FriendsListActivity extends SettingsActivity {
     private void requestAccepted(String friendName) {
         if (mBound) {
             mServerConnection.sendMessage(getString(R.string.ServerCommandAcceptRequest) + ":{\"email\":\"" + friendName + "\"}");
+        }
+
+    }
+
+    private void loadUser() {
+        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                Context.MODE_PRIVATE);
+        // User object reader.
+        try {
+            String userString = sharedPref.getString(getString(R.string.userObjectKey), null);
+            System.out.println("User String was: " + userString);
+            user = new ObjectMapper().readValue(userString, User.class);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveUser() {
+        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+        try {
+            editor.putString(getString(R.string.userObjectKey), user.toJson(new ObjectMapper()));
+            editor.commit();
+        } catch (JsonProcessingException e) {
+            // idk yet
         }
     }
 

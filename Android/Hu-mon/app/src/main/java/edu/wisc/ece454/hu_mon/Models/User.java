@@ -114,6 +114,21 @@ public class User {
         }
     }
 
+    public boolean removeFriendRequest(String email) {
+        if (friendRequests == null || friendRequests.isEmpty()) {
+            return true;
+        } else {
+            for (String request : friendRequests) {
+                if (request.equals(email)) {
+                    friendRequests.remove(request);
+                    isDirty = true;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public boolean removeFriend(String email) {
         if (friends == null || friends.isEmpty()) {
             return true;

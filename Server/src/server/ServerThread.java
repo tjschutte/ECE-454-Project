@@ -92,6 +92,9 @@ public class ServerThread extends Thread {
 					case Command.FRIEND_REQUEST:
 						UserAction.friendRequest(this, data);
 						break;
+					case Command.FRIEND_ADDED:
+						UserAction.friendAdded(this, data);
+						break;
 					// Send a battle request
 					case Command.BATTLE_REQUEST:
 						UserAction.battleRequest(this, data);

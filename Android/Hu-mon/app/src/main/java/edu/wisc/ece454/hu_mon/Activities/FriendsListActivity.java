@@ -102,6 +102,7 @@ public class FriendsListActivity extends SettingsActivity {
                             // For decline, just remove from request list.  Other user can always delete
                             // and request again. (Or we could tell server / other device to delete)
                             // For accept need to tell server so it can issue a notification / update DB
+                            friendRequestChoiceDialog(friendRequestList.get(position));
                         }
                     }
             );
@@ -286,6 +287,38 @@ public class FriendsListActivity extends SettingsActivity {
         friendRequestDialog.show();
     }
 
+    //Create a dialog for user to input new friend name
+    private void friendRequestChoiceDialog(String friendName) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        //LayoutInflater inflater = this.getLayoutInflater();
+
+        builder.setMessage("Accept friend request from " + friendName + "?");
+        builder.setTitle("Pending Friend Request");
+
+        builder.setPositiveButton("Accpet", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // Accpet the friend request
+            }
+        });
+
+        builder.setNegativeButton("Decline", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // Decline the request
+            }
+        });
+
+        builder.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                dialog.cancel();
+            }
+        });
+
+        //display the dialog
+        final AlertDialog requestChoiceDialog = builder.create();
+        requestChoiceDialog.show();
+    }
+
     private void sendBattleInvite(String friendName) {
         if (mBound) {
             mServerConnection.sendMessage(getString(R.string.ServerCommandBattleRequest) + ":{\"email\":\"" + friendName + "\"}");
@@ -295,6 +328,12 @@ public class FriendsListActivity extends SettingsActivity {
     private void sendFriendRequest(String friendName) {
         if (mBound) {
             mServerConnection.sendMessage(getString(R.string.ServerCommandFriendRequest) + ":{\"email\":\"" + friendName + "\"}");
+        }
+    }
+
+    private void requestAccepted(String friendName) {
+        if (mBound) {
+            mServerConnection.sendMessage(getString(R.string.ServerCommandAcceptRequest) + ":{\"email\":\"" + friendName + "\"}");
         }
     }
 

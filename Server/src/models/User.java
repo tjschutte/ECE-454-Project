@@ -93,7 +93,9 @@ public class User {
 		for (String item : array) {
 			if (item.length() != 0) {
 				// Remove all whitespace characters...
-				String itemToAdd = item.replaceAll("\\s+","");
+				String itemNoSpace = item.replaceAll("\\s+","");
+				String itemNoBrace = itemNoSpace.replaceAll("\\[", "");
+				String itemToAdd = itemNoBrace.replaceAll("\\\"", "");
 				cleaned.add(itemToAdd);
 			}
 		}

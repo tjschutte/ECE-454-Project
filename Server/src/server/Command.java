@@ -19,7 +19,8 @@ public class Command {
 	public static final String GET_HUMON = 		"GET-HUMON";
 	public static final String CREATE_HUMON = 	"CREATE-HUMON";
 	public static final String FRIEND_REQUEST = "FRIEND-REQUEST";
-	public static final String FRIEND_ADDED = 	"FRIEND-ADDED"; // Not currently used.
+	public static final String FRIEND_REQUEST_SUCCESS = "FRIEND-REQUEST-SUCCESS";
+	public static final String FRIEND_ADDED = 	"FRIEND-ADDED";
 	public static final String BATTLE_REQUEST = "BATTLE-REQUEST";
 
 }

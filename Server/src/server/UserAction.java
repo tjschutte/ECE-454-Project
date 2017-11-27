@@ -240,7 +240,11 @@ public class UserAction {
 				connection.user.getEmail() + Message.NEW_FRIEND_REQUEST_BODY, notificationData);
 		
 		// Data was good. Send it back and let device add friend.
-		connection.sendResponse(Command.FRIEND_REQUEST, data);
+		connection.sendResponse(Command.FRIEND_REQUEST_SUCCESS, data);
+	}
+	
+	static void friendAdded(ServerThread connection, String data) {
+		
 	}
 
 	static void battleRequest(ServerThread connection, String data) throws JsonParseException, IOException, JSONException, SQLException {

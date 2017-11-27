@@ -188,7 +188,7 @@ public class UserAction {
 		}
 
 		ResultSet resultSet = connection.databaseConnection
-				.executeSQL("select deviceToken, friends, friendRequests from users where email='" + email + "';");
+				.executeSQL("select * from users where email='" + email + "';");
 
 		// check to make sure the requested user exists...
 		if (!resultSet.next()) {
@@ -361,7 +361,7 @@ public class UserAction {
 		PreparedStatement ps;
 		try {
 			ps = connection.databaseConnection.prepareStatement("update users set " + user.updateSyntax() + " where email='"
-					+ user.getEmail() + "' and password='" + user.getPassword() + "';");
+					+ user.getEmail() + "';");// and password='" + user.getPassword() + "';");
 			
 			int rows = ps.executeUpdate();
 			// Should only get 1 row was affected.

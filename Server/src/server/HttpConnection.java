@@ -104,7 +104,7 @@ public class HttpConnection extends Thread {
 				"function scrollDown() {" + 
 				"   window.scrollTo(0, document.body.scrollHeight);" + 
 				"} " +
-				"setInterval(scrollDown, 500);" +
+				"//setInterval(scrollDown, 500);" +
 				"</script>"
 				+ "");
 		while (string != null) {

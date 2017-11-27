@@ -18,7 +18,8 @@ public class HumonAction {
 	 * Save a new Humon and New instance at the same time. Reply to the client with
 	 * the HumonId (hID)
 	 * 
-	 * @param data
+	 * @param data - contain information about a new Humon, needs to be properly formated
+	 * JSON object of a humon object
 	 * @throws IOException
 	 * @throws JsonMappingException
 	 * @throws JsonParseException
@@ -129,6 +130,8 @@ public class HumonAction {
 
 	static void getHumon(ServerThread connection, String data) {
 		// TODO Auto-generated method stub
+		// Make this method agnostic of getting an instanceID or humon ID.
+		// if it gets an IID, do a lookup to get a HID, and then send back that humon
 		// Need to know what the client will send...
 		Global.log(connection.clientNumber, Command.GET_INSTANCE + ": " + data);
 		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
@@ -143,13 +146,6 @@ public class HumonAction {
 	}
 	
 	static void battleStart(ServerThread connection, String data) {
-		// TODO Auto-generated method stub
-		// Need to know what the client will send...
-		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
-		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
-	}
-	
-	static void getParty(ServerThread connection, String data) {
 		// TODO Auto-generated method stub
 		// Need to know what the client will send...
 		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);

@@ -377,5 +377,45 @@ public class UserAction {
 		
 		connection.sendResponse(Command.SAVE_USER, Command.SUCCESS);
 	}
+
+	static void getParty(ServerThread connection, String data) throws JsonParseException, IOException, SQLException {
+		Global.log(connection.clientNumber, Command.GET_PARTY + ": " + data);
+		
+		String email = null;
+
+		JsonFactory factory = new JsonFactory();
+		JsonParser parser = factory.createParser(data);
+
+		while (!parser.isClosed()) {
+			JsonToken token = parser.nextToken();
+			if (token == null) {
+				break;
+			}
+
+			if (JsonToken.FIELD_NAME.equals(token) && "email".equals(parser.getCurrentName())) {
+				token = parser.nextToken();
+				email = parser.getText();
+			}
+		}
+
+		if (email == null || email.isEmpty()) {
+			connection.error(Message.MALFORMED_DATA_PACKET);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.MALFORMED_DATA_PACKET);
+			return;
+		}
+
+		ResultSet resultSet = connection.databaseConnection
+				.executeSQL("select * from users where email='" + email + "';");
+
+		if (!resultSet.next()) {
+			connection.sendResponse(Command.ERROR, Message.USER_DOES_NOT_EXIST);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.USER_DOES_NOT_EXIST);
+			return;
+		}
+		
+		User requested = new User(resultSet);
+		
+		connection.sendResponse(Command.GET_PARTY, "{\"party\":\"" + requested.getParty() + "\"}");
+	}
 	
 }

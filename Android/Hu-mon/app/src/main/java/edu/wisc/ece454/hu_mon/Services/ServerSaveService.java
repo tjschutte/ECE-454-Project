@@ -58,24 +58,22 @@ public class ServerSaveService extends JobService {
                 int threadCount = 0;
                 if (params.getExtras().containsKey(getString(R.string.humonsKey))) {
                     humons = params.getExtras().getStringArray(getString(R.string.humonsKey));
-                    if(humons == null) {
-                        return false;
+                    if (humons != null) {
+                        threadCount += humons.length;
                     }
-                    //messThreads = new Thread[humons.length]; // + 1 for the user save thread.
-                    threadCount += humons.length;
                 }
                 if (params.getExtras().containsKey(getString(R.string.userKey))) {
                     SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
                             Context.MODE_PRIVATE);
                     user = sharedPref.getString(getString(R.string.userObjectKey), null);
-                    threadCount++;
+                    threadCount += 1;
                 }
 
                 messThreads = new Thread[threadCount];
             }
 
             //send all humons to server
-            for (/* Nothing */; params.getExtras().containsKey(getString(R.string.humonsKey))
+            for (/* Nothing */; params.getExtras().containsKey(getString(R.string.humonsKey)) && humons != null
                     && numThreadsStarted < humons.length; numThreadsStarted++) {
 
                 Runnable sendSocket = new sendSocket(getString(R.string.ServerCommandSaveInstance),
@@ -91,6 +89,7 @@ public class ServerSaveService extends JobService {
 
                 messThreads[numThreadsStarted] = new Thread(sendSocket);
                 messThreads[numThreadsStarted].start();
+                numThreadsStarted++;
             }
 
             threadsStarted = true;

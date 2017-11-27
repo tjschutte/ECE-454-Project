@@ -232,34 +232,11 @@ public class MenuActivity extends SettingsActivity {
             }
         }
 
-        // Save the user
-        try {
-            inputStream = new FileInputStream(userFile);
-            int inputBytes = inputStream.available();
-            byte[] buffer = new byte[inputBytes];
-            inputStream.read(buffer);
-            inputStream.close();
-            oldUser = new String(buffer, "UTF-8");
-        }
-        catch(FileNotFoundException e) {
-            e.printStackTrace();
-            System.out.println("User file could not be found for: " + userEmail);
-            hasUserFile = false;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                Context.MODE_PRIVATE);
 
-        if(hasUserFile) {
-            try {
-                userJSON = new JSONObject(oldUser);
-                saveUser = new String[] {userJSON.toString()};
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        else {
-            System.out.println("Unable to find user file");
-        }
+        saveUser = new String[] {sharedPref.getString(getString(R.string.userKey), "")};
+
 
         // Save user and party.
         JobServiceScheduler.scheduleServerSaveJob(getApplicationContext(), saveHumons, saveUser);

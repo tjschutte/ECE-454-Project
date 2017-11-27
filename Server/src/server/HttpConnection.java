@@ -93,16 +93,27 @@ public class HttpConnection extends Thread {
 		
 		out = new PrintWriter(socket.getOutputStream());
 		out.print("HTTP/1.1 200 \r\n"); // Version & status code
-		out.print("Content-Type: text/plain\r\n"); // The type of data
+		out.print("Content-Type: text/html\r\n"); // The type of data
 		out.print("Connection: close\r\n"); // Will close stream
 		out.print("\r\n"); // End of headers
 
 		BufferedReader br = new BufferedReader(new FileReader(new File("nohup.out")));
 		String string = br.readLine();
+		out.println("<HTML><meta http-equiv=\"refresh\" content=\"3\">"
+				+ "<script>" + 
+				"function scrollDown() {" + 
+				"   window.scrollTo(0, document.body.scrollHeight);" + 
+				"} " +
+				"//setInterval(scrollDown, 500);" +
+				"</script>"
+				+ "");
 		while (string != null) {
 			out.println(string);
+			out.println("</br>");
 			string = br.readLine();
 		}
+		
+		out.println("<body onload=\"scrollDown()\"></body></HTML>");
 		
 		br.close();
 		out.close();

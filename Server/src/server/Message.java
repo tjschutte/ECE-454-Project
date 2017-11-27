@@ -21,6 +21,8 @@ public class Message {
 	public static final String USERS_ALREADY_FRIENDS = 		"011 - Users are already friends.";
 	public static final String REQUEST_ALREADY_PENDING = 	"012 - Friend request is already pending.";
 	public static final String MUST_BE_FRIENDS_TODO = 		"013 - Users must be mutual friends in order to do that!";
+	public static final String HUMON_DOES_NOT_EXIST = 		"014 - Could not find Humon object";
+	public static final String INSTANCE_DOES_NOT_EXIST = 	"015 - Could not find Humon instance";
 	
 	public static final String COMMAND_NOT_SUPPORTED = 		"666 - The command you issued was valid, but ther sever does nothing for it as this time.";
 	

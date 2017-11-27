@@ -5,7 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,6 +14,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import main.Global;
 import models.User;
@@ -175,7 +175,6 @@ public class UserAction {
 			if (token == null) {
 				break;
 			}
-
 			if (JsonToken.FIELD_NAME.equals(token) && "email".equals(parser.getCurrentName())) {
 				token = parser.nextToken();
 				email = parser.getText();
@@ -197,12 +196,11 @@ public class UserAction {
 			return;
 		}
 		
-		// Get requested users friends / pending friends
-		ArrayList<String> friends = new ArrayList<String>(Arrays.asList(resultSet.getString(2).split(",")));
-		ArrayList<String> friendRequests = new ArrayList<String>(Arrays.asList(resultSet.getString(3).split(",")));
+		User requested = new User(resultSet);
+		
 		
 		// Check if we are already friends
-		for (String friend : friends) {
+		for (String friend : requested.getFriends()) {
 			if (connection.user.getEmail().equals(friend)) {
 				connection.sendResponse(Command.ERROR, Message.USERS_ALREADY_FRIENDS);
 				return;
@@ -210,7 +208,7 @@ public class UserAction {
 		}
 		
 		// Check if we are already in their pending requests
-		for (String request : friendRequests) {
+		for (String request : requested.getfriendRequests()) {
 			if (connection.user.getEmail().equals(request)) {
 				connection.sendResponse(Command.ERROR, Message.REQUEST_ALREADY_PENDING);
 				return;
@@ -220,26 +218,72 @@ public class UserAction {
 		// Made it here, valid friend request.  Add us to their pending friend requests, this way if they are not
 		// currently logged in, the client gets accurate info from the server.  Means client also needs to verify
 		// That is does not add duplicate users to friends / requests.
-		friendRequests.add(connection.user.getEmail());
-		PreparedStatement ps = connection.databaseConnection.prepareStatement("update users set friendRequests='" + friendRequests + "' where email='"
-				+ email + "';");
+		requested.addFriendRequest(connection.user.getEmail());
 		
-		int rows = ps.executeUpdate();
-		// Should only get 1 row was affected.
-		if (rows != 1) {
-			// If we are here, something went wonky
-			connection.sendResponse(Command.ERROR, Message.SERVER_ERROR_RETRY);
-			throw new SQLException();
-		}
+		saveAccount(connection, requested.toJson(new ObjectMapper()));
 		
 		// Send notification to user. If they are logged in they can add user to pending friends and on close will overwrite the server data.
 		// If they were not logged in, then they will need to make sure to check for duplicates.
 		JSONObject notificationData = new JSONObject();
 		notificationData.put(Command.FRIEND_REQUEST, connection.user.getEmail());
 
-		NotificationHandler.sendPushNotification(resultSet.getString(1), Message.NEW_FRIEND_REQUEST_TITLE,
+		NotificationHandler.sendPushNotification(requested.getDeviceToken(), Message.NEW_FRIEND_REQUEST_TITLE,
 				connection.user.getEmail() + Message.NEW_FRIEND_REQUEST_BODY, notificationData);
-		connection.sendResponse(Command.FRIEND_REQUEST, Message.FRIEND_REQUEST_SENT);
+		
+		// Data was good. Send it back and let device add friend.
+		connection.sendResponse(Command.FRIEND_REQUEST_SUCCESS, data);
+	}
+	
+	// We accepted someone elses friend request. make sure they are in our friends list (on server) so we can battle.
+	static void friendAdded(ServerThread connection, String data) throws JsonParseException, IOException, SQLException {
+		
+		if (connection.user == null || connection.user.getEmail().isEmpty()) {
+			connection.error(Message.NOT_LOGGEDIN);
+			return;
+		}
+
+		String email = null;
+
+		JsonFactory factory = new JsonFactory();
+		JsonParser parser = factory.createParser(data);
+
+		while (!parser.isClosed()) {
+			JsonToken token = parser.nextToken();
+			if (token == null) {
+				break;
+			}
+
+			if (JsonToken.FIELD_NAME.equals(token) && "email".equals(parser.getCurrentName())) {
+				token = parser.nextToken();
+				email = parser.getText();
+			}
+		}
+
+		if (email == null || email.isEmpty()) {
+			connection.error(Message.MALFORMED_DATA_PACKET);
+			return;
+		}
+		
+		// Add them to us
+		connection.user.addFriend(email);
+		// save back to DB
+		save(connection);
+		
+		ResultSet resultSet = connection.databaseConnection
+				.executeSQL("select * from users where email='" + email + "';");
+
+		if (!resultSet.next()) {
+			connection.sendResponse(Command.ERROR, Message.USER_DOES_NOT_EXIST);
+			return;
+		}
+		
+		User requested = new User(resultSet);
+		
+		// Make sure we are added to them..
+		requested.addFriend(connection.user.getEmail());
+		// update DB so their user is correct
+		saveAccount(connection, requested.toJson(new ObjectMapper()));
+		
 	}
 
 	static void battleRequest(ServerThread connection, String data) throws JsonParseException, IOException, JSONException, SQLException {
@@ -274,15 +318,17 @@ public class UserAction {
 		}
 
 		ResultSet resultSet = connection.databaseConnection
-				.executeSQL("select deviceToken,friends from users where email='" + email + "';");
+				.executeSQL("select * from users where email='" + email + "';");
 
 		if (!resultSet.next()) {
 			connection.sendResponse(Command.ERROR, Message.USER_DOES_NOT_EXIST);
 			return;
 		}
 		
+		User requested = new User(resultSet);
+		
 		// Get requested users friends
-		ArrayList<String> friends = new ArrayList<String>(Arrays.asList(resultSet.getString(2).split(",")));
+		ArrayList<String> friends = requested.getFriends();
 		// Check if we are already friends
 		boolean areFriends = false;
 		for (String friend : friends) {
@@ -306,10 +352,11 @@ public class UserAction {
 		connection.sendResponse(Command.BATTLE_REQUEST, Message.BATTLE_REQUEST_SENT);
 	}
 
-	public static void saveAccount(ServerThread connection, String data) throws JsonParseException, JsonMappingException, IOException {	
+	static void saveAccount(ServerThread connection, String data) throws JsonParseException, JsonMappingException, IOException {	
+		Global.log(connection.clientNumber, data);
 		User user = connection.mapper.readValue(data, User.class);
 		
-		Global.log(connection.clientNumber, "Saving client account data back to server.");
+		Global.log(connection.clientNumber, "Saving client account data back to server for: " + user.getEmail());
 
 		PreparedStatement ps;
 		try {
@@ -329,6 +376,46 @@ public class UserAction {
 		}
 		
 		connection.sendResponse(Command.SAVE_USER, Command.SUCCESS);
+	}
+
+	static void getParty(ServerThread connection, String data) throws JsonParseException, IOException, SQLException {
+		Global.log(connection.clientNumber, Command.GET_PARTY + ": " + data);
+		
+		String email = null;
+
+		JsonFactory factory = new JsonFactory();
+		JsonParser parser = factory.createParser(data);
+
+		while (!parser.isClosed()) {
+			JsonToken token = parser.nextToken();
+			if (token == null) {
+				break;
+			}
+
+			if (JsonToken.FIELD_NAME.equals(token) && "email".equals(parser.getCurrentName())) {
+				token = parser.nextToken();
+				email = parser.getText();
+			}
+		}
+
+		if (email == null || email.isEmpty()) {
+			connection.error(Message.MALFORMED_DATA_PACKET);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.MALFORMED_DATA_PACKET);
+			return;
+		}
+
+		ResultSet resultSet = connection.databaseConnection
+				.executeSQL("select * from users where email='" + email + "';");
+
+		if (!resultSet.next()) {
+			connection.sendResponse(Command.ERROR, Message.USER_DOES_NOT_EXIST);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.USER_DOES_NOT_EXIST);
+			return;
+		}
+		
+		User requested = new User(resultSet);
+		
+		connection.sendResponse(Command.GET_PARTY, "{\"party\":\"" + requested.getParty() + "\"}");
 	}
 	
 }

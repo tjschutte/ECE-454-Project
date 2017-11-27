@@ -1,5 +1,7 @@
 package models;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -55,6 +57,20 @@ public class Humon {
 		this.speed = speed;
 		this.defense = defense;
 		this.imagePath = "";
+	}
+	
+	public Humon(ResultSet resultSet) throws SQLException {
+		//  2        3         4        5       6       7      8     9       10
+		//(name, description, health, attack, defense, speed, luck, moves, created_by)
+		this(resultSet.getString(2), resultSet.getString(3), "", 0, 0, resultSet.getInt(1), "", "", null, resultSet.getInt(4), 0,
+				resultSet.getInt(8), resultSet.getInt(5), resultSet.getInt(7), resultSet.getInt(6));
+	}
+	
+	public Humon HumonInstance(ResultSet resultSet) throws SQLException {
+		//     1         2      3      4         5         6     7     8        9      10     11    12
+		//(instanceID, name, humonID, level, experience, health, hp, attack, defense, speed, luck, user)
+		return new Humon(resultSet.getString(2), "", "", resultSet.getInt(4), resultSet.getInt(5), resultSet.getInt(3), resultSet.getString(12), resultSet.getString(1),
+				null, resultSet.getInt(6), resultSet.getInt(7), resultSet.getInt(11), resultSet.getInt(8), resultSet.getInt(10), resultSet.getInt(9));
 	}
 
 	public String getName() {

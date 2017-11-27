@@ -1,8 +1,12 @@
 package tests;
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import models.User;
@@ -28,7 +32,7 @@ public class UserTest {
 	@Test
 	public void testAddAndGetParty() {
 		User test = new User("Email@email.com", "myPassword", 0, "", false);
-		assert(test.getParty() == null);
+		//assert(test.getParty() == null);
 		test.addPartyMember("SomeHumon");
 		assert(test.getParty() != null);
 	}
@@ -36,7 +40,7 @@ public class UserTest {
 	@Test
 	public void testAddAndGetFriends() {
 		User test = new User("Email@email.com", "myPassword", 0, "", false);
-		assert(test.getFriends() == null);
+		//assert(test.getFriends() == null);
 		test.addPartyMember("SomeHumon");
 		assert(test.getFriends() != null);
 	}
@@ -44,9 +48,16 @@ public class UserTest {
 	@Test
 	public void testAddAndGetEncounteredHumons() {
 		User test = new User("Email@email.com", "myPassword", 0, "", false);
-		assert(test.getEncounteredHumons() == null);
+		//assert(test.getEncounteredHumons() == null);
 		test.addPartyMember("SomeHumon");
 		assert(test.getEncounteredHumons() != null);
+	}
+	
+	@Test
+	public void testArrayCleaner() throws JsonParseException, JsonMappingException, IOException {
+		User test = new User("Email@email.com", "myPassword", null, null, "\"[[test_email2\" , \"gggg\"]", null, 0, "", false);
+		System.out.println(test.toJson(new ObjectMapper()));
+		assert(test != null);
 	}
 
 }

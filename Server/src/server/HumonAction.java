@@ -5,8 +5,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import main.Global;
 import models.Humon;
@@ -18,7 +22,8 @@ public class HumonAction {
 	 * Save a new Humon and New instance at the same time. Reply to the client with
 	 * the HumonId (hID)
 	 * 
-	 * @param data
+	 * @param data - contain information about a new Humon, needs to be properly formated
+	 * JSON object of a humon object
 	 * @throws IOException
 	 * @throws JsonMappingException
 	 * @throws JsonParseException
@@ -120,17 +125,124 @@ public class HumonAction {
 		connection.sendResponse(Command.SAVE_INSTANCE, Command.SUCCESS);
 	}
 
-	static void getInstance(ServerThread connection, String data) {
-		// TODO Auto-generated method stub
-		// Need to know what the client will send...
+	static void getInstance(ServerThread connection, String data) throws JsonParseException, IOException, SQLException {
 		Global.log(connection.clientNumber, Command.GET_INSTANCE + ": " + data);
-		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+		int iID = 0;
+
+		JsonFactory factory = new JsonFactory();
+		JsonParser parser = factory.createParser(data);
+
+		while (!parser.isClosed()) {
+			JsonToken token = parser.nextToken();
+			if (token == null) {
+				break;
+			}
+			
+			// If there was a populated hID
+			if (JsonToken.FIELD_NAME.equals(token) && "iID".equals(parser.getCurrentName())) {
+				token = parser.nextToken();
+				iID = parser.getValueAsInt(-1);
+			} 
+
+		}
+		
+		// Do a lookup to get hID
+		ResultSet resultSet = connection.databaseConnection
+				.executeSQL("select * from instance where iID='" + parser.getValueAsInt(-1) + "';");
+		
+		if (!resultSet.next()) {
+			connection.sendResponse(Command.ERROR, Message.INSTANCE_DOES_NOT_EXIST);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.INSTANCE_DOES_NOT_EXIST);
+			return;
+		}
+		
+		Humon requested = new Humon();
+		requested = requested.HumonInstance(resultSet);
+		
+		connection.sendResponse(Command.GET_INSTANCE, requested.toJson(new ObjectMapper()));
 	}
 
-	static void getHumon(ServerThread connection, String data) {
+	static void getHumon(ServerThread connection, String data) throws JsonParseException, IOException, SQLException {
+		Global.log(connection.clientNumber, Command.GET_HUMON + ": " + data);
+		int hID = 0;
+
+		JsonFactory factory = new JsonFactory();
+		JsonParser parser = factory.createParser(data);
+
+		while (!parser.isClosed()) {
+			JsonToken token = parser.nextToken();
+			if (token == null) {
+				break;
+			}
+			
+			// If there was a populated hID
+			if (JsonToken.FIELD_NAME.equals(token) && "hID".equals(parser.getCurrentName())) {
+				token = parser.nextToken();
+				hID = parser.getValueAsInt(-1);
+			} 
+			// Else if it was a iID
+			else if (JsonToken.FIELD_NAME.equals(token) && "iID".equals(parser.getCurrentName())) {
+				// Do a lookup to get hID
+				ResultSet resultSet = connection.databaseConnection
+						.executeSQL("select hID from instance where iID='" + parser.getValueAsInt(-1) + "';");
+				
+				if (!resultSet.next()) {
+					connection.sendResponse(Command.ERROR, Message.INSTANCE_DOES_NOT_EXIST);
+					Global.log(connection.clientNumber, Command.ERROR + ": " + Message.INSTANCE_DOES_NOT_EXIST);
+					return;
+				}
+				
+				hID = resultSet.getInt(1);
+			}
+		}
+
+		if (hID <= 0) {
+			connection.error(Message.MALFORMED_DATA_PACKET);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.MALFORMED_DATA_PACKET);
+			return;
+		}
+		
+		ResultSet resultSet = connection.databaseConnection
+				.executeSQL("select * from humon where hID='" + hID + "';");
+
+		if (!resultSet.next()) {
+			connection.sendResponse(Command.ERROR, Message.HUMON_DOES_NOT_EXIST);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.HUMON_DOES_NOT_EXIST);
+			return;
+		}
+		
+		Humon requested = new Humon(resultSet);
+		
+		connection.sendResponse(Command.GET_HUMON, requested.toJson(new ObjectMapper()));
+		
+	}
+	
+	// May choose to deprecate method / command. Just pass data when user call getHumon
+	static void getImage(ServerThread connection, String data) {
 		// TODO Auto-generated method stub
 		// Need to know what the client will send...
-		Global.log(connection.clientNumber, Command.GET_INSTANCE + ": " + data);
+		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
+		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+	}
+	
+	static void battleStart(ServerThread connection, String data) {
+		// TODO Auto-generated method stub
+		// Need to know what the client will send...
+		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
+		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+	}
+	
+	static void battleAction(ServerThread connection, String data) {
+		// TODO Auto-generated method stub
+		// Need to know what the client will send...
+		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
+		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+	}
+	
+	static void battleEnd(ServerThread connection, String data) {
+		// TODO Auto-generated method stub
+		// Need to know what the client will send...
+		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
 		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
 	}
 

@@ -18,7 +18,7 @@ public class ServerThread extends Thread {
 
 	/**
 	 * A private thread to handle requests on a particular socket. The client
-	 * terminates the diaGlobal.logue by sending a single line containing only a
+	 * terminates the dialogue by sending a single line containing only a
 	 * period.
 	 */
 	public Socket socket;
@@ -92,9 +92,16 @@ public class ServerThread extends Thread {
 					case Command.FRIEND_REQUEST:
 						UserAction.friendRequest(this, data);
 						break;
+					case Command.FRIEND_ADDED:
+						UserAction.friendAdded(this, data);
+						break;
 					// Send a battle request
 					case Command.BATTLE_REQUEST:
 						UserAction.battleRequest(this, data);
+						break;
+					// Get the opposing players party (unique IDs, which can then be used to get humons)
+					case Command.GET_PARTY:
+						UserAction.getParty(this, data);
 						break;
 					// Save the user data back to the database
 					case Command.SAVE_USER:
@@ -115,6 +122,9 @@ public class ServerThread extends Thread {
 					// Get an existing Humon-instance
 					case Command.GET_INSTANCE:
 						HumonAction.getInstance(this, data);
+						break;
+					case Command.GET_IMAGE:
+						HumonAction.getImage(this, data);
 						break;
 					// They sent baaaad data
 					default:

@@ -11,6 +11,7 @@ import org.json.JSONException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import main.Global;
+import models.Humon;
 import models.User;
 import utilities.Connector;
 
@@ -118,6 +119,9 @@ public class ServerThread extends Thread {
 					// Get an existing Humon-instance
 					case Command.GET_INSTANCE:
 						HumonAction.getInstance(this, data);
+						break;
+					case Command.GET_IMAGE:
+						HumonAction.getImage(this, data);
 						break;
 					// They sent baaaad data
 					default:

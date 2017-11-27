@@ -22,8 +22,15 @@ public class Command {
 	public static final String FRIEND_REQUEST_SUCCESS = "FRIEND-REQUEST-SUCCESS";
 	public static final String FRIEND_ADDED = 			"FRIEND-ADDED";
 	public static final String BATTLE_REQUEST = 		"BATTLE-REQUEST";
+	
+	// Commands for when in battle
+	// Used to start the battle
 	public static final String BATTLE_START = 			"BATTLE-START"; // Not currently used.
+	// Used to get the opposing players party UID's / HID's
+	public static final String GET_PARTY = 				"GET-PARTY"; // Not currently user.
+	// Used to do an action (attack)
 	public static final String BATTLE_ACTION = 			"BATTLE-ACTION"; // Not currently used.
+	// Used to signal the end of a battle (someone lost)
 	public static final String BATTLE_END = 			"BATTLE-END"; // Not currently used.
 
 }

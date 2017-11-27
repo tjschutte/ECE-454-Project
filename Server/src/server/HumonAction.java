@@ -133,5 +133,41 @@ public class HumonAction {
 		Global.log(connection.clientNumber, Command.GET_INSTANCE + ": " + data);
 		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
 	}
+	
+	// May choose to deprecate method / command. Just pass data when user call getHumon
+	static void getImage(ServerThread connection, String data) {
+		// TODO Auto-generated method stub
+		// Need to know what the client will send...
+		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
+		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+	}
+	
+	static void battleStart(ServerThread connection, String data) {
+		// TODO Auto-generated method stub
+		// Need to know what the client will send...
+		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
+		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+	}
+	
+	static void getParty(ServerThread connection, String data) {
+		// TODO Auto-generated method stub
+		// Need to know what the client will send...
+		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
+		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+	}
+	
+	static void battleAction(ServerThread connection, String data) {
+		// TODO Auto-generated method stub
+		// Need to know what the client will send...
+		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
+		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+	}
+	
+	static void battleEnd(ServerThread connection, String data) {
+		// TODO Auto-generated method stub
+		// Need to know what the client will send...
+		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
+		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+	}
 
 }

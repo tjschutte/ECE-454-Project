@@ -68,45 +68,46 @@ public class FriendsListActivity extends SettingsActivity {
     BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-        String response = intent.getStringExtra(getString(R.string.serverBroadCastResponseKey));
-        String command;
-        String data;
-
-        command = response.substring(0, response.indexOf(':'));
-        command = command.toUpperCase();
-        data = response.substring(response.indexOf(':') + 1, response.length());
-
-        System.out.println("In friendslist");
-
-        // Server data is always assumed correct on login. Save to file and overwrite existing data.
-        //  If the email was found by the server, add it to the user object.
-        if (command.equals(getString(R.string.ServerCommandFriendRequestSuccess))) {
-            System.out.println("Caught in friendslist");
-            loadUser();
-
-            try {
-                User friend = new ObjectMapper().readValue(data, User.class);
-                user.addFriend(friend.getEmail());
-            } catch (IOException e) {
-                e.printStackTrace();
+            String response = intent.getStringExtra(getString(R.string.serverBroadCastResponseKey));
+            String command;
+            String data;
+            if (response.indexOf(':') == -1) {
+                // Got a bad response from the server. Do nothing.
+                Toast toast = Toast.makeText(context, "Error communicating with server. Try again.", Toast.LENGTH_SHORT);
+                toast.show();
+                return;
             }
 
-            saveUser();
-            refreshContent();
-        } else if (command.equals(getString(R.string.ServerCommandFriendRequest))) {
-            System.out.println("Caught in friendslist");
-            loadUser();
+            command = response.substring(0, response.indexOf(':'));
+            command = command.toUpperCase();
+            data = response.substring(response.indexOf(':') + 1, response.length());
 
-            try {
-                User friend = new ObjectMapper().readValue(data, User.class);
-                user.addFriendRequest(friend.getEmail());
-            } catch (IOException e) {
-                e.printStackTrace();
+            System.out.println("In friendslist");
+
+            // Server data is always assumed correct on login. Save to file and overwrite existing data.
+            //  If the email was found by the server, add it to the user object.
+            if (command.equals(getString(R.string.ServerCommandFriendRequestSuccess))) {
+                System.out.println("ServerCommandFriendRequestSuccess");
+                loadUser();
+
+                try {
+                    User friend = new ObjectMapper().readValue(data, User.class);
+                    user.addFriend(friend.getEmail());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                saveUser();
+                refreshContent();
+            } else if (command.equals(getString(R.string.ServerCommandFriendRequest))) {
+                System.out.println("Caught in friendslist");
+                loadUser();
+                //User friend = new ObjectMapper().readValue(data, User.class);
+                user.addFriendRequest(data.trim());
+
+                saveUser();
+                refreshContent();
             }
-
-            saveUser();
-            refreshContent();
-        }
 
         }
     };

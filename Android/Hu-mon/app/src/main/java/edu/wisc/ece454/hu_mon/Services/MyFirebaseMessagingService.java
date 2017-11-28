@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
 
+import edu.wisc.ece454.hu_mon.Activities.FriendsListActivity;
 import edu.wisc.ece454.hu_mon.Activities.MenuActivity;
 import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
@@ -53,23 +54,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             if (data.containsKey(getString(R.string.ServerCommandFriendRequest))) {
                 SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(
                         getApplicationContext().getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
-                // User object reader.
-                try {
-                    ObjectMapper mapper = new ObjectMapper();
-                    String userString = sharedPref.getString("userObjectKey", null);
-                    User user = mapper.readValue(userString, User.class);
-                    user.addFriendRequest(data.get(getString(R.string.ServerCommandFriendRequest)));
 
-                    SharedPreferences.Editor editor = sharedPref.edit();
-                    editor.putString("userObjectKey", user.toJson(mapper));
-                    editor.commit();
-                    System.out.println("Got friend request. Request added to user");
-                }
-                catch(FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                String res = getString(R.string.ServerCommandFriendRequest) + ": " + data.get(getString(R.string.ServerCommandFriendRequest));
+
+                System.out.println("Faking a server message fro a friend request");
+                Intent intent = new Intent();
+                intent.setAction(getString(R.string.serverBroadCastEvent));
+                intent.putExtra(getString(R.string.serverBroadCastResponseKey),res);
+                sendBroadcast(intent);
 
             } else if (data.containsKey(getString(R.string.ServerCommandBattleRequest))) {
                 //TODO: Something with pending intents to accept / decline

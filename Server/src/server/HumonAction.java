@@ -29,7 +29,7 @@ public class HumonAction {
 	 * @throws JsonParseException
 	 * @throws SQLException
 	 */
-	static void createNewHumon(ServerThread connection, String data)
+	static void createNewHumon(ServerConnection connection, String data)
 			throws JsonParseException, JsonMappingException, IOException, SQLException {
 
 		if (connection.user == null || connection.user.getEmail().isEmpty()) {
@@ -91,7 +91,7 @@ public class HumonAction {
 
 	}
 	
-	static void saveInstance(ServerThread connection, String data) throws JsonParseException, JsonMappingException, IOException, SQLException {
+	static void saveInstance(ServerConnection connection, String data) throws JsonParseException, JsonMappingException, IOException, SQLException {
 		Humon humon = connection.mapper.readValue(data, Humon.class);
 		// print it
 		Global.log(connection.clientNumber, humon.getuID() + " is saving Humon Instance: " + humon.getName() + ", " + humon.getDescription());
@@ -125,7 +125,7 @@ public class HumonAction {
 		connection.sendResponse(Command.SAVE_INSTANCE, Command.SUCCESS);
 	}
 
-	static void getInstance(ServerThread connection, String data) throws JsonParseException, IOException, SQLException {
+	static void getInstance(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException {
 		Global.log(connection.clientNumber, Command.GET_INSTANCE + ": " + data);
 		int iID = 0;
 
@@ -162,7 +162,7 @@ public class HumonAction {
 		connection.sendResponse(Command.GET_INSTANCE, requested.toJson(new ObjectMapper()));
 	}
 
-	static void getHumon(ServerThread connection, String data) throws JsonParseException, IOException, SQLException {
+	static void getHumon(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException {
 		Global.log(connection.clientNumber, Command.GET_HUMON + ": " + data);
 		int hID = 0;
 
@@ -218,28 +218,28 @@ public class HumonAction {
 	}
 	
 	// May choose to deprecate method / command. Just pass data when user call getHumon
-	static void getImage(ServerThread connection, String data) {
+	static void getImage(ServerConnection connection, String data) {
 		// TODO Auto-generated method stub
 		// Need to know what the client will send...
 		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
 		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
 	}
 	
-	static void battleStart(ServerThread connection, String data) {
+	static void battleStart(ServerConnection connection, String data) {
 		// TODO Auto-generated method stub
 		// Need to know what the client will send...
 		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
 		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
 	}
 	
-	static void battleAction(ServerThread connection, String data) {
+	static void battleAction(ServerConnection connection, String data) {
 		// TODO Auto-generated method stub
 		// Need to know what the client will send...
 		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
 		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
 	}
 	
-	static void battleEnd(ServerThread connection, String data) {
+	static void battleEnd(ServerConnection connection, String data) {
 		// TODO Auto-generated method stub
 		// Need to know what the client will send...
 		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);

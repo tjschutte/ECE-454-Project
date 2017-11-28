@@ -14,7 +14,7 @@ import main.Global;
 import models.User;
 import utilities.Connector;
 
-public class ServerThread extends Thread {
+public class ServerConnection extends Thread {
 
 	/**
 	 * A private thread to handle requests on a particular socket. The client
@@ -29,7 +29,7 @@ public class ServerThread extends Thread {
 	public PrintWriter clientOut;
 	public User user;
 
-	public ServerThread(Socket socket, int clientNumber) throws IOException {
+	public ServerConnection(Socket socket, int clientNumber) throws IOException {
 		this.socket = socket;
 		this.clientNumber = clientNumber;
 		Global.log(clientNumber, "connected at " + socket);

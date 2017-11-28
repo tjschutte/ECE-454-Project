@@ -1,76 +1,75 @@
 package main;
 
 import java.io.IOException;
-import java.net.ServerSocket;
+import java.io.PrintStream;
 import java.sql.SQLException;
 
-import server.HttpConnection;
-import server.ServerThread;
-import utilities.Database;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import http.HttpConnectionListener;
+import server.ServerConnectionListener;
+import utilities.JTextAreaOutputStream;
 
 public class Main {
 
 	public static void main(String[] args) throws IOException, SQLException {
-		new ServerConnectionListener().start();
-		new HttpConnectionListener().start();
-	}
-}
+		Options options = new Options();
 
-class ServerConnectionListener extends Thread {
-	
-	public ServerConnectionListener() {}
-	
-	public void run() {
-		ServerSocket humonListener = null;
-		try {
-			System.out.println("Starting Humon Server...");
-			int clientNumber = 0;
-			humonListener = new ServerSocket(9898);
-
-			// Ensure that the database is set up, and has tables set up.
-			@SuppressWarnings("unused")
-			Database database = new Database(true, false);
-
-			System.out.println("Waiting for Humon-Service connections.");
-			while (true) {
-				new ServerThread(humonListener.accept(), clientNumber++).start();
-			}
-		} catch (IOException | SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				humonListener.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-}
-
-/**
- * This is so the server can handle http request later on.  This will allow us to distribute the app to 
- * friends by having them visit in a webrowser to download the compiled app.
- * 
- */
-class HttpConnectionListener extends Thread {
-	public void run() {
-		ServerSocket httpListener = null;
-		try {
-			httpListener = new ServerSocket(80);
-
-			System.out.println("Waiting for Http connections.");
-			while (true) {
-				new HttpConnection(httpListener.accept()).start();
-			}
+		options.addOption("drop", false, "Drop any preexisting tables in the databases.");
+		options.addOption("test", false, "Attempt to load test data into the databases.");
+		options.addOption("cmd", false, "Run in command line instead of openning a GUI.");
+		
+		// create the parser
+	    CommandLineParser parser = new DefaultParser();
+	    try {
+	        // parse the command line arguments
+	        CommandLine line = parser.parse( options, args );
+	        
+	        boolean dropTables;
+	        boolean testData;
+	        
+	        // If they ask for gui, give it to them.
+	        if (!line.hasOption("cmd")) {
+	        	JFrame frame = new JFrame("Humon Server");
+				JTextArea messageArea = new JTextArea(20, 60);
+				// Layout GUI
+				messageArea.setEditable(false);
+				frame.getContentPane().add(new JScrollPane(messageArea), "Center");
+				
+				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				frame.pack();
+				frame.setVisible(true);
+				
+				JTextAreaOutputStream out = new JTextAreaOutputStream (messageArea);
+		        System.setOut (new PrintStream (out));
+	        }
+	        
+	        dropTables = line.hasOption("drop");
+	        testData = line.hasOption("test");
+	        
 			
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				httpListener.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+			new ServerConnectionListener(dropTables, testData).start();
+			new HttpConnectionListener().start();
+	        
+	        
+	    }
+	    catch( ParseException exp ) {
+	        // oops, something went wrong
+	        System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
+	    }
 	}
 }
+
+
+
+
+
+

@@ -33,7 +33,7 @@ public class UserAction {
 	/**
 	 * Push update data to the sever *IF* it has changed.
 	 */
-	static void save(ServerThread connection) {
+	static void save(ServerConnection connection) {
 		Global.log(connection.clientNumber, "Save was issued");
 		if (connection.user != null && connection.user.getIsDirty()) {
 			Global.log(connection.clientNumber, "User data was updated. Saving to database");
@@ -60,7 +60,7 @@ public class UserAction {
 	 * 
 	 * @param data
 	 */
-	static void register(ServerThread connection, String data) {
+	static void register(ServerConnection connection, String data) {
 		Global.log(connection.clientNumber, "Trying to register new user");
 		Global.log(connection.clientNumber, data);
 
@@ -111,7 +111,7 @@ public class UserAction {
 	 * 
 	 * @param data
 	 */
-	static void login(ServerThread connection, String data) {
+	static void login(ServerConnection connection, String data) {
 		Global.log(connection.clientNumber, "Trying to Login with ");
 		Global.log(connection.clientNumber, data);
 
@@ -154,7 +154,7 @@ public class UserAction {
 
 	}
 
-	static void friendRequest(ServerThread connection, String data) throws JsonParseException, IOException, JSONException, SQLException {
+	static void friendRequest(ServerConnection connection, String data) throws JsonParseException, IOException, JSONException, SQLException {
 		Global.log(connection.clientNumber, "Sending friend Request");
 		Global.log(connection.clientNumber, data);
 
@@ -235,7 +235,7 @@ public class UserAction {
 	}
 	
 	// We accepted someone elses friend request. make sure they are in our friends list (on server) so we can battle.
-	static void friendAdded(ServerThread connection, String data) throws JsonParseException, IOException, SQLException {
+	static void friendAdded(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException {
 		
 		if (connection.user == null || connection.user.getEmail().isEmpty()) {
 			connection.error(Message.NOT_LOGGEDIN);
@@ -286,7 +286,7 @@ public class UserAction {
 		
 	}
 
-	static void battleRequest(ServerThread connection, String data) throws JsonParseException, IOException, JSONException, SQLException {
+	static void battleRequest(ServerConnection connection, String data) throws JsonParseException, IOException, JSONException, SQLException {
 		Global.log(connection.clientNumber, "Sending battle Request");
 		Global.log(connection.clientNumber, data);
 
@@ -352,7 +352,7 @@ public class UserAction {
 		connection.sendResponse(Command.BATTLE_REQUEST, Message.BATTLE_REQUEST_SENT);
 	}
 
-	static void saveAccount(ServerThread connection, String data) throws JsonParseException, JsonMappingException, IOException {	
+	static void saveAccount(ServerConnection connection, String data) throws JsonParseException, JsonMappingException, IOException {	
 		Global.log(connection.clientNumber, data);
 		User user = connection.mapper.readValue(data, User.class);
 		
@@ -378,7 +378,7 @@ public class UserAction {
 		connection.sendResponse(Command.SAVE_USER, Command.SUCCESS);
 	}
 
-	static void getParty(ServerThread connection, String data) throws JsonParseException, IOException, SQLException {
+	static void getParty(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException {
 		Global.log(connection.clientNumber, Command.GET_PARTY + ": " + data);
 		
 		String email = null;

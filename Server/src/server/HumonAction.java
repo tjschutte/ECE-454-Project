@@ -148,7 +148,7 @@ public class HumonAction {
 		
 		// Do a lookup to get hID
 		ResultSet resultSet = connection.databaseConnection
-				.executeSQL("select * from instance where iID='" + parser.getValueAsInt(-1) + "';");
+				.executeSQL("select * from instance where iID='" + iID + "';");
 		
 		if (!resultSet.next()) {
 			connection.sendResponse(Command.ERROR, Message.INSTANCE_DOES_NOT_EXIST);

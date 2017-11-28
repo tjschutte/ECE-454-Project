@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -33,9 +34,11 @@ public class MenuActivity extends SettingsActivity {
     private String[] menuOption;
     private String userEmail;
     private String userObject;
+    private Intent placeService;
 
     private String EMAIL_KEY;
     private final String ACTIVITY_TITLE = "Main Menu";
+    private static final String TAG = "MENU";
 
     //Menu values
     private final String HUMON_INDEX = "Hu-mon Index";
@@ -106,6 +109,11 @@ public class MenuActivity extends SettingsActivity {
         JobScheduler jobScheduler = this.getSystemService(JobScheduler.class);
         jobScheduler.cancel(stepJobId);
 
+        if (placeService != null) {
+            Log.d(TAG,"Stopping PlaceDetectionService");
+            stopService(placeService);
+        }
+
         // Save any pertinant data back to the server.
         saveToServer();
 
@@ -152,6 +160,7 @@ public class MenuActivity extends SettingsActivity {
                     toast.setText("Began searching for hu-mons, will notify when hu-mon found.");
                     toast.show();
                     JobServiceScheduler.scheduleStepJob(getApplicationContext());
+                    placeService = new Intent(this, PlaceDetectionService.class);
                     startService(new Intent(this, PlaceDetectionService.class));
                 }
                 else {

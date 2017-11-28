@@ -1,27 +1,17 @@
 package edu.wisc.ece454.hu_mon.Services;
 
-import android.Manifest;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
 import android.location.Location;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.FusedLocationProviderApi;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
@@ -37,7 +27,6 @@ import com.google.android.gms.tasks.Task;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.wisc.ece454.hu_mon.Activities.WildBattleActivity;
 import edu.wisc.ece454.hu_mon.R;
 
 
@@ -123,7 +112,8 @@ public class PlaceDetectionService extends Service {
                         Log.d(TAG,"Success!");
                         List<Place> mostLikely = new ArrayList<>();
                         for (PlaceLikelihood placeLikelihood : buff) {
-                            Log.i(TAG,placeLikelihood.getPlace().getName() + " : " + placeLikelihood.getLikelihood());
+                            //emrgency debug log statement
+                            //Log.d(TAG,placeLikelihood.getPlace().getName() + " : " + placeLikelihood.getLikelihood());
                             if (placeLikelihood.getLikelihood() > 0.0) {
                                 mostLikely.add(placeLikelihood.getPlace());
                             }
@@ -131,13 +121,22 @@ public class PlaceDetectionService extends Service {
                         boolean healthyPlace = false;
                         for (Place loc : mostLikely) {
                             Log.d(TAG,"Place: " + loc.getName());
+                            Log.d(TAG,"Want places " + Place.TYPE_PARK + " and " + Place.TYPE_GYM);
                             Log.d(TAG,"Place: " + loc.getPlaceTypes().toString());
                             healthyPlace = healthyPlace || loc.getPlaceTypes().contains(Place.TYPE_PARK);
                             healthyPlace = healthyPlace || loc.getPlaceTypes().contains(Place.TYPE_GYM);
                         }
 
                         if (healthyPlace) {
-                            wildHumonNotification();
+                            SharedPreferences sharedPref = getSharedPreferences(
+                                    getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = sharedPref.edit();
+                            editor.putBoolean("inHealthyPlace",true);
+                        }else{
+                            SharedPreferences sharedPref = getSharedPreferences(
+                                    getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = sharedPref.edit();
+                            editor.putBoolean("inHealthyPlace",false);
                         }
                         buff.release();
                     } else{
@@ -145,29 +144,6 @@ public class PlaceDetectionService extends Service {
                     }
                 }
             });
-
-    }
-
-    //Notifies the user of a wild humon
-    private void wildHumonNotification() {
-        Log.i(TAG,"location humon found");
-
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        Intent notificationIntent = new Intent(this, WildBattleActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-
-        Notification notification = new Notification.Builder(this)
-                .setContentTitle("Battle")
-                .setContentText("A Wild Hu-mon appeared")
-                .setContentIntent(pendingIntent)
-                .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
-                .setAutoCancel(true)
-                .build();
-
-        mNotificationManager.notify(69, notification);
-
 
     }
 }

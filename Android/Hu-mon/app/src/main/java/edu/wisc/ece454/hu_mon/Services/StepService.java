@@ -7,11 +7,13 @@ import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 
 import edu.wisc.ece454.hu_mon.Activities.WildBattleActivity;
 import edu.wisc.ece454.hu_mon.R;
@@ -19,6 +21,8 @@ import edu.wisc.ece454.hu_mon.Utilities.JobServiceScheduler;
 
 @RequiresApi(api = 23)
 public class StepService extends JobService implements SensorEventListener {
+
+    private static final String TAG = "StepService";
 
     private SensorManager sensorManager;
     private Sensor stepSensor;
@@ -30,7 +34,7 @@ public class StepService extends JobService implements SensorEventListener {
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
 
-        System.out.println("Step Job Started");
+        Log.i(TAG,"Step Job Started");
 
         sensorManager.registerListener(this, stepSensor, 10000);
         jobParameters = params;
@@ -49,10 +53,12 @@ public class StepService extends JobService implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         if(event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
             double steps = event.values[0];
-            System.out.println("Steps: " + steps);
+            Log.d(TAG,"Steps: " + steps);
             if(steps % 10 == 0) {
                 double humonFind = Math.random();
-                if(humonFind < .2) {
+                SharedPreferences sharedPref = getSharedPreferences(
+                        getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+                if(humonFind < .2 && sharedPref.getBoolean("inHealthyPlace", false)) {
                     System.out.println("Wild hu-mon found!");
                     wildHumonNotification();
                 }

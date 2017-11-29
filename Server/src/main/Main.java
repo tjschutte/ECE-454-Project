@@ -20,8 +20,6 @@ import utilities.JTextAreaOutputStream;
 public class Main {
 
 	public static void main(String[] args) throws IOException, SQLException  {
-		
-
 		JFrame frame = new JFrame("Humon Server");
 		JTextArea messageArea = new JTextArea(20, 60);
 		// Layout GUI
@@ -64,6 +62,7 @@ public class Main {
 				
 			}
 		});
+		
 	}
 }
 

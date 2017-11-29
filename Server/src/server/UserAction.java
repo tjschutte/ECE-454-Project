@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,7 +42,7 @@ public class UserAction {
 			PreparedStatement ps;
 			try {
 				ps = connection.databaseConnection.prepareStatement("update users set " + connection.user.updateSyntax() + "where email='"
-						+ connection.user.getEmail() + "' and password='" + connection.user.getPassword() + "';");
+						+ connection.user.getEmail() + ";");//' and password='" + connection.user.getPassword() + "';");
 				int rows = ps.executeUpdate();
 				// Should only get 1 row was affected.
 				if (rows != 1) {
@@ -60,9 +61,8 @@ public class UserAction {
 	 * 
 	 * @param data
 	 */
-	static void register(ServerConnection connection, String data) {
+	static void register(ServerConnection connection, String data) {	
 		Global.log(connection.clientNumber, "Trying to register new user");
-		Global.log(connection.clientNumber, data);
 
 		try {
 			// Attempt to map email and password to an object.
@@ -77,7 +77,7 @@ public class UserAction {
 			}
 
 			// Unique email, create a new user
-			User newUser = new User(u.getEmail(), u.getPassword(), 0, u.getDeviceToken(), false);
+			User newUser = new User(u.getEmail(), DigestUtils.sha512Hex(u.getPassword()), 0, u.getDeviceToken(), false);
 			// Insert into the database.
 			PreparedStatement ps = connection.databaseConnection.prepareStatement(
 					"insert into users " + Global.USERS_TABLE_COLUMNS + " values " + newUser.toSqlValueString());
@@ -91,6 +91,7 @@ public class UserAction {
 
 			// Send success, and the user JSON string so client has it as well.
 			connection.sendResponse(Command.REGISTER, connection.user.toJson(connection.mapper));
+			Global.log(connection.clientNumber, "New user registered - " + connection.user.toJson(connection.mapper));
 
 		} catch (JsonParseException e) {
 			Global.log(connection.clientNumber, "Recieved malformed data packet");
@@ -113,12 +114,11 @@ public class UserAction {
 	 */
 	static void login(ServerConnection connection, String data) {
 		Global.log(connection.clientNumber, "Trying to Login with ");
-		Global.log(connection.clientNumber, data);
 
 		try {
 			User u = connection.mapper.readValue(data, User.class);
 			ResultSet resultSet = connection.databaseConnection.executeSQL(
-					"select * from users where email='" + u.getEmail() + "' and password='" + u.getPassword() + "';");
+					"select * from users where email='" + u.getEmail() + "' and password='" + DigestUtils.sha512Hex(u.getPassword()) + "';");
 
 			if (!resultSet.next()) {
 				connection.sendResponse(Command.ERROR, Message.BAD_CREDENTIALS);
@@ -139,7 +139,7 @@ public class UserAction {
 			}
 
 			connection.sendResponse(Command.LOGIN, connection.user.toJson(connection.mapper));
-
+			Global.log(connection.clientNumber, "User logged in - " + connection.user.toJson(connection.mapper));
 
 		} catch (JsonParseException e) {
 			Global.log(connection.clientNumber, "Recieved malformed data packet");

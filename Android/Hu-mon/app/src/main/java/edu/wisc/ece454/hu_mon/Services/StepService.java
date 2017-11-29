@@ -58,7 +58,7 @@ public class StepService extends JobService implements SensorEventListener {
                 double humonFind = Math.random();
                 SharedPreferences sharedPref = getSharedPreferences(
                         getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
-                if(humonFind < .2 && sharedPref.getBoolean("inHealthyPlace", false)) {
+                if(humonFind < .2 && sharedPref.getBoolean(getString(R.string.healthyPlaceKey), false)) {
                     System.out.println("Wild hu-mon found!");
                     wildHumonNotification();
                 }

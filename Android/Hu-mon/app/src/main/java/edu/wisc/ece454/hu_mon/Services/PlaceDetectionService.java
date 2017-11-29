@@ -131,12 +131,12 @@ public class PlaceDetectionService extends Service {
                             SharedPreferences sharedPref = getSharedPreferences(
                                     getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
                             SharedPreferences.Editor editor = sharedPref.edit();
-                            editor.putBoolean("inHealthyPlace",true);
+                            editor.putBoolean(getString(R.string.healthyPlaceKey),true);
                         }else{
                             SharedPreferences sharedPref = getSharedPreferences(
                                     getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
                             SharedPreferences.Editor editor = sharedPref.edit();
-                            editor.putBoolean("inHealthyPlace",false);
+                            editor.putBoolean(getString(R.string.healthyPlaceKey),false);
                         }
                         buff.release();
                     } else{

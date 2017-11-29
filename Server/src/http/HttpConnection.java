@@ -97,7 +97,7 @@ public class HttpConnection extends Thread {
 		out.print("Connection: close\r\n"); // Will close stream
 		out.print("\r\n"); // End of headers
 
-		BufferedReader br = new BufferedReader(new FileReader(new File("nohup.out")));
+		BufferedReader br = new BufferedReader(new FileReader(new File("log.txt")));
 		String string = br.readLine();
 		out.println("<HTML><meta http-equiv=\"refresh\" content=\"3\">"
 				+ "<script>" + 

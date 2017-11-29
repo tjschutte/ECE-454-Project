@@ -1,5 +1,7 @@
 package utilities;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -9,13 +11,21 @@ import javax.swing.SwingUtilities;
 public class JTextAreaOutputStream extends OutputStream
 {
     private final JTextArea destination;
+    private BufferedWriter writer;
 
     public JTextAreaOutputStream (JTextArea destination)
     {
         if (destination == null)
             throw new IllegalArgumentException ("Destination is null");
-
         this.destination = destination;
+        
+        try {
+			writer = new BufferedWriter(new FileWriter("log.txt"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        //writer.write(str);
+        
     }
 
     @Override
@@ -27,7 +37,13 @@ public class JTextAreaOutputStream extends OutputStream
                 @Override
                 public void run() 
                 {
-                    destination.append (text);
+                    try {
+                    	destination.append(text);
+						writer.write(text);
+						writer.flush();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
                 }
             });
     }

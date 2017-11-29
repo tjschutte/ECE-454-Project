@@ -85,11 +85,17 @@ public class HttpConnection extends Thread {
 		out.print("Content-Type: text/html\r\n"); // The type of data
 		out.print("Connection: close\r\n"); // Will close stream
 		out.print("\r\n"); // End of headers
-
 		out.println("<html><body>");
 		out.println("<h1>Downloads</h1>");
-		out.println("<p>Make sure you have enabled downloads from unverified sources!</p>");
-		out.println("<p><a href='/download-app'  download=\"Humon.apk\"> Click here to download when ready!</a></p>");
+		out.println("<p>Android protects users from inadvertent download and install of unknown apps, or apps from "
+				+ "sources other than Google Play, which is trusted. Android blocks such installs until the user "
+				+ "opts into allowing the installation of apps from other sources. The opt-in process depends on "
+				+ "the version of Android running on the user's device:</p>");
+		out.println("<p><ul><li>On devices running Android 8.0 (API level 26) and higher, navigate to the Install"
+				+ " unknown apps system settings screen to enable app installations from a particular location.</li>");
+		out.println("<li>On devices running Android 7.1.1 (API level 25) and lower, enable the Unknown sources"
+				+ " system setting, found in Settings > Security on their devices.</li><ul></p>");
+		out.println("<p><a href='/download-app' download=\"Humon.apk\">Click here to download when ready!</a></p>");
 		out.println("</body></html>");
 		out.close();
 		

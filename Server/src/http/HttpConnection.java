@@ -2,9 +2,12 @@ package http;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 
@@ -43,6 +46,9 @@ public class HttpConnection extends Thread {
 					} else if (Headers[1].equalsIgnoreCase("/download")) {
 						// Send them the app to install
 						download();
+					}else if (Headers[1].equalsIgnoreCase("/download-app")) {
+						// Send them the app to install
+						downloadApp();
 					} else if (Headers[1].equalsIgnoreCase("/log")){
 						log();
 					}
@@ -82,10 +88,37 @@ public class HttpConnection extends Thread {
 
 		out.println("<html><body>");
 		out.println("<h1>Downloads</h1>");
-		out.println("<p>Not available yet.</p>");
+		out.println("<p>Make sure you have enabled downloads from unverified sources!</p>");
+		out.println("<p><a href='/download-app'  download=\"Humon.apk\"> Click here to download when ready!</a></p>");
 		out.println("</body></html>");
 		out.close();
 		
+	}
+	
+	private void downloadApp() throws IOException {
+		PrintWriter pw;
+		pw = new PrintWriter(socket.getOutputStream());
+		pw.print("HTTP/1.1 200 \r\n"); // Version & status code
+		pw.print("location: Humon.apk\r\n");
+		pw.print("Content-Type: application/download\r\n"); // The type of data 'Content-Disposition: attachment; filename="
+		//pw.print("Connection: close\r\n"); // Will close stream
+		pw.print("\r\n"); // End of headers
+		
+		
+		FileOutputStream out;
+		out = (FileOutputStream)socket.getOutputStream();
+		File apk = new File("app-debug.apk");
+		FileInputStream fis = new FileInputStream(apk);
+		byte[] b = new byte[(int)apk.length()];
+		int read;
+		read = fis.read(b);
+		while (read > 0) {
+			out.write(b);
+			read = fis.read(b);
+		}
+		out.close();
+		fis.close();
+		pw.close();
 	}
 	
 	private void log() throws IOException {

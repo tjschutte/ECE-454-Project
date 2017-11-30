@@ -147,11 +147,16 @@ public class Humon extends Jsonable implements Parcelable{
         this.defense = defense;
     }
 
+    //Returns amount of experience points for next level up
+    public int getMaxXp() {
+        return xp * 5;
+    }
+
     public void addXp(int experience) {
         xp += experience;
 
-        if(xp >= 5 * level) {
-            xp -= 5* level;
+        if(xp >= getMaxXp()) {
+            xp -= getMaxXp();
             levelUp();
         }
     }
@@ -161,10 +166,10 @@ public class Humon extends Jsonable implements Parcelable{
         Random rng = new Random();
         int chance = rng.nextInt(10);
         if(chance < 2) {
-            health += 2;
+            health += 20;
         }
         else {
-            health++;
+            health += 10;
         }
         chance = rng.nextInt(10);
         if(chance < 2) {

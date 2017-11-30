@@ -12,8 +12,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.google.android.gms.location.places.PlaceDetectionClient;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,8 +23,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import edu.wisc.ece454.hu_mon.R;
-import edu.wisc.ece454.hu_mon.Utilities.JobServiceScheduler;
 import edu.wisc.ece454.hu_mon.Services.PlaceDetectionService;
+import edu.wisc.ece454.hu_mon.Utilities.JobServiceScheduler;
 
 public class MenuActivity extends SettingsActivity {
 
@@ -106,6 +104,7 @@ public class MenuActivity extends SettingsActivity {
         //Obtain ID of Step JobService
         int stepJobId = Integer.parseInt(getString(R.string.stepJobId));
 
+        System.out.println("Killing job service with id: " + stepJobId);
         JobScheduler jobScheduler = this.getSystemService(JobScheduler.class);
         jobScheduler.cancel(stepJobId);
 

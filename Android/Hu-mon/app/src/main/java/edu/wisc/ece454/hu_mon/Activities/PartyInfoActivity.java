@@ -92,7 +92,7 @@ public class PartyInfoActivity extends SettingsActivity {
 
 
                 ProgressBar experienceBar = (ProgressBar) findViewById(R.id.experienceBar);
-                experienceBar.setMax(humon.getLevel()*20);
+                experienceBar.setMax(humon.getLevel()*5);
                 experienceBar.setProgress(humon.getXp());
 
                 //load moves into grid

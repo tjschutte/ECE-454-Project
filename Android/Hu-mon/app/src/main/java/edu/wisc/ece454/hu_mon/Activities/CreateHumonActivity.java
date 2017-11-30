@@ -391,11 +391,11 @@ public class CreateHumonActivity extends SettingsActivity {
 
         // String name, String description, Bitmap image, int level, int xp, int hID, String uID, String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense
         Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, userEmail, "",
-                movesArrayList, health, luck, attack, speed, defense, "", health);
+                movesArrayList, health*10, luck, attack, speed, defense, "", health*10);
 
         //Store image path instead of image locally
         Humon localHumon = new Humon(humonName, humonDescription, null, 1, 0, 0, userEmail, "",
-                movesArrayList, health, luck, attack, speed, defense, "", health);
+                movesArrayList, health*10, luck, attack, speed, defense, "", health*10);
         File imageFile = new File(getFilesDir(),humonName + ".jpg");
         storeImageFile(imageFile);
         localHumon.setImagePath(imageFile.getPath());
@@ -410,8 +410,8 @@ public class CreateHumonActivity extends SettingsActivity {
         //Create an instance if first humon
         //TODO:Add hCount to iID
         if(!hasHumons()) {
-            Humon partyHumon = new Humon(humonName, humonDescription, null, 1, 5, 0, userEmail, userEmail + "-0",
-                    movesArrayList, health, luck, attack, speed, defense, localHumon.getImagePath(), health);
+            Humon partyHumon = new Humon(humonName, humonDescription, null, 1, 1, 0, userEmail, userEmail + "-0",
+                    movesArrayList, health*10, luck, attack, speed, defense, localHumon.getImagePath(), health*10);
             nameHumonDialog(partyHumon, h);
         }
         else {

@@ -12,6 +12,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,7 +38,11 @@ public class WildBattleActivity extends SettingsActivity {
     private Humon playerHumon;
     private String userEmail;
 
-    private ArrayList<Move> moveList;
+    private ProgressBar playerHealthBar;
+    private ProgressBar enemyHealthBar;
+
+    private ArrayList<Move> playerMoveList;
+    private ArrayList<Move> enemyMoveList;
     private ArrayAdapter<Move> moveAdapter;
 
     @Override
@@ -49,16 +54,17 @@ public class WildBattleActivity extends SettingsActivity {
         HUMONS_KEY = getString(R.string.humonsKey);
 
         //Setup Grid View and Adapter
-        moveList = new ArrayList<Move>();
+        playerMoveList = new ArrayList<Move>();
+        enemyMoveList = new ArrayList<Move>();
         GridView moveGridView = (GridView) findViewById(R.id.moveGridView);
         moveAdapter = new ArrayAdapter<Move>(this,
-                android.R.layout.simple_list_item_1, moveList);
+                android.R.layout.simple_list_item_1, playerMoveList);
         moveGridView.setAdapter(moveAdapter);
         moveGridView.setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        System.out.println(moveList.get(position).getName());
+                        choosePlayerMove(playerMoveList.get(position));
                     }
                 }
         );
@@ -167,6 +173,12 @@ public class WildBattleActivity extends SettingsActivity {
                     e.printStackTrace();
                 }
 
+                //load moves
+                ArrayList<Move> humonMoves = enemyHumon.getMoves();
+                for(int i = 0; i < humonMoves.size(); i++) {
+                    enemyMoveList.add(humonMoves.get(i));
+                }
+
                 //load humon image
                 if(enemyHumon.getImagePath() != null) {
                     if(enemyHumon.getImagePath().length() != 0) {
@@ -208,9 +220,9 @@ public class WildBattleActivity extends SettingsActivity {
         TextView levelTextView = (TextView) findViewById(R.id.enemyLevelTextView);
         levelTextView.setText("Lvl " + enemyHumon.getLevel());
 
-        ProgressBar healthBar = (ProgressBar) findViewById(R.id.enemyHealthBar);
-        healthBar.setMax(enemyHumon.getHealth());
-        healthBar.setProgress(enemyHumon.getHp());
+        enemyHealthBar = (ProgressBar) findViewById(R.id.enemyHealthBar);
+        enemyHealthBar.setMax(enemyHumon.getHealth());
+        enemyHealthBar.setProgress(enemyHumon.getHp());
 
     }
 
@@ -295,12 +307,12 @@ public class WildBattleActivity extends SettingsActivity {
                 TextView levelTextView = (TextView) findViewById(R.id.playerLevelTextView);
                 levelTextView.setText("Lvl " + playerHumon.getLevel());
 
-                ProgressBar healthBar = (ProgressBar) findViewById(R.id.playerHealthBar);
-                healthBar.setMax(playerHumon.getHealth());
-                healthBar.setProgress(playerHumon.getHp());
+                playerHealthBar = (ProgressBar) findViewById(R.id.playerHealthBar);
+                playerHealthBar.setMax(playerHumon.getHealth());
+                playerHealthBar.setProgress(playerHumon.getHp());
 
                 ProgressBar experienceBar = (ProgressBar) findViewById(R.id.playerXpBar);
-                experienceBar.setMax(playerHumon.getLevel() * 20);
+                experienceBar.setMax(playerHumon.getMaxXp());
                 experienceBar.setProgress(playerHumon.getXp());
 
                 //load humon image
@@ -324,17 +336,144 @@ public class WildBattleActivity extends SettingsActivity {
         System.out.println("In Load Player Moves");
 
         //Clear previous moves
-        moveList.clear();
+        playerMoveList.clear();
 
         //load moves into grid
         ArrayList<Move> humonMoves = playerHumon.getMoves();
         for(int i = 0; i < humonMoves.size(); i++) {
-            moveList.add(humonMoves.get(i));
+            playerMoveList.add(humonMoves.get(i));
         }
         moveAdapter.notifyDataSetChanged();
 
-        for(int i = 0; i < moveList.size(); i++) {
-            System.out.println("Added move: " + moveList.get(i).getName());
+        for(int i = 0; i < playerMoveList.size(); i++) {
+            System.out.println("Added move: " + playerMoveList.get(i).getName());
+        }
+    }
+
+    private void choosePlayerMove(Move move) {
+
+        //choose enemy move
+        Random rng = new Random();
+        int enemyMove = rng.nextInt(enemyMoveList.size());
+
+        if(playerFirst()) {
+            int playerMoveDamage = getMoveDamage(move, true);
+            int enemyHp = enemyHumon.getHp() - playerMoveDamage;
+            if(enemyHp < 0) {
+                enemyHp = 0;
+            }
+            enemyHumon.setHp(enemyHp);
+            enemyHealthBar.setProgress(enemyHp);
+
+            System.out.println(playerHumon.getName() + " used " + move.getName() +
+                    ". Applied " + playerMoveDamage + " damage to wild " + enemyHumon.getName());
+
+            if(enemyHp == 0) {
+                finishBattle();
+            } else {
+
+                int enemyMoveDamage = getMoveDamage(enemyMoveList.get(enemyMove), false);
+                int playerHp = playerHumon.getHp() - enemyMoveDamage;
+                if (playerHp < 0) {
+                    playerHp = 0;
+                }
+                playerHumon.setHp(playerHp);
+                playerHealthBar.setProgress(playerHp);
+
+                System.out.println("Wild " + enemyHumon.getName() + " used " + enemyMoveList.get(enemyMove).getName() +
+                        ". Applied " + enemyMoveDamage + " damage to " + playerHumon.getName());
+
+                if(playerHp == 0) {
+                    finishBattle();
+                }
+            }
+        }
+        else {
+
+            int enemyMoveDamage = getMoveDamage(enemyMoveList.get(enemyMove), false);
+            int playerHp = playerHumon.getHp() - enemyMoveDamage;
+            if(playerHp < 0) {
+                playerHp = 0;
+            }
+            playerHumon.setHp(playerHp);
+            playerHealthBar.setProgress(playerHp);
+
+            System.out.println("Wild " + enemyHumon.getName() + " used " + enemyMoveList.get(enemyMove).getName() +
+                    ". Applied " + enemyMoveDamage + " damage to " + playerHumon.getName());
+
+            if(playerHp == 0) {
+                finishBattle();
+            }
+            else {
+
+                int playerMoveDamage = getMoveDamage(move, true);
+                int enemyHp = enemyHumon.getHp() - playerMoveDamage;
+                if (enemyHp < 0) {
+                    enemyHp = 0;
+                }
+                enemyHumon.setHp(enemyHp);
+                enemyHealthBar.setProgress(enemyHp);
+
+                System.out.println(playerHumon.getName() + " used " + move.getName() +
+                        ". Applied " + playerMoveDamage + " damage to wild " + enemyHumon.getName());
+
+                if(enemyHp == 0) {
+                    finishBattle();
+                }
+            }
+        }
+    }
+
+    //choose which humon will attack first (true if player)
+    private boolean playerFirst() {
+        if(enemyHumon.getSpeed() > playerHumon.getSpeed()) {
+            return false;
+        }
+        return true;
+    }
+
+    /*
+     * Calculates the damage applied by a move
+     *
+     * @param move Move being used
+     * @param isPlayer  true if the player is using the move
+     */
+    private int getMoveDamage(Move move, boolean isPlayer) {
+        double moveBaseDamage = move.getDmg();
+        int damage;
+        if(isPlayer) {
+            damage = (int) ((moveBaseDamage / 100) * playerHumon.getAttack()) - (enemyHumon.getDefense() / 2);
+            if(damage < 1) {
+                damage = 1;
+            }
+        }
+        else {
+            damage = (int) ((moveBaseDamage / 100) * enemyHumon.getAttack()) - (playerHumon.getDefense() / 2);
+            if(damage < 1) {
+                damage = 1;
+            }
+        }
+        return damage;
+    }
+
+    //Called when a humon is defeated, gives option to capture if player wins and notifies user
+    private void finishBattle() {
+        if(playerHumon.getHp() == 0) {
+            Toast toast = Toast.makeText(this, playerHumon.getName() + " defeated!", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+        else {
+            Toast toast = Toast.makeText(this, enemyHumon.getName() + " defeated, gained "
+                    + enemyHumon.getLevel() + " experience!", Toast.LENGTH_SHORT);
+            toast.show();
+
+            //Give player experience points
+            playerHumon.addXp(enemyHumon.getLevel());
+            ProgressBar experienceBar = (ProgressBar) findViewById(R.id.playerXpBar);
+            experienceBar.setProgress(playerHumon.getXp());
+
+            TextView levelTextView = (TextView) findViewById(R.id.playerLevelTextView);
+            levelTextView.setText("Lvl " + playerHumon.getLevel());
         }
     }
 }

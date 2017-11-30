@@ -47,6 +47,7 @@ import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 import edu.wisc.ece454.hu_mon.Utilities.HumonIndexSaver;
 import edu.wisc.ece454.hu_mon.Utilities.HumonPartySaver;
+import edu.wisc.ece454.hu_mon.Utilities.UserHelper;
 
 public class CreateHumonActivity extends SettingsActivity {
 
@@ -506,10 +507,10 @@ public class CreateHumonActivity extends SettingsActivity {
 
         //set to final (required to save)
         final Humon saveHumon = humon;
-        loadUser();
+        user = UserHelper.loadUser(this);
         saveHumon.setIID(userEmail + "-" + user.getHcount());
         user.incrementHCount();
-        saveUser();
+        UserHelper.saveUser(this, user);
 
         //Add Element to list
         builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
@@ -539,33 +540,5 @@ public class CreateHumonActivity extends SettingsActivity {
         //display the dialog
         final AlertDialog nameHumonDialog = builder.create();
         nameHumonDialog.show();
-    }
-
-    private void loadUser() {
-        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
-                Context.MODE_PRIVATE);
-        // User object reader.
-        try {
-            String userString = sharedPref.getString(getString(R.string.userObjectKey), null);
-            System.out.println("User String was: " + userString);
-            user = new ObjectMapper().readValue(userString, User.class);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void saveUser() {
-        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
-                Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-
-        try {
-            editor.putString(getString(R.string.userObjectKey), user.toJson(new ObjectMapper()));
-            editor.commit();
-        } catch (JsonProcessingException e) {
-            // idk yet
-        }
     }
 }

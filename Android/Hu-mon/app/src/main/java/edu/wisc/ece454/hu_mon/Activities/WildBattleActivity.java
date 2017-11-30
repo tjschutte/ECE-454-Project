@@ -39,6 +39,7 @@ import edu.wisc.ece454.hu_mon.Models.Move;
 import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Utilities.HumonPartySaver;
+import edu.wisc.ece454.hu_mon.Utilities.UserHelper;
 
 public class WildBattleActivity extends SettingsActivity {
 
@@ -783,7 +784,7 @@ public class WildBattleActivity extends SettingsActivity {
                 }
 
                 //retrieve user object to get hcount
-                loadUser();
+                user = UserHelper.loadUser(getApplicationContext());
 
                 //Set instance id for new humon
                 enemyHumon.setIID(userEmail + "-" + user.getHcount());
@@ -793,7 +794,7 @@ public class WildBattleActivity extends SettingsActivity {
 
                 //Save both humons
                 saveHumons();
-                saveUser();
+                UserHelper.saveUser(getApplicationContext(), user);
 
                 Toast toast = Toast.makeText(getApplicationContext(), "Battle Finished", Toast.LENGTH_SHORT);
                 toast.show();
@@ -859,36 +860,5 @@ public class WildBattleActivity extends SettingsActivity {
             partySaveTask.execute(playerHumon);
         }
 
-    }
-
-    private void loadUser() {
-        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
-                Context.MODE_PRIVATE);
-        // User object reader.
-        try {
-            String userString = sharedPref.getString(getString(R.string.userObjectKey), null);
-            System.out.println("User String was: " + userString);
-            user = new ObjectMapper().readValue(userString, User.class);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        catch(NullPointerException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void saveUser() {
-        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
-                Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-
-        try {
-            editor.putString(getString(R.string.userObjectKey), user.toJson(new ObjectMapper()));
-            editor.commit();
-        } catch (JsonProcessingException e) {
-            // idk yet
-        }
     }
 }

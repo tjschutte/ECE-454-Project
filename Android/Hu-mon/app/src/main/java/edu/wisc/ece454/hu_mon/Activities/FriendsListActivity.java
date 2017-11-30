@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Services.ServerConnection;
+import edu.wisc.ece454.hu_mon.Utilities.UserHelper;
 
 public class FriendsListActivity extends SettingsActivity {
 
@@ -54,7 +55,7 @@ public class FriendsListActivity extends SettingsActivity {
         setContentView(R.layout.friends_list_layout);
         setTitle(ACTIVITY_TITLE);
 
-        loadUser();
+        user = UserHelper.loadUser(this);
 
         //setup listview for friends list and requests
         refreshContent();
@@ -88,7 +89,7 @@ public class FriendsListActivity extends SettingsActivity {
             //  If the email was found by the server, add it to the user object.
             if (command.equals(getString(R.string.ServerCommandFriendRequestSuccess))) {
                 System.out.println("ServerCommandFriendRequestSuccess");
-                loadUser();
+                user = UserHelper.loadUser(context);
 
                 try {
                     User friend = new ObjectMapper().readValue(data, User.class);
@@ -97,15 +98,15 @@ public class FriendsListActivity extends SettingsActivity {
                     e.printStackTrace();
                 }
 
-                saveUser();
+                UserHelper.saveUser(context, user);
                 refreshContent();
             } else if (command.equals(getString(R.string.ServerCommandFriendRequest))) {
                 System.out.println("Caught in friendslist");
-                loadUser();
+                user = UserHelper.loadUser(context);
                 //User friend = new ObjectMapper().readValue(data, User.class);
                 user.addFriendRequest(data.trim());
 
-                saveUser();
+                UserHelper.saveUser(context, user);
                 refreshContent();
             }
 
@@ -169,7 +170,7 @@ public class FriendsListActivity extends SettingsActivity {
             mBound = false;
         }
 
-        saveUser();
+        UserHelper.saveUser(this, user);
     }
 
     @Override
@@ -185,7 +186,7 @@ public class FriendsListActivity extends SettingsActivity {
                 throw e;
             }
         }
-        saveUser();
+        UserHelper.saveUser(this, user);
     }
 
     @Override
@@ -198,7 +199,7 @@ public class FriendsListActivity extends SettingsActivity {
             bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
         }
 
-        loadUser();
+        user = UserHelper.loadUser(this);
 
         filter.addAction(getString(R.string.serverBroadCastEvent));
         registerReceiver(receiver, filter);
@@ -284,9 +285,9 @@ public class FriendsListActivity extends SettingsActivity {
 
         builder.setNeutralButton("Remove Friend", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                loadUser();
+                user = UserHelper.loadUser(getApplicationContext());
                 user.removeFriend(friendName);
-                saveUser();
+                UserHelper.saveUser(getApplicationContext(), user);
                 refreshContent();
             }
         });
@@ -346,10 +347,10 @@ public class FriendsListActivity extends SettingsActivity {
                 requestAccepted(friendName);
 
                 // update the object so UI is accurate
-                loadUser();
+                user = UserHelper.loadUser(getApplicationContext());
                 user.addFriend(friendName);
                 user.removeFriendRequest(friendName);
-                saveUser();
+                UserHelper.saveUser(getApplicationContext(), user);
 
                 refreshContent();
             }
@@ -357,9 +358,9 @@ public class FriendsListActivity extends SettingsActivity {
 
         builder.setNegativeButton("Decline", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                loadUser();
+                user = UserHelper.loadUser(getApplicationContext());
                 user.removeFriendRequest(friendName);
-                saveUser();
+                UserHelper.saveUser(getApplicationContext(), user);
                 refreshContent();
             }
         });
@@ -392,34 +393,6 @@ public class FriendsListActivity extends SettingsActivity {
             mServerConnection.sendMessage(getString(R.string.ServerCommandAcceptRequest) + ":{\"email\":\"" + friendName + "\"}");
         }
 
-    }
-
-    private void loadUser() {
-        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
-                Context.MODE_PRIVATE);
-        // User object reader.
-        try {
-            String userString = sharedPref.getString(getString(R.string.userObjectKey), null);
-            System.out.println("User String was: " + userString);
-            user = new ObjectMapper().readValue(userString, User.class);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void saveUser() {
-        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
-                Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-
-        try {
-            editor.putString(getString(R.string.userObjectKey), user.toJson(new ObjectMapper()));
-            editor.commit();
-        } catch (JsonProcessingException e) {
-            // idk yet
-        }
     }
 
 }

@@ -96,6 +96,14 @@
             android:paddingLeft="32dp"
             android:paddingTop="8dp"/>
 
+        <TextView
+            android:id="@+id/userConsole"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_alignParentBottom="true"
+            android:paddingTop="32dp"
+            android:textSize="16dp"/>
+
         <GridView
             android:id="@+id/moveGridView"
             android:layout_width="match_parent"

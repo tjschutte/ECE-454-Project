@@ -37,6 +37,10 @@ public class WildBattleActivity extends SettingsActivity {
     private Humon enemyHumon;
     private Humon playerHumon;
     private String userEmail;
+    private boolean gameOver;
+
+    //Queue of messages to be displayed in console (front is 0)
+    private ArrayList<String> consoleDisplayQueue;
 
     private ProgressBar playerHealthBar;
     private ProgressBar enemyHealthBar;
@@ -44,6 +48,9 @@ public class WildBattleActivity extends SettingsActivity {
     private ArrayList<Move> playerMoveList;
     private ArrayList<Move> enemyMoveList;
     private ArrayAdapter<Move> moveAdapter;
+
+    private GridView playerMovesView;
+    private TextView userConsole;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,15 +63,27 @@ public class WildBattleActivity extends SettingsActivity {
         //Setup Grid View and Adapter
         playerMoveList = new ArrayList<Move>();
         enemyMoveList = new ArrayList<Move>();
-        GridView moveGridView = (GridView) findViewById(R.id.moveGridView);
+        playerMovesView = (GridView) findViewById(R.id.moveGridView);
         moveAdapter = new ArrayAdapter<Move>(this,
                 android.R.layout.simple_list_item_1, playerMoveList);
-        moveGridView.setAdapter(moveAdapter);
-        moveGridView.setOnItemClickListener(
+        playerMovesView.setAdapter(moveAdapter);
+        playerMovesView.setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         choosePlayerMove(playerMoveList.get(position));
+                    }
+                }
+        );
+
+        //Setup console
+        consoleDisplayQueue = new ArrayList<String>();
+        userConsole = (TextView) findViewById(R.id.userConsole);
+        userConsole.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        displayConsoleMessage();
                     }
                 }
         );
@@ -78,6 +97,11 @@ public class WildBattleActivity extends SettingsActivity {
         SharedPreferences sharedPref = this.getSharedPreferences(
                 getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
         userEmail = sharedPref.getString(getString(R.string.emailKey), "");
+
+        userConsole.setVisibility(View.INVISIBLE);
+        playerMovesView.setVisibility(View.VISIBLE);
+        consoleDisplayQueue.clear();
+        gameOver = false;
 
         //load humons into battle
         loadPlayer();
@@ -356,6 +380,8 @@ public class WildBattleActivity extends SettingsActivity {
         Random rng = new Random();
         int enemyMove = rng.nextInt(enemyMoveList.size());
 
+        String displayMessage;
+
         if(playerFirst()) {
             int playerMoveDamage = getMoveDamage(move, true);
             int enemyHp = enemyHumon.getHp() - playerMoveDamage;
@@ -365,8 +391,11 @@ public class WildBattleActivity extends SettingsActivity {
             enemyHumon.setHp(enemyHp);
             enemyHealthBar.setProgress(enemyHp);
 
-            System.out.println(playerHumon.getName() + " used " + move.getName() +
-                    ". Applied " + playerMoveDamage + " damage to wild " + enemyHumon.getName());
+            displayMessage = playerHumon.getName() + " used " + move.getName() +
+                    ". Applied " + playerMoveDamage + " damage to wild " + enemyHumon.getName();
+            System.out.println(displayMessage);
+
+            consoleDisplayQueue.add(displayMessage);
 
             if(enemyHp == 0) {
                 finishBattle();
@@ -380,8 +409,10 @@ public class WildBattleActivity extends SettingsActivity {
                 playerHumon.setHp(playerHp);
                 playerHealthBar.setProgress(playerHp);
 
-                System.out.println("Wild " + enemyHumon.getName() + " used " + enemyMoveList.get(enemyMove).getName() +
-                        ". Applied " + enemyMoveDamage + " damage to " + playerHumon.getName());
+                displayMessage = "Wild " + enemyHumon.getName() + " used " + enemyMoveList.get(enemyMove).getName() +
+                        ". Applied " + enemyMoveDamage + " damage to " + playerHumon.getName();
+                System.out.println(displayMessage);
+                consoleDisplayQueue.add(displayMessage);
 
                 if(playerHp == 0) {
                     finishBattle();
@@ -398,8 +429,10 @@ public class WildBattleActivity extends SettingsActivity {
             playerHumon.setHp(playerHp);
             playerHealthBar.setProgress(playerHp);
 
-            System.out.println("Wild " + enemyHumon.getName() + " used " + enemyMoveList.get(enemyMove).getName() +
-                    ". Applied " + enemyMoveDamage + " damage to " + playerHumon.getName());
+            displayMessage = "Wild " + enemyHumon.getName() + " used " + enemyMoveList.get(enemyMove).getName() +
+                    ". Applied " + enemyMoveDamage + " damage to " + playerHumon.getName();
+            System.out.println(displayMessage);
+            consoleDisplayQueue.add(displayMessage);
 
             if(playerHp == 0) {
                 finishBattle();
@@ -414,14 +447,17 @@ public class WildBattleActivity extends SettingsActivity {
                 enemyHumon.setHp(enemyHp);
                 enemyHealthBar.setProgress(enemyHp);
 
-                System.out.println(playerHumon.getName() + " used " + move.getName() +
-                        ". Applied " + playerMoveDamage + " damage to wild " + enemyHumon.getName());
+                displayMessage = playerHumon.getName() + " used " + move.getName() +
+                        ". Applied " + playerMoveDamage + " damage to wild " + enemyHumon.getName();
+                System.out.println(displayMessage);
+                consoleDisplayQueue.add(displayMessage);
 
                 if(enemyHp == 0) {
                     finishBattle();
                 }
             }
         }
+        displayConsoleMessage();
     }
 
     //choose which humon will attack first (true if player)
@@ -456,13 +492,62 @@ public class WildBattleActivity extends SettingsActivity {
         return damage;
     }
 
+    /*
+     * Hides the moves grid view and displays the console
+     *
+     */
+    private void displayConsole() {
+        playerMovesView.setVisibility(View.INVISIBLE);
+        userConsole.setVisibility(View.VISIBLE);
+    }
+
+    /*
+     * Hides the console and displays the moves grid view
+     *
+     */
+    private void displayMoves() {
+        playerMovesView.setVisibility(View.VISIBLE);
+        userConsole.setVisibility(View.INVISIBLE);
+    }
+
+
+
+    /*
+     * Displays the next message in the console message queue.
+     * If queue is empty and game is not over, displays moves grid view
+     *
+     */
+    private void displayConsoleMessage() {
+        displayConsole();
+        if(consoleDisplayQueue.size() == 0) {
+            if(gameOver) {
+                Toast toast = Toast.makeText(this, "Battle Finished", Toast.LENGTH_SHORT);
+                toast.show();
+                finish();
+            }
+            else {
+                displayMoves();
+            }
+        }
+        else {
+            userConsole.setText(consoleDisplayQueue.get(0));
+            consoleDisplayQueue.remove(0);
+        }
+    }
+
     //Called when a humon is defeated, gives option to capture if player wins and notifies user
     private void finishBattle() {
+        String displayText;
+        gameOver = true;
+
         if(playerHumon.getHp() == 0) {
-            Toast toast = Toast.makeText(this, playerHumon.getName() + " defeated!", Toast.LENGTH_SHORT);
+            displayText = playerHumon.getName() + " defeated!";
+            Toast toast = Toast.makeText(this, displayText, Toast.LENGTH_SHORT);
             toast.show();
         }
         else {
+            displayText = enemyHumon.getName() + " defeated, gained "
+                    + enemyHumon.getLevel() + " experience!";
             Toast toast = Toast.makeText(this, enemyHumon.getName() + " defeated, gained "
                     + enemyHumon.getLevel() + " experience!", Toast.LENGTH_SHORT);
             toast.show();
@@ -475,5 +560,9 @@ public class WildBattleActivity extends SettingsActivity {
             TextView levelTextView = (TextView) findViewById(R.id.playerLevelTextView);
             levelTextView.setText("Lvl " + playerHumon.getLevel());
         }
+
+        //Update the console
+        consoleDisplayQueue.add(displayText);
+        displayConsoleMessage();
     }
 }

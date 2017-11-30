@@ -91,7 +91,7 @@ public class StepService extends JobService implements SensorEventListener {
                 .setContentTitle("Battle")
                 .setContentText("A Wild Hu-mon appeared")
                 .setContentIntent(pendingIntent)
-                .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
+                .setSmallIcon(R.mipmap.ic_launcher)
                 .setAutoCancel(true)
                 .build();
 

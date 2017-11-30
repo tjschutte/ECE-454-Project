@@ -1,19 +1,26 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,6 +35,7 @@ import java.util.Random;
 
 import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.Models.Move;
+import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Utilities.HumonPartySaver;
 
@@ -39,7 +47,11 @@ public class WildBattleActivity extends SettingsActivity {
     private Humon enemyHumon;
     private Humon playerHumon;
     private String userEmail;
+    private User user;
+
     private boolean gameOver;
+    private boolean canCapture;
+    private boolean capturedHumon;
 
     //Queue of messages to be displayed in console (front is 0)
     private ArrayList<String> consoleDisplayQueue;
@@ -104,12 +116,20 @@ public class WildBattleActivity extends SettingsActivity {
         playerMovesView.setVisibility(View.VISIBLE);
         consoleDisplayQueue.clear();
         gameOver = false;
+        canCapture = false;
+        capturedHumon = false;
 
         //load humons into battle
         loadPlayer();
         loadPlayerMoves();
         loadEnemy();
         scaleEnemy();
+
+        //Full heal for development only
+        if(userEmail.equals("a")) {
+            playerHumon.setHealth(playerHumon.getHealth() * 5);
+            playerHumon.setHp(playerHumon.getHealth());
+        }
     }
 
     @Override
@@ -523,9 +543,18 @@ public class WildBattleActivity extends SettingsActivity {
         displayConsole();
         if(consoleDisplayQueue.size() == 0) {
             if(gameOver) {
-                Toast toast = Toast.makeText(this, "Battle Finished", Toast.LENGTH_SHORT);
-                toast.show();
-                finish();
+                if(canCapture) {
+                    captureHumonDialog();
+                }
+                else {
+                    Toast toast = Toast.makeText(this, "Battle Finished", Toast.LENGTH_SHORT);
+                    toast.show();
+
+                    //Save the humon's state
+                    saveHumons();
+
+                    finish();
+                }
             }
             else {
                 displayMoves();
@@ -535,6 +564,115 @@ public class WildBattleActivity extends SettingsActivity {
             userConsole.setText(consoleDisplayQueue.get(0));
             consoleDisplayQueue.remove(0);
         }
+    }
+
+    /*
+     * Prompts the user to capture a Humon. If yes a capture sequence starts, else battle ends.
+     * Can only be called if the player wins the battle.
+     *
+     */
+    private void captureHumonDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        //LayoutInflater inflater = this.getLayoutInflater();
+
+        //View dialogView = inflater.inflate(R.layout.capture_humon_dialog, null);
+        //builder.setView(dialogView);
+        builder.setTitle("Capture wild " + enemyHumon.getName() + "?");
+
+        //Display prompt for Humon to be captured
+        //final TextView captureHumonText = (TextView) dialogView.findViewById(R.id.captureHumonTextView);
+        //captureHumonText.setText("Capture wild " + enemyHumon.getName() + "?");
+
+        //Attempt to capture the humon
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton)
+            {
+
+                Toast toast = Toast.makeText(getApplicationContext(), "Humon Captured!", Toast.LENGTH_SHORT);
+                toast.show();
+
+                capturedHumon = true;
+
+                nameHumonDialog();
+            }
+        });
+
+        //End the battle
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton)
+            {
+
+                Toast toast = Toast.makeText(getApplicationContext(), "Battle Finished!", Toast.LENGTH_SHORT);
+                toast.show();
+
+                //Save the humon's state
+                saveHumons();
+
+                //return to the menu
+                finish();
+            }
+        });
+
+        //display the dialog
+        final AlertDialog captureHumonDialog = builder.create();
+        captureHumonDialog.show();
+    }
+
+    /*
+     * Dialog for user to name newly captured Humon.
+     * This ends the battle screen.
+     *
+     */
+    private void nameHumonDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        LayoutInflater inflater = this.getLayoutInflater();
+
+        View dialogView = inflater.inflate(R.layout.name_humon_dialog, null);
+        builder.setView(dialogView);
+        builder.setTitle("Name Hu-mon");
+
+        //Assign the textboxes so they can be accessed by buttons
+        final EditText nameText = (EditText) dialogView.findViewById(R.id.nameEditText);
+        nameText.setText(enemyHumon.getName());
+
+        TextView promptTextView = (TextView) dialogView.findViewById(R.id.humonNameTextView);
+        promptTextView.setText("Choose a name for newly captured " + enemyHumon.getName() + "!");
+
+        //Add Element to list
+        builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton)
+            {
+                String humonName = nameText.getText().toString();
+                if(!humonName.isEmpty()) {
+                    enemyHumon.setName(humonName);
+                }
+
+                //retrieve user object to get hcount
+                loadUser();
+
+                //Set instance id for new humon
+                enemyHumon.setIID(userEmail + "-" + user.getHcount());
+                user.incrementHCount();
+
+                System.out.println("Saved new humon with IID: " + enemyHumon.getiID());
+
+                //Save both humons
+                saveHumons();
+                saveUser();
+
+                Toast toast = Toast.makeText(getApplicationContext(), "Battle Finished", Toast.LENGTH_SHORT);
+                toast.show();
+
+                //return to the menu
+                finish();
+            }
+        });
+
+        //display the dialog
+        final AlertDialog nameHumonDialog = builder.create();
+        nameHumonDialog.show();
     }
 
     //Called when a humon is defeated, gives option to capture if player wins and notifies user
@@ -561,14 +699,14 @@ public class WildBattleActivity extends SettingsActivity {
 
             TextView levelTextView = (TextView) findViewById(R.id.playerLevelTextView);
             levelTextView.setText("Lvl " + playerHumon.getLevel());
+
+            canCapture = true;
         }
 
         //Update the console
         consoleDisplayQueue.add(displayText);
         displayConsoleMessage();
 
-        //Save the humon's state
-        saveHumons();
     }
 
     /*
@@ -577,8 +715,47 @@ public class WildBattleActivity extends SettingsActivity {
      *
      */
     private void saveHumons() {
-        //save player's humon data to party
+
         AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(this);
-        partySaveTask.execute(playerHumon);
+        if(capturedHumon) {
+            //save player's humon data and new humon to party
+            partySaveTask.execute(new Humon[]{playerHumon, enemyHumon});
+        }
+        else {
+            //save player's humon data to party
+            partySaveTask.execute(playerHumon);
+        }
+
+    }
+
+    private void loadUser() {
+        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                Context.MODE_PRIVATE);
+        // User object reader.
+        try {
+            String userString = sharedPref.getString(getString(R.string.userObjectKey), null);
+            System.out.println("User String was: " + userString);
+            user = new ObjectMapper().readValue(userString, User.class);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        catch(NullPointerException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveUser() {
+        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+        try {
+            editor.putString(getString(R.string.userObjectKey), user.toJson(new ObjectMapper()));
+            editor.commit();
+        } catch (JsonProcessingException e) {
+            // idk yet
+        }
     }
 }

@@ -101,6 +101,10 @@ public class Humon extends Jsonable implements Parcelable{
         return iID;
     }
 
+    public void setIID(String iID) {
+        this.iID = iID;
+    }
+
     public int getHealth() {
         return health;
     }
@@ -124,6 +128,12 @@ public class Humon extends Jsonable implements Parcelable{
     }
 
     public void setHp(int hp) {
+        if(hp < 0) {
+            hp = 0;
+        }
+        if(hp > health) {
+            hp = health;
+        }
         this.hp = hp;
     }
 
@@ -148,8 +158,9 @@ public class Humon extends Jsonable implements Parcelable{
     }
 
     //Returns amount of experience points for next level up
+    @JsonIgnore
     public int getMaxXp() {
-        return xp * 5;
+        return level * 5;
     }
 
     public void addXp(int experience) {

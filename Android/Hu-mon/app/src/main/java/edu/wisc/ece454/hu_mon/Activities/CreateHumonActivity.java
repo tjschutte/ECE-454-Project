@@ -24,6 +24,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,6 +42,7 @@ import java.util.Arrays;
 
 import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.Models.Move;
+import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 import edu.wisc.ece454.hu_mon.Utilities.HumonIndexSaver;
@@ -60,6 +64,7 @@ public class CreateHumonActivity extends SettingsActivity {
     ServerConnection mServerConnection;
     boolean mBound;
     private String userEmail;
+    private User user;
 
     //image data
     private String tempImagePath;
@@ -501,6 +506,10 @@ public class CreateHumonActivity extends SettingsActivity {
 
         //set to final (required to save)
         final Humon saveHumon = humon;
+        loadUser();
+        saveHumon.setIID(userEmail + "-" + user.getHcount());
+        user.incrementHCount();
+        saveUser();
 
         //Add Element to list
         builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
@@ -530,5 +539,33 @@ public class CreateHumonActivity extends SettingsActivity {
         //display the dialog
         final AlertDialog nameHumonDialog = builder.create();
         nameHumonDialog.show();
+    }
+
+    private void loadUser() {
+        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                Context.MODE_PRIVATE);
+        // User object reader.
+        try {
+            String userString = sharedPref.getString(getString(R.string.userObjectKey), null);
+            System.out.println("User String was: " + userString);
+            user = new ObjectMapper().readValue(userString, User.class);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveUser() {
+        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+        try {
+            editor.putString(getString(R.string.userObjectKey), user.toJson(new ObjectMapper()));
+            editor.commit();
+        } catch (JsonProcessingException e) {
+            // idk yet
+        }
     }
 }

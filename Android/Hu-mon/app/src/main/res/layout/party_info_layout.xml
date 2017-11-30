@@ -43,34 +43,51 @@
             android:layout_below="@+id/humonLevelTextView"
             android:layout_toRightOf="@id/humonImageView" />
 
+        <TextView
+            android:id="@+id/hpTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/healthBar"
+            android:layout_toRightOf="@id/humonImageView"
+            android:textSize="16dp" />
+
         <ProgressBar
             android:id="@+id/experienceBar"
             style="@android:style/Widget.ProgressBar.Horizontal"
             android:layout_width="160dp"
             android:layout_height="wrap_content"
             android:progressTint="@android:color/holo_blue_light"
-            android:layout_below="@+id/healthBar"
+            android:layout_below="@+id/hpTextView"
             android:layout_toRightOf="@id/humonImageView"
             android:paddingTop="8dp"/>
+
+        <TextView
+            android:id="@+id/xpTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/experienceBar"
+            android:layout_toRightOf="@+id/humonImageView"
+            android:textSize="16dp" />
 
         <TextView
             android:id="@+id/humonDescriptionTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/experienceBar"
+            android:layout_below="@+id/xpTextView"
             android:layout_toRightOf="@id/humonImageView"
             android:textSize="16dp"
-            android:paddingTop="16dp"/>
+            android:paddingTop="8dp"/>
 
         <TextView
             android:id="@+id/healthTitle"
             android:tag="health"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/humonImageView"
+            android:layout_below="@+id/humonDescriptionTextView"
             android:gravity="center_vertical"
             android:text="HEALTH"
             android:textSize="22dp"
+            android:paddingTop="16dp"
             />
 
         <TextView
@@ -78,10 +95,11 @@
             android:tag="health"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/humonImageView"
+            android:layout_below="@+id/humonDescriptionTextView"
             android:gravity="center_vertical"
             android:layout_centerHorizontal="true"
-            android:textSize="22dp"/>
+            android:textSize="22dp"
+            android:paddingTop="16dp"/>
 
         <TextView
             android:id="@+id/attackTitle"

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Humon extends Jsonable implements Parcelable{
 
@@ -117,6 +118,89 @@ public class Humon extends Jsonable implements Parcelable{
     }
 
     public int getHp() { return hp;}
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public void setHp(int hp) {
+        this.hp = hp;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
+    }
+
+    public void setLuck(int luck) {
+        this.luck = luck;
+    }
+
+    public void setAttack(int attack) {
+        this.attack = attack;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
+
+    public void setDefense(int defense) {
+        this.defense = defense;
+    }
+
+    public void addXp(int experience) {
+        xp += experience;
+
+        if(xp >= 5 * level) {
+            xp -= 5* level;
+            levelUp();
+        }
+    }
+
+    public void levelUp() {
+        //increment stats
+        Random rng = new Random();
+        int chance = rng.nextInt(10);
+        if(chance < 2) {
+            health += 2;
+        }
+        else {
+            health++;
+        }
+        chance = rng.nextInt(10);
+        if(chance < 2) {
+            attack += 2;
+        }
+        else {
+            attack++;
+        }
+        chance = rng.nextInt(10);
+        if(chance < 2) {
+            defense += 2;
+        }
+        else {
+            defense++;
+        }
+        chance = rng.nextInt(10);
+        if(chance < 2) {
+            speed += 2;
+        }
+        else {
+            speed++;
+        }
+        chance = rng.nextInt(10);
+        if(chance < 2) {
+            luck += 2;
+        }
+        else {
+            luck++;
+        }
+
+        //Fully heal after level up
+        hp = health;
+
+        level++;
+
+    }
 
     public int getLuck() {
         return luck;

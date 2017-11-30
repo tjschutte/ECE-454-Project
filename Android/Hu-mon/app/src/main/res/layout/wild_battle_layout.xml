@@ -1,22 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-
-    <RelativeLayout
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="edu.wisc.ece454.hu_mon.Activities.WildBattleActivity"
-        android:orientation="vertical">
+        tools:context="edu.wisc.ece454.hu_mon.Activities.WildBattleActivity">
 
         <ImageView
             android:id="@+id/enemyImageView"
             android:layout_width="160dp"
             android:layout_height="160dp"
+            android:scaleType="centerCrop"
             android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"/>
+            android:layout_alignParentTop="true"
+            android:paddingRight="32dp"
+            android:paddingTop = "16dp"/>
 
         <TextView
             android:id="@+id/enemyNameTextView"
@@ -25,7 +22,9 @@
             android:layout_toLeftOf="@id/enemyImageView"
             android:layout_alignParentTop="true"
             android:text="Enemy Name"
-            android:textSize="16dp" />
+            android:textSize="16dp"
+            android:paddingRight="32dp"
+            android:paddingTop = "16dp"/>
 
         <TextView
             android:id="@+id/enemyLevelTextView"
@@ -33,7 +32,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/enemyNameTextView"
             android:layout_toLeftOf="@id/enemyImageView"
-            android:textSize="16dp" />
+            android:textSize="16dp"
+            android:paddingRight="32dp" />
 
         <ProgressBar
             android:id="@+id/enemyHealthBar"
@@ -42,32 +42,37 @@
             android:layout_height="wrap_content"
             android:progressTint="@android:color/holo_green_light"
             android:layout_below="@+id/enemyLevelTextView"
-            android:layout_toLeftOf="@id/enemyImageView" />
+            android:layout_toLeftOf="@id/enemyImageView"
+            android:paddingRight="32dp" />
 
         <ImageView
             android:id="@+id/playerImageView"
             android:layout_width="160dp"
             android:layout_height="160dp"
+            android:scaleType="centerCrop"
             android:layout_below="@+id/enemyImageView"
             android:layout_alignParentLeft="true"
-            android:paddingTop="80dp"/>
+            android:paddingLeft="32dp"
+            android:paddingTop="100dp"/>
 
         <TextView
             android:id="@+id/playerNameTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/enemyImageView"
+            android:layout_above="@+id/playerLevelTextView"
             android:layout_toRightOf="@id/playerImageView"
             android:text="Player Name"
             android:textSize="16dp"
+            android:paddingLeft="32dp"
             android:paddingTop="80dp"/>
 
         <TextView
             android:id="@+id/playerLevelTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/playerNameTextView"
+            android:layout_above="@+id/playerHealthBar"
             android:layout_toRightOf="@id/playerImageView"
+            android:paddingLeft="32dp"
             android:textSize="16dp" />
 
         <ProgressBar
@@ -76,8 +81,9 @@
             android:layout_width="160dp"
             android:layout_height="wrap_content"
             android:progressTint="@android:color/holo_green_light"
-            android:layout_below="@+id/playerLevelTextView"
-            android:layout_toRightOf="@id/playerImageView" />
+            android:layout_above="@+id/playerXpBar"
+            android:layout_toRightOf="@id/playerImageView"
+            android:paddingLeft="32dp"/>
 
         <ProgressBar
             android:id="@+id/playerXpBar"
@@ -85,33 +91,23 @@
             android:layout_width="160dp"
             android:layout_height="wrap_content"
             android:progressTint="@android:color/holo_blue_light"
-            android:layout_below="@+id/playerHealthBar"
+            android:layout_alignBottom="@id/playerImageView"
             android:layout_toRightOf="@id/playerImageView"
+            android:paddingLeft="32dp"
             android:paddingTop="8dp"/>
-
-        <!--<TextView
-            android:id="@+id/moveTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/playerXpBar"
-            android:layout_centerHorizontal="true"
-            android:text="Moves"
-            android:textSize="22dp"
-            android:paddingTop="32dp"/>
 
         <GridView
             android:id="@+id/moveGridView"
             android:layout_width="match_parent"
-            android:layout_height="125dp"
-            android:layout_below="@+id/moveTitle"
+            android:layout_height="200dp"
+            android:layout_alignParentBottom="true"
             android:background="@color/colorPrimary"
+            android:stretchMode="columnWidth"
             android:columnWidth="90dp"
             android:gravity="center"
             android:horizontalSpacing="10dp"
             android:numColumns="2"
             android:verticalSpacing="10dp"
-            android:paddingTop="32dp"/> -->
+            android:paddingTop="32dp"/>
 
-    </RelativeLayout>
-
-</ScrollView>
+</RelativeLayout>

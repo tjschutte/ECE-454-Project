@@ -5,6 +5,10 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -33,6 +37,9 @@ public class WildBattleActivity extends SettingsActivity {
     private Humon playerHumon;
     private String userEmail;
 
+    private ArrayList<Move> moveList;
+    private ArrayAdapter<Move> moveAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +47,21 @@ public class WildBattleActivity extends SettingsActivity {
         setTitle(ACTIVITY_TITLE);
 
         HUMONS_KEY = getString(R.string.humonsKey);
+
+        //Setup Grid View and Adapter
+        moveList = new ArrayList<Move>();
+        GridView moveGridView = (GridView) findViewById(R.id.moveGridView);
+        moveAdapter = new ArrayAdapter<Move>(this,
+                android.R.layout.simple_list_item_1, moveList);
+        moveGridView.setAdapter(moveAdapter);
+        moveGridView.setOnItemClickListener(
+                new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        System.out.println(moveList.get(position).getName());
+                    }
+                }
+        );
     }
 
     @Override
@@ -53,7 +75,9 @@ public class WildBattleActivity extends SettingsActivity {
 
         //load humons into battle
         loadPlayer();
+        loadPlayerMoves();
         loadEnemy();
+        scaleEnemy();
     }
 
     @Override
@@ -97,7 +121,7 @@ public class WildBattleActivity extends SettingsActivity {
                     String name = humonJson.getString("name");
                     String description = humonJson.getString("description");
                     Bitmap image = null;
-                    int level = rng.nextInt(100) + 1;
+                    int level = 1;
                     int xp = humonJson.getInt("xp");
                     int hp = humonJson.getInt("health");
                     int hID = humonJson.getInt("hID");
@@ -143,18 +167,6 @@ public class WildBattleActivity extends SettingsActivity {
                     e.printStackTrace();
                 }
 
-                //Load data into UI
-                TextView nameTextView = (TextView) findViewById(R.id.enemyNameTextView);
-                nameTextView.setText(enemyHumon.getName());
-                System.out.println("Enemy textview: " + nameTextView.getText().toString());
-
-                TextView levelTextView = (TextView) findViewById(R.id.enemyLevelTextView);
-                levelTextView.setText("Lvl " + enemyHumon.getLevel());
-
-                ProgressBar healthBar = (ProgressBar) findViewById(R.id.enemyHealthBar);
-                healthBar.setMax(enemyHumon.getHealth());
-                healthBar.setProgress(enemyHumon.getHp());
-
                 //load humon image
                 if(enemyHumon.getImagePath() != null) {
                     if(enemyHumon.getImagePath().length() != 0) {
@@ -169,6 +181,37 @@ public class WildBattleActivity extends SettingsActivity {
 
         loadThread.run();
         System.out.println("Finished loading enemy");
+    }
+
+    //Chooses a level for the enemy humon and scales its stats to that level
+    private void scaleEnemy() {
+        //choose Humon level
+        Random rng = new Random();
+        int humonLevelRange = 5;
+        int humonLevel = rng.nextInt(humonLevelRange * 2) + playerHumon.getLevel() - humonLevelRange;
+        if(humonLevel < 1) {
+            humonLevel = 1;
+        }
+
+        System.out.println("Scaling enemy to level: " + humonLevel);
+
+        //Increment stats on enemy humon by level
+        for(int i = 1; i < humonLevel; i++) {
+            enemyHumon.levelUp();
+        }
+
+        //Load data into UI
+        TextView nameTextView = (TextView) findViewById(R.id.enemyNameTextView);
+        nameTextView.setText(enemyHumon.getName());
+        System.out.println("Enemy textview: " + nameTextView.getText().toString());
+
+        TextView levelTextView = (TextView) findViewById(R.id.enemyLevelTextView);
+        levelTextView.setText("Lvl " + enemyHumon.getLevel());
+
+        ProgressBar healthBar = (ProgressBar) findViewById(R.id.enemyHealthBar);
+        healthBar.setMax(enemyHumon.getHealth());
+        healthBar.setProgress(enemyHumon.getHp());
+
     }
 
     //Loads first humon in party
@@ -274,5 +317,24 @@ public class WildBattleActivity extends SettingsActivity {
 
         loadThread.run();
         System.out.println("Finished loading player");
+    }
+
+    private void loadPlayerMoves() {
+
+        System.out.println("In Load Player Moves");
+
+        //Clear previous moves
+        moveList.clear();
+
+        //load moves into grid
+        ArrayList<Move> humonMoves = playerHumon.getMoves();
+        for(int i = 0; i < humonMoves.size(); i++) {
+            moveList.add(humonMoves.get(i));
+        }
+        moveAdapter.notifyDataSetChanged();
+
+        for(int i = 0; i < moveList.size(); i++) {
+            System.out.println("Added move: " + moveList.get(i).getName());
+        }
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -28,6 +29,7 @@ import java.util.Random;
 import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.Models.Move;
 import edu.wisc.ece454.hu_mon.R;
+import edu.wisc.ece454.hu_mon.Utilities.HumonPartySaver;
 
 public class WildBattleActivity extends SettingsActivity {
 
@@ -392,7 +394,7 @@ public class WildBattleActivity extends SettingsActivity {
             enemyHealthBar.setProgress(enemyHp);
 
             displayMessage = playerHumon.getName() + " used " + move.getName() +
-                    ". Applied " + playerMoveDamage + " damage to wild " + enemyHumon.getName();
+                    ".\nApplied " + playerMoveDamage + " damage to wild " + enemyHumon.getName();
             System.out.println(displayMessage);
 
             consoleDisplayQueue.add(displayMessage);
@@ -410,7 +412,7 @@ public class WildBattleActivity extends SettingsActivity {
                 playerHealthBar.setProgress(playerHp);
 
                 displayMessage = "Wild " + enemyHumon.getName() + " used " + enemyMoveList.get(enemyMove).getName() +
-                        ". Applied " + enemyMoveDamage + " damage to " + playerHumon.getName();
+                        ".\nApplied " + enemyMoveDamage + " damage to " + playerHumon.getName();
                 System.out.println(displayMessage);
                 consoleDisplayQueue.add(displayMessage);
 
@@ -430,7 +432,7 @@ public class WildBattleActivity extends SettingsActivity {
             playerHealthBar.setProgress(playerHp);
 
             displayMessage = "Wild " + enemyHumon.getName() + " used " + enemyMoveList.get(enemyMove).getName() +
-                    ". Applied " + enemyMoveDamage + " damage to " + playerHumon.getName();
+                    ".\nApplied " + enemyMoveDamage + " damage to " + playerHumon.getName();
             System.out.println(displayMessage);
             consoleDisplayQueue.add(displayMessage);
 
@@ -448,7 +450,7 @@ public class WildBattleActivity extends SettingsActivity {
                 enemyHealthBar.setProgress(enemyHp);
 
                 displayMessage = playerHumon.getName() + " used " + move.getName() +
-                        ". Applied " + playerMoveDamage + " damage to wild " + enemyHumon.getName();
+                        ".\nApplied " + playerMoveDamage + " damage to wild " + enemyHumon.getName();
                 System.out.println(displayMessage);
                 consoleDisplayQueue.add(displayMessage);
 
@@ -564,5 +566,19 @@ public class WildBattleActivity extends SettingsActivity {
         //Update the console
         consoleDisplayQueue.add(displayText);
         displayConsoleMessage();
+
+        //Save the humon's state
+        saveHumons();
+    }
+
+    /*
+     * Saves the current state of the humons in the battle.
+     * Should be called after the battle
+     *
+     */
+    private void saveHumons() {
+        //save player's humon data to party
+        AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(this);
+        partySaveTask.execute(playerHumon);
     }
 }

@@ -102,6 +102,7 @@
             android:layout_height="200dp"
             android:layout_alignParentBottom="true"
             android:paddingTop="32dp"
+            android:background="@color/colorPrimary"
             android:textSize="16dp"/>
 
         <GridView

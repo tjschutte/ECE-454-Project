@@ -379,6 +379,11 @@ public class FriendsListActivity extends SettingsActivity {
     private void sendBattleInvite(String friendName) {
         if (mBound) {
             mServerConnection.sendMessage(getString(R.string.ServerCommandBattleRequest) + ":{\"email\":\"" + friendName + "\"}");
+            try {
+                mServerConnection.sendMessage(getString(R.string.ServerCommandSaveUser) + ":" + user.toJson(new ObjectMapper()));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
         }
     }
 

@@ -15,6 +15,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,6 +47,7 @@ public class WildBattleActivity extends SettingsActivity {
 
     private Humon enemyHumon;
     private Humon playerHumon;
+    private int playerHumonIndex;
     private String userEmail;
     private User user;
 
@@ -59,6 +61,8 @@ public class WildBattleActivity extends SettingsActivity {
     private ProgressBar playerHealthBar;
     private ProgressBar enemyHealthBar;
 
+    private ArrayList<String> partyHumons;
+    private ArrayList<Integer> partyHumonIndices;
     private ArrayList<Move> playerMoveList;
     private ArrayList<Move> enemyMoveList;
     private ArrayAdapter<Move> moveAdapter;
@@ -73,6 +77,9 @@ public class WildBattleActivity extends SettingsActivity {
         setTitle(ACTIVITY_TITLE);
 
         HUMONS_KEY = getString(R.string.humonsKey);
+
+        partyHumons = new ArrayList<String>();
+        partyHumonIndices = new ArrayList<Integer>();
 
         //Setup Grid View and Adapter
         playerMoveList = new ArrayList<Move>();
@@ -118,18 +125,23 @@ public class WildBattleActivity extends SettingsActivity {
         gameOver = false;
         canCapture = false;
         capturedHumon = false;
+        partyHumons.clear();
+        partyHumonIndices.clear();
+        playerHumonIndex = 0;
 
         //load humons into battle
-        loadPlayer();
-        loadPlayerMoves();
-        loadEnemy();
-        scaleEnemy();
+        //loadEnemy();
+        //scaleEnemy();
+        loadPartyHumons();
+        choosePlayerHumon();
+        //loadPlayer();
+        //loadPlayerMoves();
 
         //Full heal for development only
-        if(userEmail.equals("a")) {
-            playerHumon.setHealth(playerHumon.getHealth() * 5);
+        /*if(userEmail.equals("dev") || userEmail.equals("test")) {
+            //playerHumon.setHealth(playerHumon.getHealth() * 5);
             playerHumon.setHp(playerHumon.getHealth());
-        }
+        }*/
     }
 
     @Override
@@ -139,6 +151,19 @@ public class WildBattleActivity extends SettingsActivity {
 
     protected void onResume() {
         super.onResume();
+    }
+
+    /*
+     * Loads the enemy and player humons after player humon chosen to battle.
+     *
+     *
+     */
+    private void loadBattleHumons() {
+        loadPlayer();
+        loadPlayerMoves();
+        loadEnemy();
+        scaleEnemy();
+
     }
 
     //randomly selects a humon from index and loads into UI
@@ -272,6 +297,109 @@ public class WildBattleActivity extends SettingsActivity {
 
     }
 
+    /*
+     * Loads all humons in party which do not have 0 hp.
+     *
+     *
+     */
+    private void loadPartyHumons() {
+        System.out.println("Loading Humons to battle");
+        Thread loadThread = new Thread() {
+            public void run() {
+                String partyFilename = getFilesDir() + "/" + userEmail + getString(R.string.partyFile);
+
+                try {
+                    System.out.println("Attempting to load: " + partyFilename);
+
+                    //load party file
+                    String partyString;
+                    FileInputStream inputStream = new FileInputStream(partyFilename);
+                    int inputBytes = inputStream.available();
+                    byte[] buffer = new byte[inputBytes];
+                    inputStream.read(buffer);
+                    inputStream.close();
+                    partyString = new String(buffer, "UTF-8");
+                    JSONObject fileJson = new JSONObject(partyString);
+                    JSONArray humonsArray = fileJson.getJSONArray(HUMONS_KEY);
+                    System.out.println(partyFilename + " loaded");
+
+                    //load humon into json object format
+                    for(int i = 0; i < humonsArray.length(); i++) {
+                        String humonString = humonsArray.getString(i);
+                        JSONObject humonJson = new JSONObject(humonString);
+                        int hp = humonJson.getInt("hp");
+                        if(hp > 0 || userEmail.equals("dev")) {
+                            String name = humonJson.getString("name");
+                            partyHumons.add(name);
+                            partyHumonIndices.add(i);
+                        }
+                    }
+
+                    inputStream.close();
+                } catch (FileNotFoundException e) {
+                    System.out.println("No party file for: " + userEmail);
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        };
+
+        loadThread.run();
+    }
+
+    /*
+     * Loads a dialogue with all choosable Humons.
+     * Choosing a humon loads it from the file.
+     * If no humons available, ends battle.
+     *
+     */
+    private void choosePlayerHumon() {
+        System.out.println("Choosing Humon to battle");
+        if(partyHumons.size() == 0) {
+            Toast toast = Toast.makeText(getApplicationContext(), "No available humons!", Toast.LENGTH_SHORT);
+            toast.show();
+
+            //return to the menu
+            finish();
+        }
+        else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+            LayoutInflater inflater = this.getLayoutInflater();
+
+            View dialogView = inflater.inflate(R.layout.party_layout, null);
+            builder.setView(dialogView);
+            builder.setTitle("Choose Hu-mon");
+
+            //Fill listview with all party humons
+            ListView partyListView = (ListView) dialogView.findViewById(R.id.partyListView);
+            ArrayAdapter<String> partyAdapter = new ArrayAdapter<String>(this,
+                    android.R.layout.simple_list_item_1, partyHumons);
+            partyListView.setAdapter(partyAdapter);
+
+            //display the dialog
+            final AlertDialog chooseHumonDialog = builder.create();
+            chooseHumonDialog.show();
+
+            partyListView.setOnItemClickListener(
+                    new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            chooseHumonDialog.dismiss();
+                            playerHumonIndex = position;
+                            loadBattleHumons();
+                        }
+                    }
+            );
+
+        }
+    }
+
     //Loads first humon in party
     private void loadPlayer() {
         Thread loadThread = new Thread() {
@@ -294,7 +422,7 @@ public class WildBattleActivity extends SettingsActivity {
                     System.out.println(partyFilename + " loaded");
 
                     //load humon into json object format
-                    String humonString = humonsArray.getString(0);
+                    String humonString = humonsArray.getString(playerHumonIndex);
                     JSONObject humonJson = new JSONObject(humonString);
                     String name = humonJson.getString("name");
                     String description = humonJson.getString("description");
@@ -327,6 +455,11 @@ public class WildBattleActivity extends SettingsActivity {
 
                         moveList.add(new Move(moveId, moveName, moveSelfCast, dmg, null,
                                 moveHasEffect, moveDescription));
+                    }
+
+                    if(userEmail.equals("dev")) {
+                        health *= 5;
+                        hp = health;
                     }
 
                     playerHumon = new Humon(name, description, image, level, xp, hID, uID,

@@ -66,7 +66,7 @@ public class StepService extends JobService implements SensorEventListener {
                 //Debug purposes only
                 //retrieve email of the user
                 String userEmail = sharedPref.getString(getString(R.string.emailKey), "");
-                if((userEmail.equals("test")  || userEmail.equals("a")) && humonFind < 1) {
+                if((userEmail.equals("test")  || userEmail.equals("dev")) && humonFind < 1) {
                     System.out.println("Wild hu-mon found!");
                     wildHumonNotification();
                 }

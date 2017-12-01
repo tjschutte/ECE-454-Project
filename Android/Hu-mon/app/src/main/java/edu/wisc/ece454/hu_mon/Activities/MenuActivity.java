@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import edu.wisc.ece454.hu_mon.R;
+import edu.wisc.ece454.hu_mon.Services.PlaceDetectionService;
 import edu.wisc.ece454.hu_mon.Services.StepService;
 import edu.wisc.ece454.hu_mon.Utilities.JobServiceScheduler;
 
@@ -159,7 +160,9 @@ public class MenuActivity extends SettingsActivity {
                     if(stepServiceIntent == null) {
                         toast.setText("Began searching for hu-mons, will notify when hu-mon found.");
                         toast.show();
+                        placeService = new Intent(this, PlaceDetectionService.class);
                         stepServiceIntent = new Intent(this, StepService.class);
+                        startService(placeService);
                         startService(stepServiceIntent);
                     }
                     else {

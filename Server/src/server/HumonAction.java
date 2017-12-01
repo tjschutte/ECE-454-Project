@@ -127,7 +127,7 @@ public class HumonAction {
 
 	static void getInstance(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException {
 		Global.log(connection.clientNumber, Command.GET_INSTANCE + ": " + data);
-		int iID = 0;
+		String iID = "";
 
 		JsonFactory factory = new JsonFactory();
 		JsonParser parser = factory.createParser(data);
@@ -141,14 +141,14 @@ public class HumonAction {
 			// If there was a populated hID
 			if (JsonToken.FIELD_NAME.equals(token) && "iID".equals(parser.getCurrentName())) {
 				token = parser.nextToken();
-				iID = parser.getValueAsInt(-1);
+				iID = parser.getText();
 			} 
 
 		}
 		
 		// Do a lookup to get hID
 		ResultSet resultSet = connection.databaseConnection
-				.executeSQL("select * from instance where iID='" + iID + "';");
+				.executeSQL("select * from instance where instanceID='" + iID + "';");
 		
 		if (!resultSet.next()) {
 			connection.sendResponse(Command.ERROR, Message.INSTANCE_DOES_NOT_EXIST);
@@ -184,7 +184,7 @@ public class HumonAction {
 			else if (JsonToken.FIELD_NAME.equals(token) && "iID".equals(parser.getCurrentName())) {
 				// Do a lookup to get hID
 				ResultSet resultSet = connection.databaseConnection
-						.executeSQL("select humonID from instance where instanceID='" + parser.getValueAsInt(-1) + "';");
+						.executeSQL("select humonID from instance where instanceID='" + parser.getText() + "';");
 				
 				if (!resultSet.next()) {
 					connection.sendResponse(Command.ERROR, Message.INSTANCE_DOES_NOT_EXIST);

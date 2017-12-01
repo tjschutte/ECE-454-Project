@@ -50,6 +50,8 @@ public class HttpConnection extends Thread {
 						downloadApp();
 					} else if (Headers[1].equalsIgnoreCase("/log")){
 						log();
+					} else if (Headers[1].toLowerCase().contains("/search-log")){
+						searchLog(Headers[1]);
 					}
 				}
 			}
@@ -152,6 +154,47 @@ public class HttpConnection extends Thread {
 		}
 		
 		out.println("<body onload=\"scrollDown()\"></body></HTML>");
+		
+		br.close();
+		out.close();
+	}
+	
+	private void searchLog(String url) throws IOException {
+		String param = "";
+		if (url.contains("?")) {
+			param = url.substring(url.indexOf("?") + 1, url.length());
+		}
+		PrintWriter out;
+		out = new PrintWriter(socket.getOutputStream());
+		out.print("HTTP/1.1 200 \r\n"); // Version & status code
+		out.print("Content-Type: text/html\r\n"); // The type of data
+		out.print("Connection: close\r\n"); // Will close stream
+		out.print("\r\n"); // End of headers
+
+		out.println("<html><body>");
+		out.println("<h1>Search the log file</h1>");
+		out.println("<p> Search for: <input type='text' id='search' value='" + param + "'/> <button onclick='search()'>Search</button> </p>");
+		out.println("<h3>Results:</h3>");
+		out.println("</body>");
+		
+		out.println("<script>" + 
+				"function search() {" + 
+				"   var param = document.getElementById('search').value;" + 
+				"	console.log(param);" +
+				"	window.location = '/search-log?' + param;" +
+				"} " +
+				"</script></html>"
+				+ "");
+		
+		BufferedReader br = new BufferedReader(new FileReader(new File("log.txt")));
+		String string = br.readLine();
+		while (string != null) {
+			if (string.contains(param)) {
+				out.println(string);
+				out.println("</br>");
+			}
+			string = br.readLine();
+		}
 		
 		br.close();
 		out.close();

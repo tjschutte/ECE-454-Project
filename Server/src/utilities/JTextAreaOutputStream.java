@@ -13,18 +13,17 @@ public class JTextAreaOutputStream extends OutputStream
     private final JTextArea destination;
     private BufferedWriter writer;
 
-    public JTextAreaOutputStream (JTextArea destination)
+    public JTextAreaOutputStream (JTextArea destination, boolean appendToLog)
     {
         if (destination == null)
             throw new IllegalArgumentException ("Destination is null");
         this.destination = destination;
         
         try {
-			writer = new BufferedWriter(new FileWriter("log.txt"));
+			writer = new BufferedWriter(new FileWriter("log.txt", appendToLog));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-        //writer.write(str);
         
     }
 

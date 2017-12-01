@@ -162,7 +162,7 @@ public class HttpConnection extends Thread {
 	private void searchLog(String url) throws IOException {
 		String param = "";
 		if (url.contains("?")) {
-			param = url.substring(url.indexOf("?") + 1, url.length());
+			param = java.net.URLDecoder.decode(url.substring(url.indexOf("?") + 1, url.length()), "UTF-8");
 		}
 		PrintWriter out;
 		out = new PrintWriter(socket.getOutputStream());

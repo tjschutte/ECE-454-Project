@@ -21,28 +21,32 @@ public class Main {
 
 	public static void main(String[] args) throws IOException, SQLException  {
 		JFrame frame = new JFrame("Humon Server");
+		frame.setSize(50, 80);
 		final JTextArea messageArea = new JTextArea(30, 80);
 		// Layout GUI
 		messageArea.setEditable(false);
-		frame.getContentPane().add(new JScrollPane(messageArea), "Center");
+		frame.getContentPane().add(new JScrollPane(messageArea), "North");
 
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.pack();
-		
 		JPanel config = new JPanel();
 
-		config.setSize(10, 80);
+		config.setSize(20, 80);
 		
 		final JCheckBox dropTablesCheckBox = new JCheckBox("Drop existing database tables?");
 		final JCheckBox testDataCheckBox = new JCheckBox("Insert test data into database tables?");
 		final JCheckBox appendToLogCheckBox = new JCheckBox("Append to exisitng log file if exists?");
+		final JCheckBox startHttpServer = new JCheckBox("Start Http server as well?");
+		startHttpServer.setSelected(true);
 		final JButton start = new JButton("Start");
 		config.add(dropTablesCheckBox);
 		config.add(testDataCheckBox);
 		config.add(appendToLogCheckBox);
+		config.add(startHttpServer);
 		config.add(start);
 		
-		frame.getContentPane().add(config, "South");
+		frame.getContentPane().add(config, "Center");
+		
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.pack();
 		frame.setVisible(true);
 		
 		start.addActionListener(new ActionListener() {
@@ -63,8 +67,11 @@ public class Main {
 				System.setErr(new PrintStream(out));
 
 				new ServerConnectionListener(dropTables, testData).start();
-				new HttpConnectionListener().start();
 				
+				
+				if (startHttpServer.isSelected()) {
+					new HttpConnectionListener().start();
+				}
 			}
 		});
 		

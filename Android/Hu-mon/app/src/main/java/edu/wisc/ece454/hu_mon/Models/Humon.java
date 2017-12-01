@@ -138,7 +138,9 @@ public class Humon extends Jsonable implements Parcelable{
     }
 
     public void setHealth(int health) {
-        this.health = health;
+        if(health > 0) {
+            this.health = health;
+        }
     }
 
     public void setLuck(int luck) {

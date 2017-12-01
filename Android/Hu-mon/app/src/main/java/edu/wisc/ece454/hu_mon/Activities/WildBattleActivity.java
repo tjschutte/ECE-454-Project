@@ -52,6 +52,7 @@ public class WildBattleActivity extends SettingsActivity {
     private boolean gameOver;
     private boolean canCapture;
     private boolean capturedHumon;
+    private boolean gameSaved;
 
     private Move.Effect playerStatus;
     private Move.Effect enemyStatus;
@@ -76,6 +77,7 @@ public class WildBattleActivity extends SettingsActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.wild_battle_layout);
         setTitle(ACTIVITY_TITLE);
 
@@ -83,6 +85,8 @@ public class WildBattleActivity extends SettingsActivity {
 
         partyHumons = new ArrayList<String>();
         partyHumonIndices = new ArrayList<Integer>();
+        gameOver = true;
+        gameSaved = false;
 
         //Setup Grid View and Adapter
         playerMoveList = new ArrayList<Move>();
@@ -117,37 +121,55 @@ public class WildBattleActivity extends SettingsActivity {
     protected void onStart() {
         super.onStart();
 
-        //retrieve email of the user
-        SharedPreferences sharedPref = this.getSharedPreferences(
-                getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
-        userEmail = sharedPref.getString(getString(R.string.emailKey), "");
+        if(gameOver) {
+            //retrieve email of the user
+            SharedPreferences sharedPref = this.getSharedPreferences(
+                    getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+            userEmail = sharedPref.getString(getString(R.string.emailKey), "");
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putBoolean(getString(R.string.gameRunningKey), true);
+            editor.commit();
 
-        userConsole.setVisibility(View.INVISIBLE);
-        playerMovesView.setVisibility(View.VISIBLE);
-        consoleDisplayQueue.clear();
-        gameOver = false;
-        canCapture = false;
-        capturedHumon = false;
-        partyHumons.clear();
-        partyHumonIndices.clear();
-        playerHumonIndex = 0;
+            userConsole.setVisibility(View.INVISIBLE);
+            playerMovesView.setVisibility(View.VISIBLE);
+            consoleDisplayQueue.clear();
+            gameOver = false;
+            gameSaved = false;
+            canCapture = false;
+            capturedHumon = false;
+            partyHumons.clear();
+            partyHumonIndices.clear();
+            playerHumonIndex = 0;
 
-        //status effects of humons
-        playerStatus = null;
-        enemyStatus = null;
+            //status effects of humons
+            playerStatus = null;
+            enemyStatus = null;
 
-        //load humons into battle
-        loadPartyHumons();
-        choosePlayerHumon();
+            //load humons into battle
+            loadPartyHumons();
+            choosePlayerHumon();
+        }
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onDestroy() {
+        if(!gameSaved) {
+            saveHumons();
+        }
+        SharedPreferences sharedPref = this.getSharedPreferences(
+                getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean(getString(R.string.gameRunningKey), false);
+        editor.commit();
+
+        super.onDestroy();
     }
 
-    protected void onResume() {
-        super.onResume();
+    @Override
+    public void onBackPressed() {
+        if(!gameSaved) {
+            runAwayDialog();
+        }
     }
 
     /*
@@ -798,15 +820,7 @@ public class WildBattleActivity extends SettingsActivity {
     private void captureHumonDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        //LayoutInflater inflater = this.getLayoutInflater();
-
-        //View dialogView = inflater.inflate(R.layout.capture_humon_dialog, null);
-        //builder.setView(dialogView);
         builder.setTitle("Capture wild " + enemyHumon.getName() + "?");
-
-        //Display prompt for Humon to be captured
-        //final TextView captureHumonText = (TextView) dialogView.findViewById(R.id.captureHumonTextView);
-        //captureHumonText.setText("Capture wild " + enemyHumon.getName() + "?");
 
         //Attempt to capture the humon
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -841,6 +855,45 @@ public class WildBattleActivity extends SettingsActivity {
         //display the dialog
         final AlertDialog captureHumonDialog = builder.create();
         captureHumonDialog.show();
+    }
+
+    /*
+     * Gives the user the option to run away from the battle
+     * Called by pressing the back button
+     *
+     */
+    private void runAwayDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("Run away?");
+
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton)
+            {
+
+                Toast toast = Toast.makeText(getApplicationContext(), "Ran away!", Toast.LENGTH_SHORT);
+                toast.show();
+
+                //Save the humon's state
+                saveHumons();
+
+                //return to the menu
+                finish();
+
+            }
+        });
+
+        //End the battle
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton)
+            {
+
+            }
+        });
+
+        //display the dialog
+        final AlertDialog runAwayDialog = builder.create();
+        runAwayDialog.show();
     }
 
     /*
@@ -949,6 +1002,7 @@ public class WildBattleActivity extends SettingsActivity {
             //save player's humon data to party
             partySaveTask.execute(playerHumon);
         }
+        gameSaved = true;
 
     }
 }

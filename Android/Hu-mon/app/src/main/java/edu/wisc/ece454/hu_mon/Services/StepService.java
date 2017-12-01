@@ -23,6 +23,7 @@ public class StepService extends Service implements SensorEventListener {
 
     private SensorManager sensorManager;
     private Sensor stepSensor;
+    private Intent notificationIntent;
 
     public StepService() {
     }
@@ -64,7 +65,10 @@ public class StepService extends Service implements SensorEventListener {
                 double humonFind = Math.random();
                 SharedPreferences sharedPref = getSharedPreferences(
                         getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
-                if(humonFind < .2 && sharedPref.getBoolean(getString(R.string.healthyPlaceKey), false)) {
+                boolean gameRunning = sharedPref.getBoolean(getString(R.string.gameRunningKey), false);
+                System.out.println("Step Service: game running: " + gameRunning);
+                if(humonFind < .2 && sharedPref.getBoolean(getString(R.string.healthyPlaceKey), false)
+                        && !gameRunning) {
                     System.out.println("Wild hu-mon found!");
                     wildHumonNotification();
                 }
@@ -72,7 +76,8 @@ public class StepService extends Service implements SensorEventListener {
                 //Debug purposes only
                 //retrieve email of the user
                 String userEmail = sharedPref.getString(getString(R.string.emailKey), "");
-                if((userEmail.equals("test")  || userEmail.equals("dev")) && humonFind < 1) {
+                if((userEmail.equals("test")  || userEmail.equals("dev")) && humonFind < 1 &&
+                        !gameRunning) {
                     System.out.println("Wild hu-mon found!");
                     wildHumonNotification();
                 }
@@ -90,7 +95,7 @@ public class StepService extends Service implements SensorEventListener {
         NotificationManager mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        Intent notificationIntent = new Intent(this, WildBattleActivity.class);
+        notificationIntent = new Intent(this, WildBattleActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
         Notification notification = new Notification.Builder(this)

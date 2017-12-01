@@ -4,6 +4,7 @@
     <string name="humonNameKey">humon name</string>
     <string name="humonImageKey">humon image</string>
     <string name="emailKey">email</string>
+    <string name="gameRunningKey">gameRunning</string>
     <string name="movePositionKey">move position</string>
     <string name="moveKey">move</string>
     <string name="title_activity_maps">Map</string>

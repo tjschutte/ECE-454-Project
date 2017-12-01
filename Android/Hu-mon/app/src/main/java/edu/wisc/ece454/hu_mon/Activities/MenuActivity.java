@@ -114,6 +114,12 @@ public class MenuActivity extends SettingsActivity {
             stopService(placeService);
         }
 
+        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean(getString(R.string.gameRunningKey), false);
+        editor.commit();
+
         // Save any pertinant data back to the server.
         saveToServer();
 

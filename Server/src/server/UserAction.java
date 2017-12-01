@@ -122,7 +122,7 @@ public class UserAction {
 
 			if (!resultSet.next()) {
 				connection.sendResponse(Command.ERROR, Message.BAD_CREDENTIALS);
-				Global.log(connection.clientNumber, "Invalid Global.login creditials for user: " + u.getEmail());
+				Global.log(connection.clientNumber, "Invalid login creditials for user: " + u.getEmail());
 				Global.log(connection.clientNumber, "Does user exist?");
 				return;
 			}

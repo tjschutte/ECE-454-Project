@@ -18,6 +18,7 @@
     <string name="humonKey">humon</string>
     <string name="humonsKey">humons</string>
     <string name="userKey">user</string>
+    <string name="loggedOutKey">loggedOut</string>
     <string name="userObjectKey">userObjectKey</string>
     <string name="healthyPlaceKey">inHealthyPlace</string>
     <string name="ServerCommandLogin">LOGIN</string>

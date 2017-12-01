@@ -1,6 +1,5 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
-import android.app.job.JobScheduler;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,7 +22,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import edu.wisc.ece454.hu_mon.R;
-import edu.wisc.ece454.hu_mon.Services.PlaceDetectionService;
+import edu.wisc.ece454.hu_mon.Services.StepService;
 import edu.wisc.ece454.hu_mon.Utilities.JobServiceScheduler;
 
 public class MenuActivity extends SettingsActivity {
@@ -33,6 +32,7 @@ public class MenuActivity extends SettingsActivity {
     private String userEmail;
     private String userObject;
     private Intent placeService;
+    private Intent stepServiceIntent;
 
     private String EMAIL_KEY;
     private final String ACTIVITY_TITLE = "Main Menu";
@@ -101,12 +101,12 @@ public class MenuActivity extends SettingsActivity {
 
     @Override
     protected void onDestroy() {
-        //Obtain ID of Step JobService
-        int stepJobId = Integer.parseInt(getString(R.string.stepJobId));
 
-        System.out.println("Killing job service with id: " + stepJobId);
-        JobScheduler jobScheduler = this.getSystemService(JobScheduler.class);
-        jobScheduler.cancel(stepJobId);
+        //Stop the step service
+        if(stepServiceIntent != null) {
+            stopService(stepServiceIntent);
+            stepServiceIntent = null;
+        }
 
         if (placeService != null) {
             Log.d(TAG,"Stopping PlaceDetectionService");
@@ -156,11 +156,16 @@ public class MenuActivity extends SettingsActivity {
                 break;
             case HUMON_SEARCH:
                 if(hasHumons()) {
-                    toast.setText("Began searching for hu-mons, will notify when hu-mon found.");
-                    toast.show();
-                    JobServiceScheduler.scheduleStepJob(getApplicationContext());
-                    placeService = new Intent(this, PlaceDetectionService.class);
-                    startService(new Intent(this, PlaceDetectionService.class));
+                    if(stepServiceIntent == null) {
+                        toast.setText("Began searching for hu-mons, will notify when hu-mon found.");
+                        toast.show();
+                        stepServiceIntent = new Intent(this, StepService.class);
+                        startService(stepServiceIntent);
+                    }
+                    else {
+                        toast.setText("Already searching for hu-mons!");
+                        toast.show();
+                    }
                 }
                 else {
                     toast.setText("Cannot search without a humon.");

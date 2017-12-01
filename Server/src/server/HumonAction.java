@@ -184,7 +184,7 @@ public class HumonAction {
 			else if (JsonToken.FIELD_NAME.equals(token) && "iID".equals(parser.getCurrentName())) {
 				// Do a lookup to get hID
 				ResultSet resultSet = connection.databaseConnection
-						.executeSQL("select hID from instance where iID='" + parser.getValueAsInt(-1) + "';");
+						.executeSQL("select humonID from instance where instanceID='" + parser.getValueAsInt(-1) + "';");
 				
 				if (!resultSet.next()) {
 					connection.sendResponse(Command.ERROR, Message.INSTANCE_DOES_NOT_EXIST);
@@ -203,7 +203,7 @@ public class HumonAction {
 		}
 		
 		ResultSet resultSet = connection.databaseConnection
-				.executeSQL("select * from humon where hID='" + hID + "';");
+				.executeSQL("select * from humon where humonID='" + hID + "';");
 
 		if (!resultSet.next()) {
 			connection.sendResponse(Command.ERROR, Message.HUMON_DOES_NOT_EXIST);

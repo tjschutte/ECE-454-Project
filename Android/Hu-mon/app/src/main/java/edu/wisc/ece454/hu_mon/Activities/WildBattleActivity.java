@@ -652,19 +652,58 @@ public class WildBattleActivity extends SettingsActivity {
         if(isPlayer) {
             int playerMoveDamage = getMoveDamage(move, true);
             Move.Effect playerMoveEffect = getMoveEffect(move, true);
-            int enemyHp = enemyHumon.getHp() - playerMoveDamage;
+            String displayMessage = playerHumon.getName() + " used " + move.getName() + ".\n";
+            if(move.isSelfCast()) {
+                applyMove(move.getName(), playerMoveDamage, playerMoveEffect, false, displayMessage);
+            }
+            else {
+                applyMove(move.getName(), playerMoveDamage, playerMoveEffect, true, displayMessage);
+            }
+        }
+
+        else {
+            int enemyMoveDamage = getMoveDamage(move, false);
+            Move.Effect enemyMoveEffect = getMoveEffect(move, false);
+            String displayMessage = enemyHumon.getName() + " used " + move.getName() + ".\n";
+            if(move.isSelfCast()) {
+                applyMove(move.getName(), enemyMoveDamage, enemyMoveEffect, true, displayMessage);
+            }
+            else {
+                applyMove(move.getName(), enemyMoveDamage, enemyMoveEffect, false, displayMessage);
+            }
+        }
+    }
+
+    /*
+     * Applies the damage and effect of a move to the target
+     *
+     * @param moveName      name of the move being used
+     * @param damage        amount of damage to be dealt
+     * @param effect        effect to be applied
+     * @param targetEnemy   true to apply to enemy, false to apply to player
+     * @param displayMessage    the current message to be displayed to user
+     *
+     */
+    private void applyMove(String moveName, int damage, Move.Effect effect, boolean targetEnemy,
+        String displayMessage) {
+        if(targetEnemy) {
+            int enemyHp = enemyHumon.getHp() - damage;
             if (enemyHp < 0) {
                 enemyHp = 0;
             }
             enemyHumon.setHp(enemyHp);
             enemyHealthBar.setProgress(enemyHp);
 
-            String displayMessage = playerHumon.getName() + " used " + move.getName() +
-                    ".\nApplied " + playerMoveDamage + " damage to wild " + enemyHumon.getName();
+            if(damage >= 0) {
+                displayMessage += "Applied " + damage + " damage to wild " + enemyHumon.getName();
+            }
+            else {
+                displayMessage += "Healed " + (damage * -1) + " damage from wild " + enemyHumon.getName();
+            }
 
             //Apply the status effect
-            if(playerMoveEffect != null && enemyStatus == null) {
-                enemyStatus = playerMoveEffect;
+            if(effect != null && enemyStatus == null) {
+                enemyStatus = effect;
                 enemyStatusTextView.setText(""+ enemyStatus);
                 displayMessage += "\nWild " + enemyHumon.getName() + " is " + enemyStatus + "!";
             }
@@ -672,23 +711,24 @@ public class WildBattleActivity extends SettingsActivity {
             System.out.println(displayMessage);
             consoleDisplayQueue.add(displayMessage);
         }
-
         else {
-            int enemyMoveDamage = getMoveDamage(move, false);
-            Move.Effect enemyMoveEffect = getMoveEffect(move, false);
-            int playerHp = playerHumon.getHp() - enemyMoveDamage;
+            int playerHp = playerHumon.getHp() - damage;
             if (playerHp < 0) {
                 playerHp = 0;
             }
             playerHumon.setHp(playerHp);
             playerHealthBar.setProgress(playerHp);
 
-            String displayMessage = "Wild " + enemyHumon.getName() + " used " + move.getName() +
-                    ".\nApplied " + enemyMoveDamage + " damage to " + playerHumon.getName();
+            if(damage >= 0) {
+                displayMessage += "Applied " + damage + " damage to " + playerHumon.getName();
+            }
+            else {
+                displayMessage += "Healed " + (damage * -1) + " damage from " + playerHumon.getName();
+            }
 
             //Apply the status effect
-            if(enemyMoveEffect != null && playerStatus == null) {
-                playerStatus = enemyMoveEffect;
+            if(effect != null && playerStatus == null) {
+                playerStatus = effect;
                 playerStatusTextView.setText(""+ playerStatus);
                 displayMessage += "\n" + playerHumon.getName() + " is " + playerStatus + "!";
             }
@@ -707,15 +747,31 @@ public class WildBattleActivity extends SettingsActivity {
         double moveBaseDamage = move.getDmg();
         int damage;
         if(isPlayer) {
-            damage = (int) ((moveBaseDamage / 100) * playerHumon.getAttack()) - (enemyHumon.getDefense() / 2);
-            if(damage < 1) {
+            if(move.isSelfCast()) {
+                damage = (int) ((moveBaseDamage / 100) * playerHumon.getAttack()) - (playerHumon.getDefense() / 2);
+            }
+            else {
+                damage = (int) ((moveBaseDamage / 100) * playerHumon.getAttack()) - (enemyHumon.getDefense() / 2);
+            }
+            if(move.getDmg() > 0 && damage < 1) {
                 damage = 1;
+            }
+            else if(move.getDmg() < 0 && damage > -1) {
+                damage = -1;
             }
         }
         else {
-            damage = (int) ((moveBaseDamage / 100) * enemyHumon.getAttack()) - (playerHumon.getDefense() / 2);
-            if(damage < 1) {
+            if(move.isSelfCast()) {
+                damage = (int) ((moveBaseDamage / 100) * enemyHumon.getAttack()) - (enemyHumon.getDefense() / 2);
+            }
+            else {
+                damage = (int) ((moveBaseDamage / 100) * enemyHumon.getAttack()) - (playerHumon.getDefense() / 2);
+            }
+            if(move.getDmg() > 0 && damage < 1) {
                 damage = 1;
+            }
+            else if(move.getDmg() < 0 && damage > -1) {
+                damage = -1;
             }
         }
         return damage;
@@ -738,17 +794,27 @@ public class WildBattleActivity extends SettingsActivity {
         boolean willEffect = false;
         int effectChance = rng.nextInt(100);
         if(isPlayer) {
-            System.out.println("Effect: Player Luck is: " + playerHumon.getLuck() + " random is:" + effectChance);
-            if(effectChance < playerHumon.getLuck()) {
-                System.out.println("Effect: Player should apply effect");
-                willEffect = true;
+            if(move.isSelfCast()) {
+                if (effectChance > playerHumon.getLuck()) {
+                    willEffect = true;
+                }
+            }
+            else {
+                if (effectChance < playerHumon.getLuck()) {
+                    willEffect = true;
+                }
             }
         }
         else {
-            System.out.println("Effect: Enemy Luck is: " + enemyHumon.getLuck() + " random is:" + effectChance);
-            if(effectChance < enemyHumon.getLuck()) {
-                System.out.println("Effect: Enemy should apply effect");
-                willEffect = true;
+            if(move.isSelfCast()) {
+                if (effectChance > enemyHumon.getLuck()) {
+                    willEffect = true;
+                }
+            }
+            else {
+                if (effectChance < enemyHumon.getLuck()) {
+                    willEffect = true;
+                }
             }
         }
 

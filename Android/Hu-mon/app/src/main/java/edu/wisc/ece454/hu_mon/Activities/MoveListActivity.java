@@ -95,7 +95,7 @@ public class MoveListActivity extends SettingsActivity {
 
             Random rng = new Random();
             boolean target = rng.nextBoolean();
-            int dmg = rng.nextInt(101);
+            int dmg = rng.nextInt(200) - 100;
 
 
             Move.Effect effect = null;

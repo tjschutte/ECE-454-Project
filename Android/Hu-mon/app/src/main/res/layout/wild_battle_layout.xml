@@ -33,7 +33,18 @@
             android:layout_below="@+id/enemyNameTextView"
             android:layout_toLeftOf="@id/enemyImageView"
             android:textSize="16dp"
-            android:paddingRight="32dp" />
+            android:paddingRight="32dp"
+            android:text="Enemy Level"/>
+
+        <TextView
+            android:id="@+id/enemyStatusTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/enemyLevelTextView"
+            android:layout_toLeftOf="@id/enemyImageView"
+            android:textSize="16dp"
+            android:paddingRight="32dp"
+            android:text="Enemy Status"/>
 
         <ProgressBar
             android:id="@+id/enemyHealthBar"
@@ -41,7 +52,7 @@
             android:layout_width="160dp"
             android:layout_height="wrap_content"
             android:progressTint="@android:color/holo_green_light"
-            android:layout_below="@+id/enemyLevelTextView"
+            android:layout_below="@+id/enemyStatusTextView"
             android:layout_toLeftOf="@id/enemyImageView"
             android:paddingRight="32dp" />
 
@@ -53,7 +64,7 @@
             android:layout_below="@+id/enemyImageView"
             android:layout_alignParentLeft="true"
             android:paddingLeft="32dp"
-            android:paddingTop="100dp"/>
+            android:paddingTop="80dp"/>
 
         <TextView
             android:id="@+id/playerNameTextView"
@@ -70,10 +81,21 @@
             android:id="@+id/playerLevelTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/playerHealthBar"
+            android:layout_above="@+id/playerStatusTextView"
             android:layout_toRightOf="@id/playerImageView"
             android:paddingLeft="32dp"
-            android:textSize="16dp" />
+            android:textSize="16dp"
+            android:text="Player Level"/>
+
+        <TextView
+            android:id="@+id/playerStatusTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/playerHealthBar"
+            android:layout_toRightOf="@id/playerImageView"
+            android:textSize="16dp"
+            android:paddingLeft="32dp"
+            android:text="Player Status"/>
 
         <ProgressBar
             android:id="@+id/playerHealthBar"

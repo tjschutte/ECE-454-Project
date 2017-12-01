@@ -20,9 +20,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -56,11 +53,16 @@ public class WildBattleActivity extends SettingsActivity {
     private boolean canCapture;
     private boolean capturedHumon;
 
+    private Move.Effect playerStatus;
+    private Move.Effect enemyStatus;
+
     //Queue of messages to be displayed in console (front is 0)
     private ArrayList<String> consoleDisplayQueue;
 
     private ProgressBar playerHealthBar;
     private ProgressBar enemyHealthBar;
+    private TextView playerStatusTextView;
+    private TextView enemyStatusTextView;
 
     private ArrayList<String> partyHumons;
     private ArrayList<Integer> partyHumonIndices;
@@ -130,19 +132,13 @@ public class WildBattleActivity extends SettingsActivity {
         partyHumonIndices.clear();
         playerHumonIndex = 0;
 
+        //status effects of humons
+        playerStatus = null;
+        enemyStatus = null;
+
         //load humons into battle
-        //loadEnemy();
-        //scaleEnemy();
         loadPartyHumons();
         choosePlayerHumon();
-        //loadPlayer();
-        //loadPlayerMoves();
-
-        //Full heal for development only
-        /*if(userEmail.equals("dev") || userEmail.equals("test")) {
-            //playerHumon.setHealth(playerHumon.getHealth() * 5);
-            playerHumon.setHp(playerHumon.getHealth());
-        }*/
     }
 
     @Override
@@ -221,11 +217,31 @@ public class WildBattleActivity extends SettingsActivity {
                         String moveName = moveJson.getString("name");
                         boolean moveSelfCast = moveJson.getBoolean("selfCast");
                         int dmg = moveJson.getInt("dmg");
-                        //Move.Effect moveEffect = (Move.Effect) moveJson.get("effect");
+                        Move.Effect moveEffect;
+                        String moveEffectString = moveJson.getString("effect");
+                        switch(moveEffectString) {
+                            case "CONFUSED":
+                                moveEffect = Move.Effect.CONFUSED;
+                                break;
+                            case "PARALYZED":
+                                moveEffect = Move.Effect.PARALYZED;
+                                break;
+                            case "EMBARRASSED":
+                                moveEffect = Move.Effect.EMBARRASSED;
+                                break;
+                            case "POISONED":
+                                moveEffect = Move.Effect.POISONED;
+                                break;
+                            case "SLEPT":
+                                moveEffect = Move.Effect.SLEPT;
+                                break;
+                            default:
+                                moveEffect = null;
+                        }
                         boolean moveHasEffect = moveJson.getBoolean("hasEffect");
                         String moveDescription = moveJson.getString("description");
 
-                        moveList.add(new Move(moveId, moveName, moveSelfCast, dmg, null,
+                        moveList.add(new Move(moveId, moveName, moveSelfCast, dmg, moveEffect,
                                 moveHasEffect, moveDescription));
                     }
 
@@ -291,6 +307,9 @@ public class WildBattleActivity extends SettingsActivity {
 
         TextView levelTextView = (TextView) findViewById(R.id.enemyLevelTextView);
         levelTextView.setText("Lvl " + enemyHumon.getLevel());
+
+        enemyStatusTextView = (TextView) findViewById(R.id.enemyStatusTextView);
+        enemyStatusTextView.setText("");
 
         enemyHealthBar = (ProgressBar) findViewById(R.id.enemyHealthBar);
         enemyHealthBar.setMax(enemyHumon.getHealth());
@@ -450,11 +469,31 @@ public class WildBattleActivity extends SettingsActivity {
                         String moveName = moveJson.getString("name");
                         boolean moveSelfCast = moveJson.getBoolean("selfCast");
                         int dmg = moveJson.getInt("dmg");
-                        //Move.Effect moveEffect = (Move.Effect) moveJson.get("effect");
+                        Move.Effect moveEffect;
+                        String moveEffectString = moveJson.getString("effect");
+                        switch(moveEffectString) {
+                            case "CONFUSED":
+                                moveEffect = Move.Effect.CONFUSED;
+                                break;
+                            case "PARALYZED":
+                                moveEffect = Move.Effect.PARALYZED;
+                                break;
+                            case "EMBARRASSED":
+                                moveEffect = Move.Effect.EMBARRASSED;
+                                break;
+                            case "POISONED":
+                                moveEffect = Move.Effect.POISONED;
+                                break;
+                            case "SLEPT":
+                                moveEffect = Move.Effect.SLEPT;
+                                break;
+                            default:
+                                moveEffect = null;
+                        }
                         boolean moveHasEffect = moveJson.getBoolean("hasEffect");
                         String moveDescription = moveJson.getString("description");
 
-                        moveList.add(new Move(moveId, moveName, moveSelfCast, dmg, null,
+                        moveList.add(new Move(moveId, moveName, moveSelfCast, dmg, moveEffect,
                                 moveHasEffect, moveDescription));
                     }
 
@@ -486,6 +525,9 @@ public class WildBattleActivity extends SettingsActivity {
 
                 TextView levelTextView = (TextView) findViewById(R.id.playerLevelTextView);
                 levelTextView.setText("Lvl " + playerHumon.getLevel());
+
+                playerStatusTextView = (TextView) findViewById(R.id.playerStatusTextView);
+                playerStatusTextView.setText("");
 
                 playerHealthBar = (ProgressBar) findViewById(R.id.playerHealthBar);
                 playerHealthBar.setMax(playerHumon.getHealth());
@@ -539,76 +581,30 @@ public class WildBattleActivity extends SettingsActivity {
         String displayMessage;
 
         if(playerFirst()) {
-            int playerMoveDamage = getMoveDamage(move, true);
-            int enemyHp = enemyHumon.getHp() - playerMoveDamage;
-            if(enemyHp < 0) {
-                enemyHp = 0;
-            }
-            enemyHumon.setHp(enemyHp);
-            enemyHealthBar.setProgress(enemyHp);
+            useMove(move, true);
 
-            displayMessage = playerHumon.getName() + " used " + move.getName() +
-                    ".\nApplied " + playerMoveDamage + " damage to wild " + enemyHumon.getName();
-            System.out.println(displayMessage);
-
-            consoleDisplayQueue.add(displayMessage);
-
-            if(enemyHp == 0) {
+            if(enemyHumon.getHp() == 0) {
                 finishBattle();
             } else {
 
-                int enemyMoveDamage = getMoveDamage(enemyMoveList.get(enemyMove), false);
-                int playerHp = playerHumon.getHp() - enemyMoveDamage;
-                if (playerHp < 0) {
-                    playerHp = 0;
-                }
-                playerHumon.setHp(playerHp);
-                playerHealthBar.setProgress(playerHp);
+                useMove(enemyMoveList.get(enemyMove), false);
 
-                displayMessage = "Wild " + enemyHumon.getName() + " used " + enemyMoveList.get(enemyMove).getName() +
-                        ".\nApplied " + enemyMoveDamage + " damage to " + playerHumon.getName();
-                System.out.println(displayMessage);
-                consoleDisplayQueue.add(displayMessage);
-
-                if(playerHp == 0) {
+                if(playerHumon.getHp() == 0) {
                     finishBattle();
                 }
             }
         }
         else {
 
-            int enemyMoveDamage = getMoveDamage(enemyMoveList.get(enemyMove), false);
-            int playerHp = playerHumon.getHp() - enemyMoveDamage;
-            if(playerHp < 0) {
-                playerHp = 0;
-            }
-            playerHumon.setHp(playerHp);
-            playerHealthBar.setProgress(playerHp);
+            useMove(enemyMoveList.get(enemyMove), false);
 
-            displayMessage = "Wild " + enemyHumon.getName() + " used " + enemyMoveList.get(enemyMove).getName() +
-                    ".\nApplied " + enemyMoveDamage + " damage to " + playerHumon.getName();
-            System.out.println(displayMessage);
-            consoleDisplayQueue.add(displayMessage);
-
-            if(playerHp == 0) {
+            if(playerHumon.getHp() == 0) {
                 finishBattle();
             }
             else {
+                useMove(move, true);
 
-                int playerMoveDamage = getMoveDamage(move, true);
-                int enemyHp = enemyHumon.getHp() - playerMoveDamage;
-                if (enemyHp < 0) {
-                    enemyHp = 0;
-                }
-                enemyHumon.setHp(enemyHp);
-                enemyHealthBar.setProgress(enemyHp);
-
-                displayMessage = playerHumon.getName() + " used " + move.getName() +
-                        ".\nApplied " + playerMoveDamage + " damage to wild " + enemyHumon.getName();
-                System.out.println(displayMessage);
-                consoleDisplayQueue.add(displayMessage);
-
-                if(enemyHp == 0) {
+                if(enemyHumon.getHp() == 0) {
                     finishBattle();
                 }
             }
@@ -622,6 +618,61 @@ public class WildBattleActivity extends SettingsActivity {
             return false;
         }
         return true;
+    }
+
+    /*
+     * Uses the given move and applies damage and effect
+     *
+     * @param move Move being used
+     * @param isPlayer  true if the player is using the move
+     */
+    private void useMove(Move move, boolean isPlayer) {
+        if(isPlayer) {
+            int playerMoveDamage = getMoveDamage(move, true);
+            Move.Effect playerMoveEffect = getMoveEffect(move, true);
+            int enemyHp = enemyHumon.getHp() - playerMoveDamage;
+            if (enemyHp < 0) {
+                enemyHp = 0;
+            }
+            enemyHumon.setHp(enemyHp);
+            enemyHealthBar.setProgress(enemyHp);
+
+            String displayMessage = playerHumon.getName() + " used " + move.getName() +
+                    ".\nApplied " + playerMoveDamage + " damage to wild " + enemyHumon.getName();
+
+            //Apply the status effect
+            if(playerMoveEffect != null && enemyStatus == null) {
+                enemyStatus = playerMoveEffect;
+                enemyStatusTextView.setText(""+ enemyStatus);
+                displayMessage += "\nWild " + enemyHumon.getName() + " is " + enemyStatus + "!";
+            }
+
+            System.out.println(displayMessage);
+            consoleDisplayQueue.add(displayMessage);
+        }
+
+        else {
+            int enemyMoveDamage = getMoveDamage(move, false);
+            Move.Effect enemyMoveEffect = getMoveEffect(move, false);
+            int playerHp = playerHumon.getHp() - enemyMoveDamage;
+            if (playerHp < 0) {
+                playerHp = 0;
+            }
+            playerHumon.setHp(playerHp);
+            playerHealthBar.setProgress(playerHp);
+
+            String displayMessage = "Wild " + enemyHumon.getName() + " used " + move.getName() +
+                    ".\nApplied " + enemyMoveDamage + " damage to " + playerHumon.getName();
+
+            //Apply the status effect
+            if(enemyMoveEffect != null && playerStatus == null) {
+                playerStatus = enemyMoveEffect;
+                playerStatusTextView.setText(""+ playerStatus);
+                displayMessage += "\n" + playerHumon.getName() + " is " + playerStatus + "!";
+            }
+            System.out.println(displayMessage);
+            consoleDisplayQueue.add(displayMessage);
+        }
     }
 
     /*
@@ -646,6 +697,45 @@ public class WildBattleActivity extends SettingsActivity {
             }
         }
         return damage;
+    }
+
+    /*
+     * Calculates the effect applied by a move
+     *
+     * @param move Move being used
+     * @param isPlayer  true if the player is using the move
+     */
+    private Move.Effect getMoveEffect(Move move, boolean isPlayer) {
+        //No effect
+        if(!move.isHasEffect()) {
+            System.out.println("Move has no effect");
+            return null;
+        }
+
+        Random rng = new Random();
+        boolean willEffect = false;
+        int effectChance = rng.nextInt(100);
+        if(isPlayer) {
+            System.out.println("Effect: Player Luck is: " + playerHumon.getLuck() + " random is:" + effectChance);
+            if(effectChance < playerHumon.getLuck()) {
+                System.out.println("Effect: Player should apply effect");
+                willEffect = true;
+            }
+        }
+        else {
+            System.out.println("Effect: Enemy Luck is: " + enemyHumon.getLuck() + " random is:" + effectChance);
+            if(effectChance < enemyHumon.getLuck()) {
+                System.out.println("Effect: Enemy should apply effect");
+                willEffect = true;
+            }
+        }
+
+        if(willEffect) {
+            return move.getEffect();
+        }
+        else {
+            return null;
+        }
     }
 
     /*

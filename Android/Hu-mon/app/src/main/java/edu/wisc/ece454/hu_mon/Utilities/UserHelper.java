@@ -44,4 +44,12 @@ public class UserHelper {
         }
     }
 
+    public static User objFromString(String user) {
+        try {
+            return new ObjectMapper().readValue(user, User.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

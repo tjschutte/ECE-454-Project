@@ -65,7 +65,7 @@ public class ServerSaveService extends JobService {
                 if (params.getExtras().containsKey(getString(R.string.userKey))) {
                     SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
                             Context.MODE_PRIVATE);
-                    user = sharedPref.getString(getString(R.string.userObjectKey), null);
+                    user = params.getExtras().getStringArray(getString(R.string.userKey))[0];
                     threadCount += 1;
                 }
 

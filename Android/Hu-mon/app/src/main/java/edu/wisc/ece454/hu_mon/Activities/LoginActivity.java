@@ -19,8 +19,11 @@ import android.widget.Toast;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.iid.FirebaseInstanceId;
 
+import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Services.ServerConnection;
+import edu.wisc.ece454.hu_mon.Utilities.UserHelper;
+import edu.wisc.ece454.hu_mon.Utilities.UserSyncHelper;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -34,6 +37,7 @@ public class LoginActivity extends AppCompatActivity {
     private final String ACTIVITY_TITLE = "Login";
     ServerConnection mServerConnection;
     boolean mServiceBound;
+    User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,6 +153,12 @@ public class LoginActivity extends AppCompatActivity {
                 Intent i = new Intent(context, MenuActivity.class);
                 i.putExtra(EMAIL_KEY, email);
                 i.putExtra(getString(R.string.userObjectKey), data);
+
+                user = UserHelper.objFromString(data);
+
+                UserSyncHelper syncer = new UserSyncHelper(context, user, mServerConnection);
+                syncer.execute(user);
+
                 startActivity(i);
             } else {
                 Toast toast = Toast.makeText(context, response, Toast.LENGTH_SHORT);

@@ -29,5 +29,7 @@
     <string name="ServerCommandCreateHumon">CREATE-HUMON</string>
     <string name="ServerCommandSaveUser">SAVE-USER</string>
     <string name="ServerCommandSaveInstance">SAVE-INSTANCE</string>
+    <string name="ServerCommandGetInstance">GET-INSTANCE</string>
+    <string name="ServerCommandGetHumon">GET-HUMON</string>
 
 </resources>

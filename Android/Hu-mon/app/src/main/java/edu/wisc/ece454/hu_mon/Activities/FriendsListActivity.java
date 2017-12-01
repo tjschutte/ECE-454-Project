@@ -289,6 +289,13 @@ public class FriendsListActivity extends SettingsActivity {
                 user.removeFriend(friendName);
                 UserHelper.saveUser(getApplicationContext(), user);
                 refreshContent();
+                if (mBound) {
+                    try {
+                        mServerConnection.sendMessage(getString(R.string.ServerCommandSaveUser) + ":" + user.toJson(new ObjectMapper()));
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
 

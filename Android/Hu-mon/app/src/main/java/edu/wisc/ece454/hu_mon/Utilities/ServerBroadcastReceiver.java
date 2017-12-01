@@ -120,6 +120,9 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        } else {
+            System.out.println("Command: " + command);
+            System.out.println("Data: " + data);
         }
     }
 }

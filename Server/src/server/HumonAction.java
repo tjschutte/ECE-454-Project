@@ -37,7 +37,7 @@ public class HumonAction {
 			return;
 		}
 		Humon humon = connection.mapper.readValue(data, Humon.class);
-
+		
 		// print it
 		Global.log(connection.clientNumber,
 				connection.user.getEmail() + " is creating a new Humon: " + humon.getName() + ", " + humon.getDescription());
@@ -88,7 +88,8 @@ public class HumonAction {
 		if (rows != 1) {
 			throw new SQLException();
 		}
-
+		humon.setImage();
+		Global.log(connection.clientNumber, humon.toJson(connection.mapper));
 	}
 	
 	static void saveInstance(ServerConnection connection, String data) throws JsonParseException, JsonMappingException, IOException, SQLException {
@@ -141,7 +142,7 @@ public class HumonAction {
 			// If there was a populated hID
 			if (JsonToken.FIELD_NAME.equals(token) && "iID".equals(parser.getCurrentName())) {
 				token = parser.nextToken();
-				iID = parser.getText();
+				iID = parser.getValueAsString();
 			} 
 
 		}
@@ -158,7 +159,7 @@ public class HumonAction {
 		
 		Humon requested = new Humon();
 		requested = requested.HumonInstance(resultSet);
-		
+		System.out.println(requested.toJson(new ObjectMapper()));
 		connection.sendResponse(Command.GET_INSTANCE, requested.toJson(new ObjectMapper()));
 	}
 
@@ -183,8 +184,10 @@ public class HumonAction {
 			// Else if it was a iID
 			else if (JsonToken.FIELD_NAME.equals(token) && "iID".equals(parser.getCurrentName())) {
 				// Do a lookup to get hID
+				token = parser.nextToken();
+				String iID = parser.getValueAsString();
 				ResultSet resultSet = connection.databaseConnection
-						.executeSQL("select humonID from instance where instanceID='" + parser.getText() + "';");
+						.executeSQL("select humonID from instance where instanceID='" + iID + "';");
 				
 				if (!resultSet.next()) {
 					connection.sendResponse(Command.ERROR, Message.INSTANCE_DOES_NOT_EXIST);

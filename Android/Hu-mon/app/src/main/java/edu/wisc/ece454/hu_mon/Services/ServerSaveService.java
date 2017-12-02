@@ -7,20 +7,19 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -40,74 +39,103 @@ public class ServerSaveService extends JobService {
     private boolean threadsStarted = false;
     private int numThreadsStarted = 0;
     private int numResponses = 0;
+    private int numAttempts = 0;
+    private JobParameters jobParams;
 
     @Override
     public boolean onStartJob(JobParameters params) {
-        System.out.println("Server Save Service started");
+        jobParams = params;
 
-        socketConnected = false;
-        Runnable connect = new connectSocket();
-        new Thread(connect).start();
+        Thread saveThread = new Thread() {
+            public void run() {
+                System.out.println("Server Save Service started");
 
-        //wait for socket to connect before sending
-        while(!socketConnected);
+                socketConnected = false;
+                Runnable connect = new connectSocket();
+                new Thread(connect).start();
 
-        //unpackage json strings to be sent
-        if(!threadsStarted) {
-            if(numThreadsStarted == 0) {
-                int threadCount = 0;
-                if (params.getExtras().containsKey(getString(R.string.humonsKey))) {
-                    humons = params.getExtras().getStringArray(getString(R.string.humonsKey));
-                    if (humons != null) {
-                        threadCount += humons.length;
+                Timer timer = new Timer();
+                TimerTask restartAttempts = new TimerTask() {
+                    @Override
+                    public void run() {
+                        System.out.println("Server save service timed out");
+                        numAttempts++;
                     }
+                };
+
+                //wait for socket to connect before sending
+                while(!socketConnected);
+
+                //unpackage json strings to be sent
+                if(!threadsStarted) {
+                    if(numThreadsStarted == 0) {
+                        int threadCount = 0;
+                        if (jobParams.getExtras().containsKey(getString(R.string.humonsKey))) {
+                            humons = jobParams.getExtras().getStringArray(getString(R.string.humonsKey));
+                            if (humons != null) {
+                                threadCount += humons.length;
+                            }
+                        }
+                        if (jobParams.getExtras().containsKey(getString(R.string.userKey))) {
+                            SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                                    Context.MODE_PRIVATE);
+                            user = jobParams.getExtras().getStringArray(getString(R.string.userKey))[0];
+                            threadCount += 1;
+                        }
+
+                        messThreads = new Thread[threadCount];
+                    }
+
+                    //send all humons to server
+                    for (/* Nothing */; jobParams.getExtras().containsKey(getString(R.string.humonsKey)) && humons != null
+                            && numThreadsStarted < humons.length; numThreadsStarted++) {
+
+                        Runnable sendSocket = new sendSocket(getString(R.string.ServerCommandSaveInstance),
+                                humons[numThreadsStarted]);
+
+                        messThreads[numThreadsStarted] = new Thread(sendSocket);
+                        messThreads[numThreadsStarted].start();
+                    }
+
+                    // Send the user back to the server on the alst available thread
+                    if (jobParams.getExtras().containsKey(getString(R.string.userKey))) {
+                        Runnable sendSocket = new sendSocket(getString(R.string.ServerCommandSaveUser), user);
+
+                        messThreads[numThreadsStarted] = new Thread(sendSocket);
+                        messThreads[numThreadsStarted].start();
+                        numThreadsStarted++;
+                    }
+
+                    threadsStarted = true;
                 }
-                if (params.getExtras().containsKey(getString(R.string.userKey))) {
-                    SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
-                            Context.MODE_PRIVATE);
-                    user = params.getExtras().getStringArray(getString(R.string.userKey))[0];
-                    threadCount += 1;
+
+                //wait for messages to be sent
+                int oldAttempts = numAttempts;
+                timer.schedule(restartAttempts, 10000);
+                while(numResponses < numThreadsStarted && oldAttempts == numAttempts);
+                timer.cancel();
+
+                if(oldAttempts > numAttempts) {
+                    System.out.println("Failed to save to server!");
+                    Toast toast = Toast.makeText(getApplicationContext(), "Failed to save to server!", Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+                else {
+                    System.out.println("All messages sent");
                 }
 
-                messThreads = new Thread[threadCount];
+                //Close the connection
+                try {
+                    socket.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                socket = null;
+                jobFinished(jobParams, false);
             }
+        };
 
-            //send all humons to server
-            for (/* Nothing */; params.getExtras().containsKey(getString(R.string.humonsKey)) && humons != null
-                    && numThreadsStarted < humons.length; numThreadsStarted++) {
-
-                Runnable sendSocket = new sendSocket(getString(R.string.ServerCommandSaveInstance),
-                        humons[numThreadsStarted]);
-
-                messThreads[numThreadsStarted] = new Thread(sendSocket);
-                messThreads[numThreadsStarted].start();
-            }
-
-            // Send the user back to the server on the alst available thread
-            if (params.getExtras().containsKey(getString(R.string.userKey))) {
-                Runnable sendSocket = new sendSocket(getString(R.string.ServerCommandSaveUser), user);
-
-                messThreads[numThreadsStarted] = new Thread(sendSocket);
-                messThreads[numThreadsStarted].start();
-                numThreadsStarted++;
-            }
-
-            threadsStarted = true;
-        }
-
-        //wait for messages to be sent
-        while(numResponses < numThreadsStarted);
-
-        System.out.println("All messages sent");
-
-        //Close the connection
-        try {
-            socket.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        socket = null;
-        jobFinished(params, false);
+        saveThread.run();
 
         return false;
     }
@@ -208,4 +236,5 @@ public class ServerSaveService extends JobService {
             }
         }
     }
+
 }

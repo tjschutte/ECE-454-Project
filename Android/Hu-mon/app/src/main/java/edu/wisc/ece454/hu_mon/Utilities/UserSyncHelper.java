@@ -25,7 +25,7 @@ public class UserSyncHelper extends AsyncTask<User, Integer, Boolean> {
             serverConnection.sendMessage(context.getString(R.string.ServerCommandGetHumon) + ":{\"hID\":\"" + hID + "\"}");
         }
         for (String iID : user.getParty()) {
-            serverConnection.sendMessage(context.getString(R.string.ServerCommandGetHumon) + ":{\"iID\":\"" + iID + "\"}");
+            serverConnection.sendMessage(context.getString(R.string.ServerCommandGetInstance) + ":{\"iID\":\"" + iID + "\"}");
         }
         return true;
     }

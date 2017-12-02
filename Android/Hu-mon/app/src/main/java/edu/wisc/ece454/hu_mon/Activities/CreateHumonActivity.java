@@ -24,9 +24,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -56,7 +53,7 @@ public class CreateHumonActivity extends SettingsActivity {
     private final String MOVE_DEFAULT_VALUE = "Add Move";
     private String MOVE_POSITION_KEY;
     private String MOVE_KEY;
-    private final int MAX_WIDTH = 1920;
+    private final int MAX_WIDTH = 1080;
 
     private TextView statTextView;
     private String[] moveDisplayList;

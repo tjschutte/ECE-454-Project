@@ -74,7 +74,12 @@ public class MoveListAdapter extends BaseAdapter {
         }
 
         if(damageView != null) {
-            damageView.setText("Damage: " + move.getDmg());
+            if(move.getDmg() < 0) {
+                damageView.setText("Healing: " + (move.getDmg() * -1));
+            }
+            else {
+                damageView.setText("Damage: " + move.getDmg());
+            }
         }
 
         if(effectView != null) {

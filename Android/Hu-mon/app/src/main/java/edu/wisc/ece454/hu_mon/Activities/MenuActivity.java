@@ -15,14 +15,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
@@ -30,7 +28,6 @@ import edu.wisc.ece454.hu_mon.Services.PlaceDetectionService;
 import edu.wisc.ece454.hu_mon.Services.StepService;
 import edu.wisc.ece454.hu_mon.Utilities.JobServiceScheduler;
 import edu.wisc.ece454.hu_mon.Utilities.UserHelper;
-import edu.wisc.ece454.hu_mon.Utilities.UserSyncHelper;
 
 public class MenuActivity extends SettingsActivity {
 
@@ -204,8 +201,11 @@ public class MenuActivity extends SettingsActivity {
         String[] saveHumons = null;
 
         if (user.getHcount() > 0) {
+            saveEncounteredHumons(user);
             saveHumons = saveParty(user);
         }
+        System.out.println("Encountered humons saved: " + user.getEncounteredHumons().size()
+                + " Party humons saved: " + user.getParty().size());
 
         String[] saveUser;
         try {
@@ -220,8 +220,16 @@ public class MenuActivity extends SettingsActivity {
 
     }
 
+    /*
+     * Reads all of the party humons and returns them.
+     * Updates the user object with iIDs.
+     *
+     * @param user      user object to be updated
+     * @return saveHumons   list of Humons in party saved as JSON strings
+     */
     private String[] saveParty(User user) {
 
+        System.out.println("In saveParty");
         //read in current party(if it exists)
         boolean hasPartyFile = true;
         FileInputStream inputStream;
@@ -260,6 +268,7 @@ public class MenuActivity extends SettingsActivity {
                 }
 
                 saveHumons = new String[humonsArray.length()];
+                System.out.println("Party humons in file: " + humonsArray.length());
 
                 //store all humons as JSON strings to pass to service
                 for (int j = 0; j < humonsArray.length(); j++) {
@@ -267,7 +276,6 @@ public class MenuActivity extends SettingsActivity {
                     humonJSON.put("imagePath", "");
                     saveHumons[j] = humonJSON.toString();
                     user.addPartyMember(humonJSON.getString("iID"));
-                    user.addEncounteredHumon(humonJSON.getString("hID"));
                     System.out.println("Updated user");
                     System.out.println(humonJSON.getString("iID"));
                 }
@@ -280,5 +288,66 @@ public class MenuActivity extends SettingsActivity {
             System.out.println("Unable to find party file");
         }
         return saveHumons;
+    }
+
+    /*
+     * Reads all of the encountered humons and adds the hIDs to user.
+     *
+     * @param user      user object to be updated
+     */
+    private void saveEncounteredHumons(User user) {
+
+        System.out.println("In saveEncounteredHumons");
+        //read in encountered humons
+        boolean hasIndexFile = true;
+        FileInputStream inputStream;
+        String oldIndex = "";
+        File indexFile = new File(getFilesDir(), userEmail + getString(R.string.indexFile));
+        JSONObject indexJSON;
+        JSONArray humonsArray;
+
+        try {
+            inputStream = new FileInputStream(indexFile);
+            int inputBytes = inputStream.available();
+            byte[] buffer = new byte[inputBytes];
+            inputStream.read(buffer);
+            inputStream.close();
+            oldIndex = new String(buffer, "UTF-8");
+        }
+        catch(FileNotFoundException e) {
+            e.printStackTrace();
+            System.out.println("No index currently exists for: " + userEmail);
+            hasIndexFile = false;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if(hasIndexFile) {
+            //update HID in party
+            try {
+                //append humon on to current object
+                if (oldIndex.length() == 0) {
+                    System.out.println("Index is empty.");
+                    return;
+                } else {
+                    indexJSON = new JSONObject(oldIndex);
+                    humonsArray = indexJSON.getJSONArray(getString(R.string.humonsKey));
+                }
+
+                System.out.println("Index humons in file: " + humonsArray.length());
+
+                //update user object with hIDs
+                for (int j = 0; j < humonsArray.length(); j++) {
+                    JSONObject humonJSON = new JSONObject(humonsArray.getString(j));
+                    user.addEncounteredHumon(humonJSON.getString("hID"));
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            System.out.println("Unable to find index file");
+        }
     }
 }

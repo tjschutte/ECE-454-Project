@@ -1,11 +1,13 @@
 package edu.wisc.ece454.hu_mon.Services;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 
@@ -15,16 +17,21 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Map;
 
 import edu.wisc.ece454.hu_mon.Activities.FriendsListActivity;
 import edu.wisc.ece454.hu_mon.Activities.MenuActivity;
 import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
+import edu.wisc.ece454.hu_mon.Utilities.ServerBroadcastReceiver;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "MyFirebaseMsgService";
+    private final int DELAY_MIN = 3;
+    private final int SEC_IN_MIN = 60;
+    private final int MILISEC_IN_SEC = 1000;
 
     /**
      * Called when message is received. Notification messages are only received here in onMessageReceived when the app
@@ -52,12 +59,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
             // Friend request
             if (data.containsKey(getString(R.string.ServerCommandFriendRequest))) {
-                SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(
-                        getApplicationContext().getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
-
                 String res = getString(R.string.ServerCommandFriendRequest) + ": " + data.get(getString(R.string.ServerCommandFriendRequest));
 
-                System.out.println("Faking a server message fro a friend request");
+                System.out.println("Faking a server message for a friend request");
                 Intent intent = new Intent();
                 intent.setAction(getString(R.string.serverBroadCastEvent));
                 intent.putExtra(getString(R.string.serverBroadCastResponseKey),res);
@@ -68,19 +72,44 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 NotificationManager mNotificationManager =
                         (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
+                StatusBarNotification[] curNotifications = mNotificationManager.getActiveNotifications();
+                int id;
+                if (curNotifications != null) {
+                    id = curNotifications.length + 1;
+                } else {
+                    id = 1;
+                }
+
                 Intent notificationIntent = new Intent(this, MenuActivity.class);
                 PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
                 Notification notification = new Notification.Builder(this)
-                        .setContentTitle("Battle Request")
-                        .setContentText("It's t-t-t-t-time to duel!")
+                        .setContentTitle("Battle request")
+                        .setContentText("Battle request from: ") // TODO: Fill these in from the data from server
                         .setContentIntent(pendingIntent)
                         .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
-                        .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "I GOT THIS", null) // #0
-                        .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "I DON'T GOT THIS", null)  // #1
+                        .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "Accept", null) // #0
+                        .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "Decline", null)  // #1
                         .build();
 
-                mNotificationManager.notify(69, notification);
+                // Cancel any other battle requests.
+                mNotificationManager.cancel(id);
+
+                mNotificationManager.notify(id, notification);
+
+                // set up alarm
+                AlarmManager alarmManager = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+                Intent intent = new Intent(getApplicationContext(), ServerBroadcastReceiver.class);
+                intent.setAction("CANCEL_NOTIFICATION");
+                intent.putExtra("notification_id", id);
+                PendingIntent pi = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                // Notification only lives for 1 minute
+                long currentTime = System.currentTimeMillis();
+                long alarmDelay = DELAY_MIN * SEC_IN_MIN * MILISEC_IN_SEC;
+                long alarmTrigger = currentTime + alarmDelay;
+
+                alarmManager.setExact(AlarmManager.RTC, alarmTrigger, pi);
             }
         }
 

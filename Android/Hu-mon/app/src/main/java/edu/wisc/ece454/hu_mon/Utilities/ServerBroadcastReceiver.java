@@ -1,5 +1,6 @@
 package edu.wisc.ece454.hu_mon.Utilities;
 
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -25,16 +26,27 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
         String response = intent.getStringExtra(RESPONSE_KEY);
         String command;
         String data;
-        if (response.indexOf(':') == -1) {
+        if (response == null && intent.getAction() != "CANCEL_NOTIFICATION") {
             // Got a bad response from the server. Do nothing.
             Toast toast = Toast.makeText(context, "Error communicating with server. Try again.", Toast.LENGTH_SHORT);
             toast.show();
             return;
         }
 
-        command = response.substring(0, response.indexOf(':'));
-        command = command.toUpperCase();
-        data = response.substring(response.indexOf(':') + 1, response.length());
+        if (response != null && response.indexOf(':') != -1) {
+            command = response.substring(0, response.indexOf(':'));
+            command = command.toUpperCase();
+            data = response.substring(response.indexOf(':') + 1, response.length());
+        } else {
+            if (response == null) {
+                command = intent.getAction();
+            }
+            else {
+                command = response;
+            }
+            data = "";
+        }
+
 
         if(data.length() < 100) {
             System.out.println(command + ": " + data);
@@ -120,7 +132,15 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else {
+        } else if (command.equals("CANCEL_NOTIFICATION")) {
+            int id = intent.getIntExtra("notification_id", -1);
+            if (id != -1) {
+                NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.cancel(id);
+            }
+        }
+
+        else {
             System.out.println("Command: " + command);
             System.out.println("Data: " + data);
         }

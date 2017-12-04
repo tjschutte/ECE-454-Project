@@ -24,8 +24,9 @@
     <string name="ServerCommandRegister">REGISTER</string>
     <string name="ServerCommandFriendRequest">FRIEND-REQUEST</string>
     <string name="ServerCommandFriendRequestSuccess">FRIEND-REQUEST-SUCCESS</string>
-    <string name="ServerCommandAcceptRequest">ACCEPT-FRIEND</string>
+    <string name="ServerCommandAcceptRequest">FRIEND-ADDED</string>
     <string name="ServerCommandBattleRequest">BATTLE-REQUEST</string>
+    <string name="ServerCommandBattleAction">BATTLE-ACTION</string>
     <string name="ServerCommandCreateHumon">CREATE-HUMON</string>
     <string name="ServerCommandSaveUser">SAVE-USER</string>
     <string name="ServerCommandSaveInstance">SAVE-INSTANCE</string>

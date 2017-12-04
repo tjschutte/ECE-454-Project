@@ -82,14 +82,15 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
                 Intent notificationIntent = new Intent(this, MenuActivity.class);
                 PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+                Intent launchIntent = new Intent(this, FriendsListActivity.class);
+                PendingIntent acceptIntent = PendingIntent.getActivity(this, 0, launchIntent, 0);
 
                 Notification notification = new Notification.Builder(this)
-                        .setContentTitle("Battle request")
-                        .setContentText("Battle request from: ") // TODO: Fill these in from the data from server
+                        .setContentTitle(remoteMessage.getNotification().getTitle())
+                        .setContentText(remoteMessage.getNotification().getBody()) // TODO: Fill these in from the data from server
                         .setContentIntent(pendingIntent)
                         .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
-                        .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "Accept", null) // #0
-                        .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "Decline", null)  // #1
+                        .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "Accept", acceptIntent)
                         .build();
 
                 // Cancel any other battle requests.
@@ -110,6 +111,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 long alarmTrigger = currentTime + alarmDelay;
 
                 alarmManager.setExact(AlarmManager.RTC, alarmTrigger, pi);
+            } else if (data.containsKey(getString(R.string.ServerCommandBattleAction))) {
+                // Player is in a battle, and their opponent just did something.
+                // TODO: Decide how to handlet this
             }
         }
 

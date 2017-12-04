@@ -227,11 +227,15 @@ public class UserAction {
 		JSONObject notificationData = new JSONObject();
 		notificationData.put(Command.FRIEND_REQUEST, connection.user.getEmail());
 
-		NotificationHandler.sendPushNotification(requested.getDeviceToken(), Message.NEW_FRIEND_REQUEST_TITLE,
+		boolean success = NotificationHandler.sendPushNotification(requested.getDeviceToken(), Message.NEW_FRIEND_REQUEST_TITLE,
 				connection.user.getEmail() + Message.NEW_FRIEND_REQUEST_BODY, notificationData);
 		
 		// Data was good. Send it back and let device add friend.
-		connection.sendResponse(Command.FRIEND_REQUEST_SUCCESS, data);
+		if (success) {
+			connection.sendResponse(Command.FRIEND_REQUEST_SUCCESS, data);
+		} else {
+			connection.sendResponse(Command.ERROR, Message.SERVER_ERROR_RETRY);
+		}
 	}
 	
 	// We accepted someone elses friend request. make sure they are in our friends list (on server) so we can battle.
@@ -347,9 +351,14 @@ public class UserAction {
 		JSONObject notificationData = new JSONObject();
 		notificationData.put(Command.BATTLE_REQUEST, connection.user.getEmail());
 
-		NotificationHandler.sendPushNotification(resultSet.getString(1), Message.NEW_BATTLE_REQUEST_TITLE,
+		boolean success = NotificationHandler.sendPushNotification(requested.getDeviceToken(), Message.NEW_BATTLE_REQUEST_TITLE,
 				connection.user.getEmail() + Message.NEW_BATTLE_REQUEST_BODY, notificationData);
-		connection.sendResponse(Command.BATTLE_REQUEST, Message.BATTLE_REQUEST_SENT);
+		
+		if (success) {
+			connection.sendResponse(Command.BATTLE_REQUEST, Message.BATTLE_REQUEST_SENT);
+		} else {
+			connection.sendResponse(Command.ERROR, Message.SERVER_ERROR_RETRY);
+		}
 	}
 
 	static void saveAccount(ServerConnection connection, String data) throws JsonParseException, JsonMappingException, IOException {	

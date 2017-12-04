@@ -24,10 +24,11 @@ public class NotificationHandler {
 	 * @throws IOException
 	 * @throws JSONException
 	 */
-	public static void sendPushNotification(String deviceToken, String notificationTitle, String notificationBody, JSONObject data) 
+	public static boolean sendPushNotification(String deviceToken, String notificationTitle, String notificationBody, JSONObject data) 
 			throws IOException, JSONException {
         URL url = new URL(API_URL_FCM);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        boolean success = false;
  
         conn.setUseCaches(false);
         conn.setDoInput(true);
@@ -56,8 +57,12 @@ public class NotificationHandler {
             BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
  
             String output;
-            while ((output = br.readLine()) != null) {
+            if ((output = br.readLine()) != null) {
                 Global.log(-1, "NOTIFICATION DEBUG: " + output);
+                JSONObject res = new JSONObject(output);
+                if (res.getInt("success") > 0) {
+                	success = true;
+                }
             }
             
             br.close();
@@ -66,7 +71,7 @@ public class NotificationHandler {
         } catch (Exception e) {
             e.printStackTrace();
         }
- 
+        return success;
 	}
 
 }

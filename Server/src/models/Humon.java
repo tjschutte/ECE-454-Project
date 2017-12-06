@@ -118,6 +118,10 @@ public class Humon {
 	public void setImage() {
 		this.image = "";
 	}
+	
+	public void setImage(String image) {
+		this.image = image;
+	}
 
 	public String getImage() {
 		return image;

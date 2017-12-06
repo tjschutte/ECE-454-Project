@@ -22,6 +22,7 @@ public class Command {
 	public static final String FRIEND_REQUEST_SUCCESS = "FRIEND-REQUEST-SUCCESS"; // Friend request was successful (user look up)
 	public static final String FRIEND_ADDED = 			"FRIEND-ADDED"; // User added a friend from requests
 	public static final String BATTLE_REQUEST = 		"BATTLE-REQUEST"; // Send a new battle request
+	public static final String BATTLE_ACCEPTED = 		"BATTLE-ACCEPTED"; // Other user accepted the battle.
 	
 	// Commands for when in battle
 	// Used to start the battle

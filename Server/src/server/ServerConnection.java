@@ -99,6 +99,10 @@ public class ServerConnection extends Thread {
 					case Command.BATTLE_REQUEST:
 						UserAction.battleRequest(this, data);
 						break;
+					// Accept a battle request from another user
+					case Command.BATTLE_ACCEPTED:
+						UserAction.battleAccepted(this, data);
+						break;
 					// Get the opposing players party (unique IDs, which can then be used to get humons)
 					case Command.GET_PARTY:
 						UserAction.getParty(this, data);

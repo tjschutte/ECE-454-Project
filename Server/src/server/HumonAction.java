@@ -216,6 +216,18 @@ public class HumonAction {
 		
 		Humon requested = new Humon(resultSet);
 		
+		resultSet = connection.databaseConnection
+				.executeSQL("select * from image where imageid='" + hID + "';");
+		
+		if (!resultSet.next()) {
+			connection.sendResponse(Command.ERROR, Message.HUMON_DOES_NOT_EXIST);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.SERVER_ERROR_RETRY);
+			return;
+		}
+		
+		// Sed the image back on the Humon object.
+		requested.setImage(resultSet.getString(2));
+		
 		connection.sendResponse(Command.GET_HUMON, requested.toJson(new ObjectMapper()));
 		
 	}

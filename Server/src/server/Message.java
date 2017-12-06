@@ -36,5 +36,8 @@ public class Message {
 	public static final String NEW_BATTLE_REQUEST_TITLE =	"New battle request!";
 	public static final String NEW_BATTLE_REQUEST_BODY =	" has challenged you to a battle!";
 	public static final String BATTLE_REQUEST_SENT = 		"Battle request succesfully sent!";
+	
+	public static final String BATTLE_ACCEPTED = 			"Your battle request has been accepted!";
+	public static final String BATTLE_ACCEPTED_BODY =		" has accepted your request to battle!";
 
 }

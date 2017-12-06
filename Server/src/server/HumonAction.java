@@ -147,7 +147,6 @@ public class HumonAction {
 
 		}
 		
-		// Do a lookup to get hID
 		ResultSet resultSet = connection.databaseConnection
 				.executeSQL("select * from instance where instanceID='" + iID + "';");
 		
@@ -157,10 +156,26 @@ public class HumonAction {
 			return;
 		}
 		
-		Humon requested = new Humon();
-		requested = requested.HumonInstance(resultSet);
-		System.out.println(requested.toJson(new ObjectMapper()));
-		connection.sendResponse(Command.GET_INSTANCE, requested.toJson(new ObjectMapper()));
+		Humon requestedInstance = new Humon();
+		requestedInstance = requestedInstance.HumonInstance(resultSet);
+		
+		resultSet = connection.databaseConnection
+				.executeSQL("select * from humon where humonID='" + requestedInstance.gethID() + "';");
+		
+		if (!resultSet.next()) {
+			connection.sendResponse(Command.ERROR, Message.INSTANCE_DOES_NOT_EXIST);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.INSTANCE_DOES_NOT_EXIST);
+			return;
+		}
+		
+		Humon requestedHumon = new Humon(resultSet);
+		
+		// Combine moves onto the object
+		requestedInstance.setMoves(requestedHumon.getMoves());
+		
+		System.out.println(requestedInstance.toJson(new ObjectMapper()));
+
+		connection.sendResponse(Command.GET_INSTANCE, requestedInstance.toJson(new ObjectMapper()));
 	}
 
 	static void getHumon(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException {

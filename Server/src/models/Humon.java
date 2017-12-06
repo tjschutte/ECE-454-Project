@@ -154,6 +154,10 @@ public class Humon {
 	public ArrayList<Move> getMoves() {
 		return moves;
 	}
+	
+	public void setMoves(ArrayList<Move> moves) {
+		this.moves = moves;
+	}
 
 	public int getLevel() {
 		return level;

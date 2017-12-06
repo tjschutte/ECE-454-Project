@@ -161,7 +161,9 @@ public class ServerConnection extends Thread {
 	public void sendResponse(String cmd, String msg) {
 		clientOut.println(cmd + ": " + msg);
 		clientOut.flush();
-		Global.log(clientNumber, "Client was sent <cmd:msg> [" + cmd + ": " + msg + "]");
+		if (!cmd.equals(Command.GET_HUMON)) {
+			Global.log(clientNumber, "Client was sent <cmd:msg> [" + cmd + ": " + msg + "]");
+		}
 	}
 
 }

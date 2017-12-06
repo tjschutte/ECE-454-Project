@@ -11,11 +11,13 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.IBinder;
 import android.util.Log;
 
 import edu.wisc.ece454.hu_mon.Activities.WildBattleActivity;
 import edu.wisc.ece454.hu_mon.R;
+import edu.wisc.ece454.hu_mon.Utilities.HumonHealTask;
 
 public class StepService extends Service implements SensorEventListener {
 
@@ -62,19 +64,26 @@ public class StepService extends Service implements SensorEventListener {
             double steps = event.values[0];
             Log.d(TAG,"Steps: " + steps);
             if(steps % 10 == 0) {
+
+                //heal humons
+                AsyncTask<Integer, Integer, Boolean> healHumonTask = new HumonHealTask(getApplicationContext());
+                healHumonTask.execute(1);
+
                 double humonFind = Math.random();
                 SharedPreferences sharedPref = getSharedPreferences(
                         getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
                 boolean gameRunning = sharedPref.getBoolean(getString(R.string.gameRunningKey), false);
+                boolean searchCheat = sharedPref.getBoolean(getString(R.string.searchCheatKey), false);
                 System.out.println("Step Service: game running: " + gameRunning);
-                if(humonFind < .2 && sharedPref.getBoolean(getString(R.string.healthyPlaceKey), false)
+
+                //find humons with no cheats
+                if(humonFind < .2 && (sharedPref.getBoolean(getString(R.string.healthyPlaceKey), false) || searchCheat)
                         && !gameRunning) {
                     System.out.println("Wild hu-mon found!");
                     wildHumonNotification();
                 }
 
-                //Debug purposes only
-                //retrieve email of the user
+                //debug only
                 String userEmail = sharedPref.getString(getString(R.string.emailKey), "");
                 if((userEmail.equals("test")  || userEmail.equals("dev")) && humonFind < 1 &&
                         !gameRunning) {

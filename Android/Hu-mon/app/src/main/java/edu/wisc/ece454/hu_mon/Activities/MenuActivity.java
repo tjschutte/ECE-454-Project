@@ -3,6 +3,7 @@ package edu.wisc.ece454.hu_mon.Activities;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -26,6 +27,7 @@ import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Services.PlaceDetectionService;
 import edu.wisc.ece454.hu_mon.Services.StepService;
+import edu.wisc.ece454.hu_mon.Utilities.HumonHealTask;
 import edu.wisc.ece454.hu_mon.Utilities.JobServiceScheduler;
 import edu.wisc.ece454.hu_mon.Utilities.UserHelper;
 
@@ -48,7 +50,8 @@ public class MenuActivity extends SettingsActivity {
     private final String FRIENDS_LIST = "Friends List";
     private final String MAP = "Map";
     private final String CREATE_HUMON = "Create Hu-mon";
-    private final String HUMON_SEARCH = "Search for Hu-mons (dev)";
+    private final String FIND_HUMONS = "Find Hu-mons anywhere (cheat)";
+    private final String HEAL_HUMONS = "Fully Heal Hu-mons (cheat)";
 
     User user;
 
@@ -81,7 +84,7 @@ public class MenuActivity extends SettingsActivity {
             editor.commit();
         }
 
-        menuOption = new String[]{HUMON_INDEX, PARTY, FRIENDS_LIST, MAP, CREATE_HUMON, HUMON_SEARCH};
+        menuOption = new String[]{HUMON_INDEX, PARTY, FRIENDS_LIST, MAP, CREATE_HUMON, HEAL_HUMONS, FIND_HUMONS};
 
 
         menuListView = (ListView) findViewById(R.id.menuListView);
@@ -102,6 +105,19 @@ public class MenuActivity extends SettingsActivity {
     @Override
     protected void onStart() {
         super.onStart();
+
+        user = UserHelper.loadUser(this);
+        if(user.getHcount() > 0) {
+            if(stepServiceIntent == null) {
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        "Began searching for hu-mons, will notify when hu-mon found.", Toast.LENGTH_LONG);
+                toast.show();
+                placeService = new Intent(this, PlaceDetectionService.class);
+                stepServiceIntent = new Intent(this, StepService.class);
+                startService(placeService);
+                startService(stepServiceIntent);
+            }
+        }
     }
 
     @Override
@@ -122,6 +138,7 @@ public class MenuActivity extends SettingsActivity {
                 Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putBoolean(getString(R.string.gameRunningKey), false);
+        editor.putBoolean(getString(R.string.searchCheatKey), false);
         editor.commit();
 
         // Save any pertinant data back to the server.
@@ -165,26 +182,20 @@ public class MenuActivity extends SettingsActivity {
                 intent = new Intent(this, CreateHumonImageActivity.class);
                 startActivity(intent);
                 break;
-            case HUMON_SEARCH:
-                user = UserHelper.loadUser(this);
-                if(user.getHcount() > 0) {
-                    if(stepServiceIntent == null) {
-                        toast.setText("Began searching for hu-mons, will notify when hu-mon found.");
-                        toast.show();
-                        placeService = new Intent(this, PlaceDetectionService.class);
-                        stepServiceIntent = new Intent(this, StepService.class);
-                        startService(placeService);
-                        startService(stepServiceIntent);
-                    }
-                    else {
-                        toast.setText("Already searching for hu-mons!");
-                        toast.show();
-                    }
-                }
-                else {
-                    toast.setText("Cannot search without a humon.");
-                    toast.show();
-                }
+            case HEAL_HUMONS:
+                AsyncTask<Integer, Integer, Boolean> healHumonTask = new HumonHealTask(getApplicationContext());
+                healHumonTask.execute(200);
+                toast.setText("Healed Hu-mons! Cheater!");
+                toast.show();
+                break;
+            case FIND_HUMONS:
+                SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                        Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putBoolean(getString(R.string.searchCheatKey), true);
+                editor.commit();
+                toast.setText("Able to find Hu-mons anywhere! Cheater!");
+                toast.show();
                 break;
             default:
                 toast.setText("Error: Bad Menu Item");

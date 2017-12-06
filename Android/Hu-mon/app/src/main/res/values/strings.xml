@@ -20,6 +20,7 @@
     <string name="userKey">user</string>
     <string name="userObjectKey">userObjectKey</string>
     <string name="healthyPlaceKey">inHealthyPlace</string>
+    <string name="searchCheatKey">search cheat</string>
     <string name="ServerCommandLogin">LOGIN</string>
     <string name="ServerCommandRegister">REGISTER</string>
     <string name="ServerCommandFriendRequest">FRIEND-REQUEST</string>

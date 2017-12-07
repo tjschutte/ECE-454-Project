@@ -1059,7 +1059,7 @@ public class WildBattleActivity extends SettingsActivity {
      */
     private void saveHumons() {
 
-        AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(this);
+        AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(this, false);
         if(capturedHumon) {
             //save player's humon data and new humon to party
             partySaveTask.execute(new Humon[]{playerHumon, enemyHumon});

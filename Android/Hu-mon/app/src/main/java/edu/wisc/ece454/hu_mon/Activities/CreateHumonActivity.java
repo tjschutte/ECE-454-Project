@@ -523,14 +523,16 @@ public class CreateHumonActivity extends SettingsActivity {
                 String humonName = nameText.getText().toString();
                 if(humonName.isEmpty()) {
                     //save humon data to party
-                    AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext());
+                    AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext(), false);
                     partySaveTask.execute(saveHumon);
                 }
                 else {
                     //save humon data to index
                     saveHumon.setName(humonName);
-                    AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext());
+                    AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext(), false);
                     partySaveTask.execute(saveHumon);
+
+
                 }
 
                 //send humon object to server

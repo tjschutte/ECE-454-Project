@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -155,6 +156,14 @@ public class LoginActivity extends AppCompatActivity {
                 i.putExtra(getString(R.string.userObjectKey), data);
 
                 user = UserHelper.objFromString(data);
+
+                //Save how many humons should be received
+                SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                        Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putInt(getString(R.string.expectedHumonsKey), user.getEncounteredHumons().size());
+                editor.putInt(getString(R.string.expectedPartyKey), user.getParty().size());
+                editor.commit();
 
                 UserSyncHelper syncer = new UserSyncHelper(context, user, mServerConnection);
                 syncer.execute(user);

@@ -15,6 +15,7 @@
     <string name="sharedPreferencesFile">edu.wisc.ece454.hu_mon.sharedPreferences</string>
     <string name="indexFile">-index.json</string>
     <string name="partyFile">-party.json</string>
+    <string name="enemyPartyFile">enemyParty.json</string>
     <string name="humonKey">humon</string>
     <string name="humonsKey">humons</string>
     <string name="userKey">user</string>
@@ -33,5 +34,7 @@
     <string name="ServerCommandSaveInstance">SAVE-INSTANCE</string>
     <string name="ServerCommandGetInstance">GET-INSTANCE</string>
     <string name="ServerCommandGetHumon">GET-HUMON</string>
+    <string name="expectedHumonsKey">expected humons</string>
+    <string name="expectedPartyKey">expected party humons</string>
 
 </resources>

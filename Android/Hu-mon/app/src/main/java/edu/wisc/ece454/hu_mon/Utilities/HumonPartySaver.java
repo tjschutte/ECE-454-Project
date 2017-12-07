@@ -30,9 +30,11 @@ import edu.wisc.ece454.hu_mon.R;
 public class HumonPartySaver extends AsyncTask<Humon, Integer, Boolean> {
 
     private Context context;
+    private boolean isEnemy;
 
-    public HumonPartySaver(Context context) {
+    public HumonPartySaver(Context context, boolean isEnemy) {
         this.context = context;
+        this.isEnemy = isEnemy;
     }
 
     @Override
@@ -51,6 +53,9 @@ public class HumonPartySaver extends AsyncTask<Humon, Integer, Boolean> {
                 context.getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
         String userEmail = sharedPref.getString(context.getString(R.string.emailKey), "");
         String filename = userEmail + context.getString(R.string.partyFile);
+        if(isEnemy) {
+            filename = context.getString(R.string.enemyPartyFile);
+        }
         File partyFile = new File(context.getFilesDir(), filename);
 
         //read in current party (if it exists)
@@ -86,23 +91,17 @@ public class HumonPartySaver extends AsyncTask<Humon, Integer, Boolean> {
             for(int i = 0; i < humons.length; i++) {
 
                 //check if humon is already in party (and is being updated)
-                int oldIndex = -1;
                 for(int j = 0; j < humonsArray.length(); j++) {
                     JSONObject dupCheck = new JSONObject(humonsArray.getString(j));
                     if(dupCheck.getString("iID").equals(humons[i].getiID())) {
                         //remove humon so it is updated
                         humonsArray.remove(j);
-                        oldIndex = j;
                         break;
                     }
                 }
 
-                if(oldIndex == -1) {
-                    humonsArray.put(humons[i].toJson(new ObjectMapper()));
-                }
-                else {
-                    humonsArray.put(oldIndex, humons[i].toJson(new ObjectMapper()));
-                }
+                System.out.println("Saving party humon: " + humons[i].getiID());
+                humonsArray.put(humons[i].toJson(new ObjectMapper()));
 
             }
 

@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.Models.User;
@@ -22,6 +23,11 @@ import edu.wisc.ece454.hu_mon.R;
 
 public class ServerBroadcastReceiver extends BroadcastReceiver {
     final String RESPONSE_KEY = "RESPONSE";
+
+    //queue of humons to be saved
+    private static ArrayList<Humon> indexHumons = new ArrayList<Humon>();
+    private static ArrayList<Humon> partyHumons = new ArrayList<Humon>();
+    private static ArrayList<Humon> enemyHumons = new ArrayList<Humon>();
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -153,9 +159,43 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                 File imageFile = new File(context.getFilesDir(), partyHumon.gethID() + ".jpg");
                 partyHumon.setImagePath(imageFile.getPath());
 
-                //save Humon to file
-                AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(context);
-                partySaveTask.execute(partyHumon);
+                String humonOwner = partyHumon.getiID().substring(0, partyHumon.getiID().indexOf("-"));
+                System.out.println("Owner of humon: " + humonOwner);
+
+                //retrieve email of the user
+                SharedPreferences sharedPref = context.getSharedPreferences(
+                        context.getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+                String userEmail = sharedPref.getString(context.getString(R.string.emailKey), "");
+
+                if(userEmail.equals(humonOwner)) {
+
+                    //Add Humon to queue to be saved
+                    partyHumons.add(partyHumon);
+
+                    //save Humon to file
+                    if(partyHumons.size() >= sharedPref.getInt(context.getString(R.string.expectedPartyKey), 0)) {
+                        Humon [] partyHumonArray = partyHumons.toArray(new Humon[partyHumons.size()]);
+                        partyHumons.clear();
+
+                        System.out.println("Saving " + partyHumonArray.length + " party humons");
+
+                        AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(context, false);
+                        partySaveTask.execute(partyHumonArray);
+                    }
+
+                }
+                else {
+                    System.out.println("Saving to enemy party file");
+                    //save Humon to file
+                    //AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(context, true);
+                    //partySaveTask.execute(partyHumon);
+
+                    //Add Humon to queue to be saved
+                    enemyHumons.add(partyHumon);
+
+
+                }
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -165,32 +205,42 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
             final Context saveContext = context;
             System.out.println("Received Encountered Humon");
 
-           Thread saveThread = new Thread() {
-                public void run() {
+
                     try {
                         ObjectMapper mapper = new ObjectMapper();
                         //create Humon object from payload
                         Humon indexHumon = mapper.readValue(humonData, Humon.class);
-                        System.out.println("Received Encountered Humon: " + indexHumon.getName() + " hID: " + indexHumon.getiID());
+                        System.out.println("Received Encountered Humon: " + indexHumon.getName() + " hID: " + indexHumon.gethID());
 
                         //retrieve email of the user
                         SharedPreferences sharedPref = saveContext.getSharedPreferences(
                                 saveContext.getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
                         String userEmail = sharedPref.getString(saveContext.getString(R.string.emailKey), "");
 
+                        //Add Humon to queue to be saved
+                        indexHumons.add(indexHumon);
+
+                        System.out.println("Number encountered: "+ indexHumons.size() + " Expected: " +
+                                sharedPref.getInt(saveContext.getString(R.string.expectedHumonsKey), 0));
+
                         //save Humon to file
-                        AsyncTask<Humon, Integer, Boolean> indexSaveTask = new HumonIndexSaver(userEmail + saveContext.getString(R.string.indexFile),
+                        if(indexHumons.size() >= sharedPref.getInt(saveContext.getString(R.string.expectedHumonsKey), 0)) {
+                            Humon [] indexHumonArray = indexHumons.toArray(new Humon[indexHumons.size()]);
+                            indexHumons.clear();
+
+                            System.out.println("Saving " + indexHumonArray.length + " encountered humons");
+
+                            AsyncTask<Humon, Integer, Boolean> indexSaveTask = new HumonIndexSaver(userEmail + saveContext.getString(R.string.indexFile),
                                 userEmail, saveContext, saveContext.getString(R.string.humonsKey), true);
-                        indexSaveTask.execute(indexHumon);
+                            indexSaveTask.execute(indexHumonArray);
+                        }
+
 
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                }
-            };
-            saveThread.run();
         }
 
         else {
@@ -198,4 +248,5 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
             System.out.println("Data: " + data);
         }
     }
+
 }

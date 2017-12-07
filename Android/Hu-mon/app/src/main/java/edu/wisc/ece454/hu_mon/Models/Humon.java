@@ -1,15 +1,12 @@
 package edu.wisc.ece454.hu_mon.Models;
 
-import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Base64;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -17,7 +14,7 @@ public class Humon extends Jsonable implements Parcelable{
 
     private String name; 			// humon name
     private String description;     // Description about how kewl your humon is
-    private Bitmap image;			// image of humon
+    private String image;			// image of humon
     private String imagePath;       // location of image file on phone
     private int level;              // The current level of the humon-instance
     private int xp;                 // current amount of xp
@@ -34,7 +31,11 @@ public class Humon extends Jsonable implements Parcelable{
 
     // Moves will be a combination of <Name, id> to m ap to template moves.
 
-    public Humon(String name, String description, Bitmap image, int level, int xp, int hID, String uID,
+    public Humon() {
+
+    }
+
+    public Humon(String name, String description, String image, int level, int xp, int hID, String uID,
                  String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense,
                  String imagePath, int hp) {
         this.name = name;
@@ -55,10 +56,6 @@ public class Humon extends Jsonable implements Parcelable{
         this.defense = defense;
     }
 
-    public Humon(ObjectMapper mapper, String json) {
-        System.out.println("This is not yet supported");
-    }
-
     public String getName() {
         return name;
     }
@@ -71,9 +68,7 @@ public class Humon extends Jsonable implements Parcelable{
 
     public String getImage() {
         if(image != null) {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            image.compress(Bitmap.CompressFormat.PNG, 100, bytes);
-            return Base64.encodeToString(bytes.toByteArray(), Base64.DEFAULT);
+            return image;
         }
         else {
             return "";
@@ -82,11 +77,6 @@ public class Humon extends Jsonable implements Parcelable{
 
     public String getImagePath() {
         return imagePath;
-    }
-
-    @JsonIgnore
-    public Bitmap getBitmap() {
-        return image;
     }
 
     public int gethID() {
@@ -236,7 +226,7 @@ public class Humon extends Jsonable implements Parcelable{
         return defense;
     }
 
-    public void setImage(Bitmap image) {
+    public void setImage(String image) {
         this.image = image;
     }
 
@@ -269,7 +259,7 @@ public class Humon extends Jsonable implements Parcelable{
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(name);
         dest.writeString(description);
-        dest.writeValue(image);
+        dest.writeString(image);
         dest.writeString(imagePath);
         dest.writeInt(level);
         dest.writeInt(xp);
@@ -302,7 +292,7 @@ public class Humon extends Jsonable implements Parcelable{
     private Humon(Parcel in) {
         name = in.readString();
         description = in.readString();
-        image = (Bitmap) in.readValue(null);
+        image = in.readString();
         imagePath = in.readString();
         level = in.readInt();
         xp = in.readInt();

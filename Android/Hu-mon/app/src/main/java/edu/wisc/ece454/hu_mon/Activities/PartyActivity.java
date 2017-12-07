@@ -3,7 +3,6 @@ package edu.wisc.ece454.hu_mon.Activities;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -111,7 +110,7 @@ public class PartyActivity extends SettingsActivity {
                         JSONObject humonJson = new JSONObject(humonString);
                         String name = humonJson.getString("name");
                         String description = humonJson.getString("description");
-                        Bitmap image = null;
+                        String image = null;
                         int level = humonJson.getInt("level");
                         int xp = humonJson.getInt("xp");
                         int hp = humonJson.getInt("hp");

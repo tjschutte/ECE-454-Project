@@ -12,9 +12,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
 
@@ -138,6 +140,57 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                 NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.cancel(id);
             }
+        }
+        else if(command.equals(context.getString(R.string.ServerCommandGetInstance))) {
+            System.out.println("Received Instance Humon");
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                //create Humon object from payload
+                Humon partyHumon = mapper.readValue(data, Humon.class);
+                System.out.println("Received Party Humon: " + partyHumon.getName() + " iID: " + partyHumon.getiID());
+
+                //tell Humon where to expect image file
+                File imageFile = new File(context.getFilesDir(), partyHumon.gethID() + ".jpg");
+                partyHumon.setImagePath(imageFile.getPath());
+
+                //save Humon to file
+                AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(context);
+                partySaveTask.execute(partyHumon);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        else if(command.equals(context.getString(R.string.ServerCommandGetHumon))) {
+            final String humonData = data;
+            final Context saveContext = context;
+            System.out.println("Received Encountered Humon");
+
+           Thread saveThread = new Thread() {
+                public void run() {
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        //create Humon object from payload
+                        Humon indexHumon = mapper.readValue(humonData, Humon.class);
+                        System.out.println("Received Encountered Humon: " + indexHumon.getName() + " hID: " + indexHumon.getiID());
+
+                        //retrieve email of the user
+                        SharedPreferences sharedPref = saveContext.getSharedPreferences(
+                                saveContext.getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+                        String userEmail = sharedPref.getString(saveContext.getString(R.string.emailKey), "");
+
+                        //save Humon to file
+                        AsyncTask<Humon, Integer, Boolean> indexSaveTask = new HumonIndexSaver(userEmail + saveContext.getString(R.string.indexFile),
+                                userEmail, saveContext, saveContext.getString(R.string.humonsKey), true);
+                        indexSaveTask.execute(indexHumon);
+
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+            saveThread.run();
         }
 
         else {

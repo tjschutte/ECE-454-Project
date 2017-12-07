@@ -216,7 +216,7 @@ public class WildBattleActivity extends SettingsActivity {
                     JSONObject humonJson = new JSONObject(humonString);
                     String name = humonJson.getString("name");
                     String description = humonJson.getString("description");
-                    Bitmap image = null;
+                    String image = null;
                     int level = 1;
                     int xp = humonJson.getInt("xp");
                     int hp = humonJson.getInt("health");
@@ -468,7 +468,7 @@ public class WildBattleActivity extends SettingsActivity {
                     JSONObject humonJson = new JSONObject(humonString);
                     String name = humonJson.getString("name");
                     String description = humonJson.getString("description");
-                    Bitmap image = null;
+                    String image = null;
                     int level = humonJson.getInt("level");
                     int xp = humonJson.getInt("xp");
                     int hp = humonJson.getInt("hp");

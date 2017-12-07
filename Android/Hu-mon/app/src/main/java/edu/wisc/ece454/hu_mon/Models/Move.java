@@ -60,6 +60,10 @@ public class Move extends Jsonable implements Parcelable {
     private boolean hasEffect;
     private String description;
 
+    public Move() {
+
+    }
+
 
     public Move(int id, String name, boolean selfCast, int dmg, Effect effect, boolean hasEffect, String description) {
         this.id = id;

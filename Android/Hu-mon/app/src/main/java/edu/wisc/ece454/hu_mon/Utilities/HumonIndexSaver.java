@@ -31,12 +31,14 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
     private String email = "";
     private Context context;
     private String HUMONS_KEY = "";
+    private boolean isSync;
 
-    public HumonIndexSaver(String filename, String email, Context context, String key) {
+    public HumonIndexSaver(String filename, String email, Context context, String key, boolean isSync) {
         this.filename = filename;
         this.email = email;
         this.context = context;
         HUMONS_KEY = key;
+        this.isSync = isSync;
     }
 
     @Override
@@ -80,21 +82,43 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
                 humonsArray = indexJSON.getJSONArray(HUMONS_KEY);
             }
 
-            for(int i = 0; i < humons.length; i++) {
-                //check that name is not duplicated (for user's email only)
-                for(int j = 0; j < humonsArray.length(); j++) {
-                    JSONObject dupCheck = new JSONObject(humonsArray.getString(j));
-                    if(dupCheck.getString("name").equals(humons[i].getName())) {
-                        if(dupCheck.getString("uID").equals(email)) {
-                            if(dupCheck.getString("description").equals(humons[i].getDescription())) {
-                                return false;
+            if(isSync) {
+                for(int i = 0; i < humons.length; i++) {
+                    boolean updatedHumon = false;
+                    //check if humon should be updated
+                    for(int j = 0; j < humonsArray.length(); j++) {
+                        JSONObject dupCheck = new JSONObject(humonsArray.getString(j));
+                        if(dupCheck.getInt("hID") == humons[i].gethID()) {
+
+                            //update the old humon
+                            updatedHumon = true;
+                            humonsArray.remove(j);
+                            humonsArray.put(j, humons[i].toJson(new ObjectMapper()));
+                            break;
+                        }
+                    }
+
+                    if(!updatedHumon) {
+                        humonsArray.put(humons[i].toJson(new ObjectMapper()));
+                    }
+                }
+            }
+            else {
+                for(int i = 0; i < humons.length; i++) {
+                    //check that name is not duplicated (for user's email only)
+                    for(int j = 0; j < humonsArray.length(); j++) {
+                        JSONObject dupCheck = new JSONObject(humonsArray.getString(j));
+                        if(dupCheck.getString("name").equals(humons[i].getName())) {
+                            if(dupCheck.getString("uID").equals(email)) {
+                                if(dupCheck.getString("description").equals(humons[i].getDescription())) {
+                                    return false;
+                                }
                             }
                         }
                     }
+                    humonsArray.put(humons[i].toJson(new ObjectMapper()));
                 }
-                humonsArray.put(humons[i].toJson(new ObjectMapper()));
             }
-
             indexJSON.put(HUMONS_KEY, humonsArray);
 
         } catch (Exception e) {

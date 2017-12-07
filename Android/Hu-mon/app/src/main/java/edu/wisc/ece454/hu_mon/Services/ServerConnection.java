@@ -2,13 +2,18 @@ package edu.wisc.ece454.hu_mon.Services;
 
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Base64;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -16,6 +21,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.Models.Jsonable;
 import edu.wisc.ece454.hu_mon.R;
 
@@ -142,6 +148,40 @@ public class ServerConnection extends Service {
                 while (true) {
                     String res = in.readLine();
                     System.out.println("Server response: " + res);
+
+                    //Rewrite image since too large for parcel
+                    if (res != null && res.indexOf(':') != -1) {
+                        String command = res.substring(0, res.indexOf(':'));
+                        String data = res.substring(res.indexOf(':') + 1, res.length());
+
+                        //write image
+                        if(command.toUpperCase().equals(getString(R.string.ServerCommandGetHumon))) {
+                            System.out.println("GET-HUMON response, saving image");
+                            ObjectMapper mapper = new ObjectMapper();
+                            //create Humon object from payload
+                            Humon indexHumon = mapper.readValue(data, Humon.class);
+
+                            //tell Humon where to expect image file
+                            File imageFile = new File(getFilesDir(), indexHumon.gethID() + ".jpg");
+                            indexHumon.setImagePath(imageFile.getPath());
+
+                            //Create bitmap of image to be stored
+                            byte[] imageAsBytes = Base64.decode(indexHumon.getImage().getBytes(), Base64.DEFAULT);
+                            Bitmap humonImage = BitmapFactory.decodeByteArray(imageAsBytes, 0, imageAsBytes.length);
+
+                            //save image to file
+                            FileOutputStream outputStream = new FileOutputStream(imageFile);
+                            humonImage.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+                            outputStream.close();
+
+                            //remove image from Humon object
+                            indexHumon.setImage(null);
+
+                            //fix response
+                            res = command + ": " + indexHumon.toJson(mapper);
+                            System.out.println("New response: " + res);
+                        }
+                    }
 
                     if (res != null && !res.isEmpty()) {
                         Intent intent = new Intent();

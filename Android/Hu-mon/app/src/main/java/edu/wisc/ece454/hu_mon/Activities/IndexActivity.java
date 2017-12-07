@@ -115,7 +115,7 @@ public class IndexActivity extends SettingsActivity {
                         JSONObject humonJson = new JSONObject(humonString);
                         String name = humonJson.getString("name");
                         String description = humonJson.getString("description");
-                        Bitmap image = null;
+                        String image = null;
                         int level = humonJson.getInt("level");
                         int xp = humonJson.getInt("xp");
                         int hID = humonJson.getInt("hID");

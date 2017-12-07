@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -392,8 +394,13 @@ public class CreateHumonActivity extends SettingsActivity {
                 getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
         userEmail = sharedPref.getString(getString(R.string.emailKey), "");
 
+        //convert to string to send to server
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        humonImage.compress(Bitmap.CompressFormat.PNG, 100, bytes);
+        String humonImageString = Base64.encodeToString(bytes.toByteArray(), Base64.DEFAULT);
+
         // String name, String description, Bitmap image, int level, int xp, int hID, String uID, String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense
-        Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, userEmail, "",
+        Humon h = new Humon(humonName, humonDescription, humonImageString, 1, 0, 0, userEmail, "",
                 movesArrayList, health*10, luck, attack, speed, defense, "", health*10);
 
         //Store image path instead of image locally
@@ -407,7 +414,7 @@ public class CreateHumonActivity extends SettingsActivity {
 
         //save humon data to index
         AsyncTask<Humon, Integer, Boolean> indexSaveTask = new HumonIndexSaver(userEmail + getString(R.string.indexFile),
-                userEmail, this, getString(R.string.humonsKey));
+                userEmail, this, getString(R.string.humonsKey), false);
         indexSaveTask.execute(localHumon);
 
         //Create an instance if first humon

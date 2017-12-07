@@ -93,7 +93,7 @@ public class HumonHealTask extends AsyncTask<Integer, Integer, Boolean> {
                 }
                 humon.put("hp", hp);
                 //write updated humon to party
-                humonsArray.remove(j);
+                //humonsArray.remove(j);
                 humonsArray.put(j, humon);
             }
 

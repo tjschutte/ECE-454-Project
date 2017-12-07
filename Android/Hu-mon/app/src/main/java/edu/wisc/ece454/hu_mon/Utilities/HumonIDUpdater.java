@@ -116,7 +116,7 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
                                 //System.out.println("New image path: " + newImageFile.getPath());
                                 dupCheck.put("imagePath", newImageFile.getPath());
 
-                                humonsArray.remove(j);
+                                //humonsArray.remove(j);
                                 humonsArray.put(j, dupCheck);
                                 foundHumon = true;
                                 break;
@@ -190,7 +190,7 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
                                     dupCheck.put("imagePath", newImageFile.getPath());
                                 }
 
-                                humonsArray.remove(j);
+                                //humonsArray.remove(j);
                                 humonsArray.put(j, dupCheck);
                                 foundHumon = true;
                                 break;

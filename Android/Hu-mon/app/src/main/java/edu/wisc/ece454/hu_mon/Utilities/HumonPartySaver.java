@@ -89,19 +89,22 @@ public class HumonPartySaver extends AsyncTask<Humon, Integer, Boolean> {
             }
 
             for(int i = 0; i < humons.length; i++) {
-
+                boolean humonUpdated = false;
                 //check if humon is already in party (and is being updated)
                 for(int j = 0; j < humonsArray.length(); j++) {
                     JSONObject dupCheck = new JSONObject(humonsArray.getString(j));
                     if(dupCheck.getString("iID").equals(humons[i].getiID())) {
                         //remove humon so it is updated
-                        humonsArray.remove(j);
+                        //humonsArray.remove(j);
+                        humonsArray.put(j, humons[i].toJson(new ObjectMapper()));
                         break;
                     }
                 }
 
-                System.out.println("Saving party humon: " + humons[i].getiID());
-                humonsArray.put(humons[i].toJson(new ObjectMapper()));
+                if(!humonUpdated) {
+                    System.out.println("Saving party humon: " + humons[i].getiID());
+                    humonsArray.put(humons[i].toJson(new ObjectMapper()));
+                }
 
             }
 

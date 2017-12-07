@@ -84,17 +84,23 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
 
             if(isSync) {
                 for(int i = 0; i < humons.length; i++) {
+                    boolean humonUpdated = false;
                     //check if humon should be updated
                     for(int j = 0; j < humonsArray.length(); j++) {
                         JSONObject dupCheck = new JSONObject(humonsArray.getString(j));
                         if(dupCheck.getInt("hID") == humons[i].gethID()) {
                             //update the old humon
-                            humonsArray.remove(j);
+                            //humonsArray.remove(j);
+                            humonsArray.put(j, humons[i].toJson(new ObjectMapper()));
+                            humonUpdated = true;
                             break;
                         }
                     }
 
-                    humonsArray.put(humons[i].toJson(new ObjectMapper()));
+                    if(!humonUpdated) {
+                        humonsArray.put(humons[i].toJson(new ObjectMapper()));
+                    }
+
                 }
             }
             else {

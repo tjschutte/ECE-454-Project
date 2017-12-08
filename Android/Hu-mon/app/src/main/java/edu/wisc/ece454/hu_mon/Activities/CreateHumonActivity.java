@@ -160,12 +160,13 @@ public class CreateHumonActivity extends SettingsActivity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         // make sure to unbind
         if (mBound) {
             unbindService(mServiceConnection);
             mBound = false;
         }
+
+        super.onDestroy();
     }
 
     @Override

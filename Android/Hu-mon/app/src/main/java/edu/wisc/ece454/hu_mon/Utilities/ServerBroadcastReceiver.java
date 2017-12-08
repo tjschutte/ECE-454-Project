@@ -185,14 +185,20 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
 
                 }
                 else {
-                    System.out.println("Saving to enemy party file");
-                    //save Humon to file
-                    //AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(context, true);
-                    //partySaveTask.execute(partyHumon);
 
                     //Add Humon to queue to be saved
                     enemyHumons.add(partyHumon);
 
+                    //save Humon to file
+                    if(enemyHumons.size() >= sharedPref.getInt(context.getString(R.string.expectedEnemiesKey), 0)) {
+                        Humon [] enemyHumonArray = enemyHumons.toArray(new Humon[enemyHumons.size()]);
+                        enemyHumons.clear();
+
+                        System.out.println("Saving " + enemyHumonArray.length + " enemy humons");
+
+                        AsyncTask<Humon, Integer, Boolean> enemySaveTask = new HumonPartySaver(context, true);
+                        enemySaveTask.execute(enemyHumonArray);
+                    }
 
                 }
 

@@ -109,7 +109,10 @@
         <service
             android:name=".Services.StepService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
+
+        <activity android:name=".Activities.OnlineBattleActivity"
+            android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

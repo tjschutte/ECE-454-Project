@@ -34,7 +34,9 @@
     <string name="ServerCommandSaveInstance">SAVE-INSTANCE</string>
     <string name="ServerCommandGetInstance">GET-INSTANCE</string>
     <string name="ServerCommandGetHumon">GET-HUMON</string>
+    <string name="ServerCommandGetParty">GET-PARTY</string>
     <string name="expectedHumonsKey">expected humons</string>
     <string name="expectedPartyKey">expected party humons</string>
+    <string name="expectedEnemiesKey">expected enemy humons</string>
 
 </resources>

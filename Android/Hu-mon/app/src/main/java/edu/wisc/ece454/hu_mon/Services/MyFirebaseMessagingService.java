@@ -78,6 +78,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 String enemyEmail = data.get(getString(R.string.ServerCommandBattleRequest));
                 System.out.println("Battle Request sent by: " + enemyEmail);
                 notificationIntent.putExtra(getString(R.string.emailKey), enemyEmail);
+                notificationIntent.putExtra(getString(R.string.initiatorKey), true);
                 PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 Intent launchIntent = new Intent(this, OnlineBattleActivity.class);
                 PendingIntent acceptIntent = PendingIntent.getActivity(this, 0, launchIntent, 0);
@@ -108,7 +109,43 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 long alarmTrigger = currentTime + alarmDelay;
 
                 alarmManager.setExact(AlarmManager.RTC, alarmTrigger, pi);
-            } else if (data.containsKey(getString(R.string.ServerCommandBattleAction))) {
+            }
+            else if (data.containsKey(getString(R.string.ServerCommandBattleStart))) {
+                //TODO: Something with pending intents to accept / decline
+                NotificationManager mNotificationManager =
+                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+                StatusBarNotification[] curNotifications = mNotificationManager.getActiveNotifications();
+                int id;
+                if (curNotifications != null) {
+                    id = curNotifications.length + 1;
+                } else {
+                    id = 1;
+                }
+
+                //Intent notificationIntent = new Intent(this, MenuActivity.class);
+                Intent notificationIntent = new Intent(this, OnlineBattleActivity.class);
+                String enemyEmail = data.get(getString(R.string.ServerCommandBattleRequest));
+                System.out.println("Battle Start sent by: " + enemyEmail);
+                notificationIntent.putExtra(getString(R.string.emailKey), enemyEmail);
+                notificationIntent.putExtra(getString(R.string.initiatorKey), false);
+                PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                Intent launchIntent = new Intent(this, OnlineBattleActivity.class);
+                PendingIntent acceptIntent = PendingIntent.getActivity(this, 0, launchIntent, 0);
+
+                Notification notification = new Notification.Builder(this)
+                        .setContentTitle(remoteMessage.getNotification().getTitle())
+                        .setContentText(remoteMessage.getNotification().getBody()) // TODO: Fill these in from the data from server
+                        .setContentIntent(pendingIntent)
+                        .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
+                        .build();
+
+                // Cancel any other battle requests.
+                mNotificationManager.cancel(id);
+
+                mNotificationManager.notify(id, notification);
+            }
+            else if (data.containsKey(getString(R.string.ServerCommandBattleAction))) {
                 // Player is in a battle, and their opponent just did something.
                 // TODO: Decide how to handlet this
             }

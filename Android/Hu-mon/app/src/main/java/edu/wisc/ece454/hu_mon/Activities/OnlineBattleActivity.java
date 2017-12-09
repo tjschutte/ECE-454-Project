@@ -354,7 +354,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
         if(mBound) {
             System.out.println("Attempting to notify enemy of battle start");
             mServerConnection.sendMessage(getString(R.string.ServerCommandBattleStart) +
-                    ":{\"email\":\"" + enemyEmail + "\", \"initiator\":\"" + isInitiaor + "}");
+                    ":{\"email\":\"" + enemyEmail + "\", \"initiator\":" + isInitiaor + "}");
         }
         else {
             System.out.println("Error: Connection not bound, cannot get notify enemy");

@@ -89,6 +89,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         .setContentIntent(pendingIntent)
                         .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
                         .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "Accept", acceptIntent)
+                        .setAutoCancel(true)
                         .build();
 
                 // Cancel any other battle requests.
@@ -138,6 +139,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         .setContentText(remoteMessage.getNotification().getBody()) // TODO: Fill these in from the data from server
                         .setContentIntent(pendingIntent)
                         .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
+                        .setAutoCancel(true)
                         .build();
 
                 // Cancel any other battle requests.

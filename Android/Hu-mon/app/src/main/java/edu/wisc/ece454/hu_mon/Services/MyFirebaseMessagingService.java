@@ -14,7 +14,6 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.Map;
 
-import edu.wisc.ece454.hu_mon.Activities.FriendsListActivity;
 import edu.wisc.ece454.hu_mon.Activities.MenuActivity;
 import edu.wisc.ece454.hu_mon.Activities.OnlineBattleActivity;
 import edu.wisc.ece454.hu_mon.R;
@@ -76,9 +75,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
                 //Intent notificationIntent = new Intent(this, MenuActivity.class);
                 Intent notificationIntent = new Intent(this, OnlineBattleActivity.class);
-                notificationIntent.putExtra(getString(R.string.emailKey), remoteMessage.getFrom());
-                PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-                Intent launchIntent = new Intent(this, FriendsListActivity.class);
+                String enemyEmail = data.get(getString(R.string.ServerCommandBattleRequest));
+                System.out.println("Battle Request sent by: " + enemyEmail);
+                notificationIntent.putExtra(getString(R.string.emailKey), enemyEmail);
+                PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                Intent launchIntent = new Intent(this, OnlineBattleActivity.class);
                 PendingIntent acceptIntent = PendingIntent.getActivity(this, 0, launchIntent, 0);
 
                 Notification notification = new Notification.Builder(this)

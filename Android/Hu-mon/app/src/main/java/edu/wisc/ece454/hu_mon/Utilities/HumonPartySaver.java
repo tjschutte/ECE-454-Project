@@ -97,6 +97,7 @@ public class HumonPartySaver extends AsyncTask<Humon, Integer, Boolean> {
                         //remove humon so it is updated
                         //humonsArray.remove(j);
                         humonsArray.put(j, humons[i].toJson(new ObjectMapper()));
+                        humonUpdated = true;
                         break;
                     }
                 }

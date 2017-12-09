@@ -143,11 +143,11 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
 
     protected void onPostExecute(Boolean result) {
         if(result) {
-            Toast toast = Toast.makeText(context, "Hu-mon Successfully Created", Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(context, "Hu-mon Index Successfully Updated", Toast.LENGTH_SHORT);
             toast.show();
         }
         else {
-            Toast toast = Toast.makeText(context, "Hu-mon Creation Failed", Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(context, "Hu-mon Index Update Failed", Toast.LENGTH_SHORT);
             toast.show();
         }
     }

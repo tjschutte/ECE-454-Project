@@ -362,6 +362,12 @@ public class UserAction {
 	}
 	
 	static void battleAccepted(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException, JSONException {
+		// TODO Auto-generated method stub
+		// Need to know what the client will send...
+		Global.log(connection.clientNumber, Command.BATTLE_ACCEPTED + ": " + data);
+		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+		return;
+		/*
 		String email = null;
 
 		JsonFactory factory = new JsonFactory();
@@ -405,6 +411,7 @@ public class UserAction {
 		} else {
 			connection.sendResponse(Command.ERROR, Message.SERVER_ERROR_RETRY);
 		}
+		*/
 	}
 
 	static void saveAccount(ServerConnection connection, String data) throws JsonParseException, JsonMappingException, IOException {	

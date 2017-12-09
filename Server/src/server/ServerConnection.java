@@ -28,6 +28,9 @@ public class ServerConnection extends Thread {
 	public BufferedReader clientIn;
 	public PrintWriter clientOut;
 	public User user;
+	
+	public boolean inBattle = false;
+	public String enemyDeviceId = "";
 
 	public ServerConnection(Socket socket, int clientNumber) throws IOException {
 		this.socket = socket;
@@ -100,8 +103,14 @@ public class ServerConnection extends Thread {
 						UserAction.battleRequest(this, data);
 						break;
 					// Accept a battle request from another user
-					case Command.BATTLE_ACCEPTED:
-						UserAction.battleAccepted(this, data);
+					case Command.BATTLE_START:
+						HumonAction.battleStart(this, data);
+						break;
+					case Command.BATTLE_ACTION:
+						HumonAction.battleAction(this, data);
+						break;
+					case Command.BATTLE_END:
+						HumonAction.battleEnd(this, data);
 						break;
 					// Get the opposing players party (unique IDs, which can then be used to get humons)
 					case Command.GET_PARTY:

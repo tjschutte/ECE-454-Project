@@ -5,6 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
@@ -14,6 +17,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import main.Global;
 import models.Humon;
+import models.User;
+import utilities.NotificationHandler;
 import utilities.SQLHelper;
 
 public class HumonAction {
@@ -255,25 +260,105 @@ public class HumonAction {
 		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
 	}
 	
-	static void battleStart(ServerConnection connection, String data) {
-		// TODO Auto-generated method stub
-		// Need to know what the client will send...
-		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
-		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+	static void battleStart(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException, JSONException {
+		// Expected data format: {"email":"email"}
+		// Get that person deviceID
+		
+		if (connection.inBattle) {
+			connection.sendResponse(Command.ERROR, Message.USER_ALREADY_IN_BATTLE);
+		}
+		
+		String email = "";
+		boolean notify = false;
+		
+		JsonFactory factory = new JsonFactory();
+		JsonParser parser = factory.createParser(data);
+
+		while (!parser.isClosed()) {
+			JsonToken token = parser.nextToken();
+			if (token == null) {
+				break;
+			}
+			
+			if (JsonToken.FIELD_NAME.equals(token) && "email".equals(parser.getCurrentName())) {
+				token = parser.nextToken();
+				email = parser.getValueAsString();
+			} 
+			if (JsonToken.FIELD_NAME.equals(token) && "initiator".equals(parser.getCurrentName())) {
+				token = parser.nextToken();
+				notify = parser.getValueAsBoolean();
+			} 
+
+		}
+		
+		if (email == null || email.isEmpty()) {
+			connection.error(Message.MALFORMED_DATA_PACKET);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.MALFORMED_DATA_PACKET);
+			return;
+		}
+
+		ResultSet resultSet = connection.databaseConnection
+				.executeSQL("select * from users where email='" + email + "';");
+
+		if (!resultSet.next()) {
+			connection.sendResponse(Command.ERROR, Message.USER_DOES_NOT_EXIST);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.USER_DOES_NOT_EXIST);
+			return;
+		}
+		
+		User requested = new User(resultSet);
+		
+		connection.inBattle = true;
+		connection.enemyDeviceId = requested.getDeviceToken();
+		
+		if (notify) {
+			JSONObject notificationData = new JSONObject();
+			notificationData.put(Command.BATTLE_START, connection.user.getEmail());
+	
+			boolean success = NotificationHandler.sendPushNotification(requested.getDeviceToken(), Message.BATTLE_ACCEPTED,
+					connection.user.getEmail() + Message.BATTLE_ACCEPTED_BODY, notificationData);
+			
+			if (success) {
+				connection.sendResponse(Command.BATTLE_START, Command.SUCCESS);
+			} else {
+				connection.sendResponse(Command.ERROR, Message.SERVER_ERROR_RETRY);
+			}
+		} else {
+			connection.sendResponse(Command.BATTLE_START, Command.SUCCESS);
+		}
+		
+		Global.log(connection.clientNumber, Command.BATTLE_START + ": " + data);
 	}
 	
-	static void battleAction(ServerConnection connection, String data) {
+	static void battleAction(ServerConnection connection, String data) throws JSONException, IOException {
+		if (!connection.inBattle) {
+			connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+		}
 		// TODO Auto-generated method stub
 		// Need to know what the client will send...
-		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
-		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+		Global.log(connection.clientNumber, Command.BATTLE_ACTION + ": " + data);
+		
+		JSONObject notificationData = new JSONObject();
+		notificationData.put(Command.BATTLE_ACTION, data);
+
+		boolean success = NotificationHandler.sendPushNotification(connection.enemyDeviceId, Message.BATTLE_ACCEPTED,
+				connection.user.getEmail() + Message.BATTLE_ACCEPTED_BODY, notificationData);
+		
+		if (success) {
+			connection.sendResponse(Command.BATTLE_START, Command.SUCCESS);
+		} else {
+			connection.sendResponse(Command.ERROR, Message.SERVER_ERROR_RETRY);
+		}
+		
 	}
 	
 	static void battleEnd(ServerConnection connection, String data) {
-		// TODO Auto-generated method stub
-		// Need to know what the client will send...
-		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
-		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+		// This method is just used to tell the server that the user is done with
+		// battle.
+		Global.log(connection.clientNumber, Command.BATTLE_END + ": " + data);
+		connection.inBattle = false;
+		connection.enemyDeviceId = "";	
+		connection.sendResponse(Command.BATTLE_END, Message.BATTLE_ENDED);
 	}
 
 }

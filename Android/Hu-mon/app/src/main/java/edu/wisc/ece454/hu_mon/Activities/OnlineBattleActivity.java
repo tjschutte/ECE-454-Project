@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -39,6 +40,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Random;
 
 import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.Models.Move;
@@ -60,13 +62,21 @@ public class OnlineBattleActivity extends AppCompatActivity {
     private final String ACTIVITY_TITLE = "Online Battle";
     private String HUMONS_KEY;
     private final int INSTANCE_TYPE = 0;
+    private final int MOVE_TYPE = 1;
     private final String COMMAND_TYPE = "commandType";
+    private final String WAITING_MESSAGE = "Waiting for enemy...";
 
     private Humon enemyHumon;
     private Humon playerHumon;
     private int playerHumonIndex;
     private String userEmail;
     private User user;
+
+    private Move playerMove;
+    private Move enemyMove;
+
+    private int playerRng;
+    private int enemyRng;
 
     private boolean gameOver;
     private boolean gameSaved;
@@ -124,7 +134,11 @@ public class OnlineBattleActivity extends AppCompatActivity {
                 new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        choosePlayerMove(playerMoveList.get(position));
+                        try {
+                            choosePlayerMove(playerMoveList.get(position));
+                        } catch (JsonProcessingException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
         );
@@ -270,7 +284,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
             if (command.equals(getString(R.string.ServerCommandGetParty))) {
                 System.out.println("ServerCommandGetPartySuccess");
 
-                //TODO: Parse data to get iIDs
+                //Parse data to get iIDs
                 ArrayList<String> enemyiIDs = new ArrayList<String>();
                 System.out.println("Get-Party Payload: " + data);
                 try {
@@ -344,10 +358,27 @@ public class OnlineBattleActivity extends AppCompatActivity {
                             choosePlayerHumon();
                         }
                         waitingForEnemy = false;
+                        endWaitingMessage();
+                    }
+                    else if(battleJson.getInt(COMMAND_TYPE) == MOVE_TYPE) {
+                        enemyMove = new ObjectMapper().readValue(battleJson.getString("move"), Move.class);
+                        enemyRng = battleJson.getInt("rng");
+                        waitingForEnemy = false;
+                        endWaitingMessage();
+
+                        if(playerMove != null) {
+                            startBattleSequence();
+                        }
                     }
 
 
                 } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (JsonParseException e) {
+                    e.printStackTrace();
+                } catch (JsonMappingException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -484,7 +515,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
                             playerHumonIndex = position;
                             loadPlayer();
                             loadPlayerMoves();
-                            consoleDisplayQueue.add("Waiting for enemy...");
+                            consoleDisplayQueue.add(WAITING_MESSAGE);
                             displayConsoleMessage();
                         }
                     }
@@ -777,9 +808,268 @@ public class OnlineBattleActivity extends AppCompatActivity {
         }
     }
 
-    //TODO: Tell the server your chosen move
-    private void choosePlayerMove(Move move) {
+    private void choosePlayerMove(Move move) throws JsonProcessingException {
+        playerMove = move;
+        Random rng = new Random();
+        playerRng = rng.nextInt(100);
 
+        try {
+            mServerConnection.sendMessage(getString(R.string.ServerCommandBattleAction) +
+                    ":{\"commandType\":"+ MOVE_TYPE + ", \"move\":" + move.toJson(new ObjectMapper()) +
+                    ", \"rng\":" + playerRng +"}");
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+
+
+        if(enemyMove != null) {
+            startBattleSequence();
+        }
+        else {
+            waitingForEnemy = true;
+            consoleDisplayQueue.add(WAITING_MESSAGE);
+            displayConsoleMessage();
+        }
+    }
+
+    private void startBattleSequence() {
+
+        String displayMessage;
+
+        if(playerFirst()) {
+            useMove(playerMove, true);
+
+            if(enemyHumon.getHp() == 0) {
+                finishBattle();
+            } else {
+
+                useMove(enemyMove, false);
+
+                if(playerHumon.getHp() == 0) {
+                    finishBattle();
+                }
+            }
+        }
+        else {
+
+            useMove(enemyMove, false);
+
+            if(playerHumon.getHp() == 0) {
+                finishBattle();
+            }
+            else {
+                useMove(playerMove, true);
+
+                if(enemyHumon.getHp() == 0) {
+                    finishBattle();
+                }
+            }
+        }
+        displayConsoleMessage();
+        enemyMove = null;
+        playerMove = null;
+    }
+
+    /*
+     * Uses the given move and applies damage and effect
+     *
+     * @param move Move being used
+     * @param isPlayer  true if the player is using the move
+     */
+    private void useMove(Move move, boolean isPlayer) {
+        if(isPlayer) {
+            int playerMoveDamage = getMoveDamage(move, true);
+            Move.Effect playerMoveEffect = getMoveEffect(move, true);
+            String displayMessage = playerHumon.getName() + " used " + move.getName() + ".\n";
+            if(move.isSelfCast()) {
+                applyMove(move.getName(), playerMoveDamage, playerMoveEffect, false, displayMessage);
+            }
+            else {
+                applyMove(move.getName(), playerMoveDamage, playerMoveEffect, true, displayMessage);
+            }
+        }
+
+        else {
+            int enemyMoveDamage = getMoveDamage(move, false);
+            Move.Effect enemyMoveEffect = getMoveEffect(move, false);
+            String displayMessage = enemyHumon.getName() + " used " + move.getName() + ".\n";
+            if(move.isSelfCast()) {
+                applyMove(move.getName(), enemyMoveDamage, enemyMoveEffect, true, displayMessage);
+            }
+            else {
+                applyMove(move.getName(), enemyMoveDamage, enemyMoveEffect, false, displayMessage);
+            }
+        }
+    }
+
+    /*
+     * Applies the damage and effect of a move to the target
+     *
+     * @param moveName      name of the move being used
+     * @param damage        amount of damage to be dealt
+     * @param effect        effect to be applied
+     * @param targetEnemy   true to apply to enemy, false to apply to player
+     * @param displayMessage    the current message to be displayed to user
+     *
+     */
+    private void applyMove(String moveName, int damage, Move.Effect effect, boolean targetEnemy,
+                           String displayMessage) {
+        if(targetEnemy) {
+            int enemyHp = enemyHumon.getHp() - damage;
+            if (enemyHp < 0) {
+                enemyHp = 0;
+            }
+            enemyHumon.setHp(enemyHp);
+            enemyHealthBar.setProgress(enemyHp);
+
+            if(damage >= 0) {
+                displayMessage += "Applied " + damage + " damage to " + enemyHumon.getName();
+            }
+            else {
+                displayMessage += "Healed " + (damage * -1) + " damage from " + enemyHumon.getName();
+            }
+
+            //Apply the status effect
+            if(effect != null && enemyStatus == null) {
+                enemyStatus = effect;
+                enemyStatusTextView.setText(""+ enemyStatus);
+                displayMessage += "\n" + enemyHumon.getName() + " is " + enemyStatus + "!";
+            }
+
+            System.out.println(displayMessage);
+            consoleDisplayQueue.add(displayMessage);
+        }
+        else {
+            int playerHp = playerHumon.getHp() - damage;
+            if (playerHp < 0) {
+                playerHp = 0;
+            }
+            playerHumon.setHp(playerHp);
+            playerHealthBar.setProgress(playerHp);
+
+            if(damage >= 0) {
+                displayMessage += "Applied " + damage + " damage to " + playerHumon.getName();
+            }
+            else {
+                displayMessage += "Healed " + (damage * -1) + " damage from " + playerHumon.getName();
+            }
+
+            //Apply the status effect
+            if(effect != null && playerStatus == null) {
+                playerStatus = effect;
+                playerStatusTextView.setText(""+ playerStatus);
+                displayMessage += "\n" + playerHumon.getName() + " is " + playerStatus + "!";
+            }
+            System.out.println(displayMessage);
+            consoleDisplayQueue.add(displayMessage);
+        }
+    }
+
+    //choose which humon will attack first (true if player)
+    private boolean playerFirst() {
+        if(enemyHumon.getSpeed() == playerHumon.getSpeed()) {
+            return isInitiaor;
+        }
+        if(enemyHumon.getSpeed() > playerHumon.getSpeed()) {
+            return false;
+        }
+        return true;
+    }
+
+    /*
+     * Calculates the damage applied by a move
+     *
+     * @param move Move being used
+     * @param isPlayer  true if the player is using the move
+     */
+    private int getMoveDamage(Move move, boolean isPlayer) {
+        double moveBaseDamage = move.getDmg();
+        int damage;
+        if(isPlayer) {
+            if(move.isSelfCast()) {
+                damage = (int) ((moveBaseDamage / 100) * playerHumon.getAttack()) - (playerHumon.getDefense() / 2);
+            }
+            else {
+                damage = (int) ((moveBaseDamage / 100) * playerHumon.getAttack()) - (enemyHumon.getDefense() / 2);
+            }
+            if(move.getDmg() > 0 && damage < 1) {
+                damage = 1;
+            }
+            else if(move.getDmg() < 0 && damage > -1) {
+                damage = -1;
+            }
+        }
+        else {
+            if(move.isSelfCast()) {
+                damage = (int) ((moveBaseDamage / 100) * enemyHumon.getAttack()) - (enemyHumon.getDefense() / 2);
+            }
+            else {
+                damage = (int) ((moveBaseDamage / 100) * enemyHumon.getAttack()) - (playerHumon.getDefense() / 2);
+            }
+            if(move.getDmg() > 0 && damage < 1) {
+                damage = 1;
+            }
+            else if(move.getDmg() < 0 && damage > -1) {
+                damage = -1;
+            }
+        }
+        return damage;
+    }
+
+    /*
+     * Calculates the effect applied by a move
+     *
+     * @param move Move being used
+     * @param isPlayer  true if the player is using the move
+     */
+    private Move.Effect getMoveEffect(Move move, boolean isPlayer) {
+        //No effect
+        if(!move.isHasEffect()) {
+            System.out.println("Move has no effect");
+            return null;
+        }
+
+        Random rng = new Random();
+        boolean willEffect = false;
+        int effectChance;
+        if(isPlayer) {
+            effectChance = playerRng;
+        }
+        else {
+            effectChance = enemyRng;
+        }
+        if(isPlayer) {
+            if(move.isSelfCast()) {
+                if (effectChance > playerHumon.getLuck()) {
+                    willEffect = true;
+                }
+            }
+            else {
+                if (effectChance < playerHumon.getLuck()) {
+                    willEffect = true;
+                }
+            }
+        }
+        else {
+            if(move.isSelfCast()) {
+                if (effectChance > enemyHumon.getLuck()) {
+                    willEffect = true;
+                }
+            }
+            else {
+                if (effectChance < enemyHumon.getLuck()) {
+                    willEffect = true;
+                }
+            }
+        }
+
+        if(willEffect) {
+            return move.getEffect();
+        }
+        else {
+            return null;
+        }
     }
 
     /*
@@ -866,6 +1156,54 @@ public class OnlineBattleActivity extends AppCompatActivity {
     private void displayMoves() {
         playerMovesView.setVisibility(View.VISIBLE);
         userConsole.setVisibility(View.INVISIBLE);
+    }
+
+    /*
+     * Called when enemy responds, automatically removes message for waiting
+     *
+     */
+    private void endWaitingMessage() {
+        for(int i = 0; i < consoleDisplayQueue.size(); i++) {
+            if(consoleDisplayQueue.get(i).equals(WAITING_MESSAGE)) {
+                consoleDisplayQueue.remove(i);
+            }
+        }
+        if(consoleDisplayQueue.size() == 0) {
+            displayConsoleMessage();
+        }
+    }
+
+    //Called when a humon is defeated, gives option to capture if player wins and notifies user
+    private void finishBattle() {
+        String displayText;
+        gameOver = true;
+
+        if(playerHumon.getHp() == 0) {
+            displayText = playerHumon.getName() + " defeated!";
+            Toast toast = Toast.makeText(this, displayText, Toast.LENGTH_SHORT);
+            toast.show();
+        }
+        else {
+            displayText = enemyHumon.getName() + " defeated, gained "
+                    + enemyHumon.getLevel() + " experience!";
+            Toast toast = Toast.makeText(this, enemyHumon.getName() + " defeated, gained "
+                    + enemyHumon.getLevel() + " experience!", Toast.LENGTH_SHORT);
+            toast.show();
+
+            //Give player experience points
+            playerHumon.addXp(enemyHumon.getLevel());
+            ProgressBar experienceBar = (ProgressBar) findViewById(R.id.playerXpBar);
+            experienceBar.setProgress(playerHumon.getXp());
+
+            TextView levelTextView = (TextView) findViewById(R.id.playerLevelTextView);
+            levelTextView.setText("Lvl " + playerHumon.getLevel());
+
+        }
+
+        //Update the console
+        consoleDisplayQueue.add(displayText);
+        displayConsoleMessage();
+
     }
 
     /*

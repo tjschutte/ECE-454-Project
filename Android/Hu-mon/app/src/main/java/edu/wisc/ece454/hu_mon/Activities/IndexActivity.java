@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -28,6 +29,7 @@ import edu.wisc.ece454.hu_mon.R;
 public class IndexActivity extends SettingsActivity {
 
     private final String ACTIVITY_TITLE = "Hu-mon Index";
+    private final String TAG = "INDEX";
     private String HUMON_KEY;
 
     private ArrayList<Humon> humonList;
@@ -95,7 +97,7 @@ public class IndexActivity extends SettingsActivity {
         Thread loadThread = new Thread() {
             public void run() {
                 try {
-                    System.out.println("Attempting to load: " + indexFilename);
+                    Log.i(TAG, "Attempting to load: " + indexFilename);
                     //load index file
                     String indexString;
                     FileInputStream inputStream = new FileInputStream(indexFilename);
@@ -107,7 +109,7 @@ public class IndexActivity extends SettingsActivity {
                     JSONObject fileJson = new JSONObject(indexString);
                     JSONArray humonsArray = fileJson.getJSONArray(HUMONS_KEY);
 
-                    System.out.println(indexFilename + " loaded");
+                    Log.i(TAG, indexFilename + " loaded");
                     //add each humon name to list
                     for(int i = 0; i < humonsArray.length(); i++) {
                         //load humon into json object format
@@ -115,7 +117,7 @@ public class IndexActivity extends SettingsActivity {
                         JSONObject humonJson = new JSONObject(humonString);
                         String name = humonJson.getString("name");
                         String description = humonJson.getString("description");
-                        Bitmap image = null;
+                        String image = null;
                         int level = humonJson.getInt("level");
                         int xp = humonJson.getInt("xp");
                         int hID = humonJson.getInt("hID");
@@ -172,11 +174,11 @@ public class IndexActivity extends SettingsActivity {
 
                         humonList.add(loadedHumon);
 
-                        System.out.println(loadedHumon.getName() + " with HID: " + loadedHumon.gethID() + " added");
+                        Log.i(TAG, loadedHumon.getName() + " with HID: " + loadedHumon.gethID() + " added");
                     }
                     inputStream.close();
                 } catch (FileNotFoundException e) {
-                    System.out.println("No index file for: " + userEmail);
+                    Log.i(TAG, "No index file for: " + userEmail);
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -189,7 +191,7 @@ public class IndexActivity extends SettingsActivity {
 
         loadThread.run();
         indexAdapter.notifyDataSetChanged();
-        System.out.println("Finished loading");
+        Log.i(TAG, "Finished loading");
 
     }
 

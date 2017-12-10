@@ -3,8 +3,8 @@ package edu.wisc.ece454.hu_mon.Activities;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -27,6 +27,7 @@ import edu.wisc.ece454.hu_mon.R;
 public class PartyActivity extends SettingsActivity {
 
     private final String ACTIVITY_TITLE = "Party";
+    private final String TAG = "PARTY";
     private String HUMON_KEY;
     private String HUMONS_KEY;
 
@@ -91,7 +92,7 @@ public class PartyActivity extends SettingsActivity {
         Thread loadThread = new Thread() {
             public void run() {
                 try {
-                    System.out.println("Attempting to load: " + partyFilename);
+                    Log.i(TAG, "Attempting to load: " + partyFilename);
                     //load party file
                     String partyString;
                     FileInputStream inputStream = new FileInputStream(partyFilename);
@@ -103,7 +104,7 @@ public class PartyActivity extends SettingsActivity {
                     JSONObject fileJson = new JSONObject(partyString);
                     JSONArray humonsArray = fileJson.getJSONArray(HUMONS_KEY);
 
-                    System.out.println(partyString + " loaded");
+                    Log.i(TAG, partyString + " loaded");
                     //add each humon name to list
                     for(int i = 0; i < humonsArray.length(); i++) {
                         //load humon into json object format
@@ -111,7 +112,7 @@ public class PartyActivity extends SettingsActivity {
                         JSONObject humonJson = new JSONObject(humonString);
                         String name = humonJson.getString("name");
                         String description = humonJson.getString("description");
-                        Bitmap image = null;
+                        String image = null;
                         int level = humonJson.getInt("level");
                         int xp = humonJson.getInt("xp");
                         int hp = humonJson.getInt("hp");
@@ -169,11 +170,11 @@ public class PartyActivity extends SettingsActivity {
 
                         humonList.add(loadedHumon);
 
-                        System.out.println(loadedHumon.getName() + " with HID: " + loadedHumon.gethID() + " added");
+                        Log.i(TAG, loadedHumon.getName() + " with HID: " + loadedHumon.gethID() + " added");
                     }
                     inputStream.close();
                 } catch (FileNotFoundException e) {
-                    System.out.println("No index file for: " + userEmail);
+                    Log.i(TAG, "No index file for: " + userEmail);
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -186,7 +187,7 @@ public class PartyActivity extends SettingsActivity {
 
         loadThread.run();
         partyAdapter.notifyDataSetChanged();
-        System.out.println("Finished loading");
+        Log.i(TAG, "Finished loading");
 
     }
 

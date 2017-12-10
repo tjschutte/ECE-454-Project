@@ -2,6 +2,7 @@ package edu.wisc.ece454.hu_mon.Utilities;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,16 +28,19 @@ import edu.wisc.ece454.hu_mon.Models.Humon;
 //Outputs a toast on success or failure
 public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
 
+    private final String TAG = "HINDSAVER";
     private String filename = "";
     private String email = "";
     private Context context;
     private String HUMONS_KEY = "";
+    private boolean isSync;
 
-    public HumonIndexSaver(String filename, String email, Context context, String key) {
+    public HumonIndexSaver(String filename, String email, Context context, String key, boolean isSync) {
         this.filename = filename;
         this.email = email;
         this.context = context;
         HUMONS_KEY = key;
+        this.isSync = isSync;
     }
 
     @Override
@@ -58,11 +62,11 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
             inputStream.read(buffer);
             inputStream.close();
             oldIndex = new String(buffer, "UTF-8");
-            //System.out.println("Current humon index: " + oldIndex);
+            //Log.d(TAG, "Current humon index: " + oldIndex);
         }
         catch(FileNotFoundException e) {
             e.printStackTrace();
-            System.out.println("No index currently exists for: " + email);
+            Log.d(TAG, "No index currently exists for: " + email);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -80,21 +84,43 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
                 humonsArray = indexJSON.getJSONArray(HUMONS_KEY);
             }
 
-            for(int i = 0; i < humons.length; i++) {
-                //check that name is not duplicated (for user's email only)
-                for(int j = 0; j < humonsArray.length(); j++) {
-                    JSONObject dupCheck = new JSONObject(humonsArray.getString(j));
-                    if(dupCheck.getString("name").equals(humons[i].getName())) {
-                        if(dupCheck.getString("uID").equals(email)) {
-                            if(dupCheck.getString("description").equals(humons[i].getDescription())) {
-                                return false;
+            if(isSync) {
+                for(int i = 0; i < humons.length; i++) {
+                    boolean humonUpdated = false;
+                    //check if humon should be updated
+                    for(int j = 0; j < humonsArray.length(); j++) {
+                        JSONObject dupCheck = new JSONObject(humonsArray.getString(j));
+                        if(dupCheck.getInt("hID") == humons[i].gethID()) {
+                            //update the old humon
+                            //humonsArray.remove(j);
+                            humonsArray.put(j, humons[i].toJson(new ObjectMapper()));
+                            humonUpdated = true;
+                            break;
+                        }
+                    }
+
+                    if(!humonUpdated) {
+                        humonsArray.put(humons[i].toJson(new ObjectMapper()));
+                    }
+
+                }
+            }
+            else {
+                for(int i = 0; i < humons.length; i++) {
+                    //check that name is not duplicated (for user's email only)
+                    for(int j = 0; j < humonsArray.length(); j++) {
+                        JSONObject dupCheck = new JSONObject(humonsArray.getString(j));
+                        if(dupCheck.getString("name").equals(humons[i].getName())) {
+                            if(dupCheck.getString("uID").equals(email)) {
+                                if(dupCheck.getString("description").equals(humons[i].getDescription())) {
+                                    return false;
+                                }
                             }
                         }
                     }
+                    humonsArray.put(humons[i].toJson(new ObjectMapper()));
                 }
-                humonsArray.put(humons[i].toJson(new ObjectMapper()));
             }
-
             indexJSON.put(HUMONS_KEY, humonsArray);
 
         } catch (Exception e) {
@@ -105,8 +131,8 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
 
         try {
             //write object to file
-            //System.out.println("Writing: " + indexJSON.toString());
-            System.out.println("Data written to: " + filename);
+            //Log.d(TAG, "Writing: " + indexJSON.toString());
+            Log.d(TAG, "Data written to: " + filename);
             outputStream = new FileOutputStream(indexFile);
             outputStream.write(indexJSON.toString().getBytes());
             outputStream.close();
@@ -119,11 +145,11 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
 
     protected void onPostExecute(Boolean result) {
         if(result) {
-            Toast toast = Toast.makeText(context, "Hu-mon Successfully Created", Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(context, "Hu-mon Index Successfully Updated", Toast.LENGTH_SHORT);
             toast.show();
         }
         else {
-            Toast toast = Toast.makeText(context, "Hu-mon Creation Failed", Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(context, "Hu-mon Index Update Failed", Toast.LENGTH_SHORT);
             toast.show();
         }
     }

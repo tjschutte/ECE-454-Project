@@ -24,7 +24,7 @@ import edu.wisc.ece454.hu_mon.R;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    private static final String TAG = MapsActivity.class.getSimpleName();
+    private static final String TAG = "MAP";
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
 

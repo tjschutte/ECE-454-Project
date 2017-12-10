@@ -4,9 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -17,32 +14,28 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.R;
 
 /**
  * Created by Michael on 10/30/2017.
  */
 
-//Saves a list of humons to the current users
-//Required inputs: List of humons passed in constructor, filename to write to, email of user, context (obtained from activity or service),
+//Heals all humons in party by percentage of max health (Integer should be from 0 to 100)
+//Required inputs: Integer value of percent to heal, filename to write to, email of user, context (obtained from activity or service),
 //key from getString(R.string.humonsKey)
 //Outputs a toast on success or failure
-public class HumonPartySaver extends AsyncTask<Humon, Integer, Boolean> {
+public class HumonHealTask extends AsyncTask<Integer, Integer, Boolean> {
 
-    private final String TAG = "HPARTYSAVER";
+    private final String TAG = "HHTASK";
     private Context context;
-    private boolean isEnemy;
 
-    public HumonPartySaver(Context context, boolean isEnemy) {
+    public HumonHealTask(Context context) {
         this.context = context;
-        this.isEnemy = isEnemy;
     }
 
     @Override
-    protected Boolean doInBackground(Humon... humons) {
+    protected Boolean doInBackground(Integer... healing) {
         boolean goodSave = true;
-
         String oldParty = "";
         FileInputStream inputStream;
         FileOutputStream outputStream;
@@ -55,9 +48,6 @@ public class HumonPartySaver extends AsyncTask<Humon, Integer, Boolean> {
                 context.getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
         String userEmail = sharedPref.getString(context.getString(R.string.emailKey), "");
         String filename = userEmail + context.getString(R.string.partyFile);
-        if(isEnemy) {
-            filename = context.getString(R.string.enemyPartyFile);
-        }
         File partyFile = new File(context.getFilesDir(), filename);
 
         //read in current party (if it exists)
@@ -90,25 +80,23 @@ public class HumonPartySaver extends AsyncTask<Humon, Integer, Boolean> {
                 humonsArray = partyJSON.getJSONArray(HUMONS_KEY);
             }
 
-            for(int i = 0; i < humons.length; i++) {
-                boolean humonUpdated = false;
-                //check if humon is already in party (and is being updated)
-                for(int j = 0; j < humonsArray.length(); j++) {
-                    JSONObject dupCheck = new JSONObject(humonsArray.getString(j));
-                    if(dupCheck.getString("iID").equals(humons[i].getiID())) {
-                        //remove humon so it is updated
-                        //humonsArray.remove(j);
-                        humonsArray.put(j, humons[i].toJson(new ObjectMapper()));
-                        humonUpdated = true;
-                        break;
-                    }
+            //Heal humons in party
+            for(int j = 0; j < humonsArray.length(); j++) {
+                JSONObject humon = new JSONObject(humonsArray.getString(j));
+                int maxHealth = humon.getInt("health");
+                int hp = humon.getInt("hp");
+                int amountHealing = (int) ((healing[0] / 100) * maxHealth);
+                if(amountHealing < 1) {
+                    amountHealing = 1;
                 }
-
-                if(!humonUpdated) {
-                    Log.d(TAG, "Saving party humon: " + humons[i].getiID());
-                    humonsArray.put(humons[i].toJson(new ObjectMapper()));
+                hp += amountHealing;
+                if(hp > maxHealth) {
+                    hp = maxHealth;
                 }
-
+                humon.put("hp", hp);
+                //write updated humon to party
+                //humonsArray.remove(j);
+                humonsArray.put(j, humon);
             }
 
             partyJSON.put(HUMONS_KEY, humonsArray);
@@ -135,12 +123,10 @@ public class HumonPartySaver extends AsyncTask<Humon, Integer, Boolean> {
 
     protected void onPostExecute(Boolean result) {
         if(result) {
-            Toast toast = Toast.makeText(context, "Party Successfully Updated", Toast.LENGTH_SHORT);
-            toast.show();
+            Log.d(TAG, "Party Successfully Healed");
         }
         else {
-            Toast toast = Toast.makeText(context, "Party Update Failed", Toast.LENGTH_SHORT);
-            toast.show();
+            Log.d(TAG, "Party Healing Failed");
         }
     }
 }

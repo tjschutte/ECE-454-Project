@@ -84,6 +84,10 @@ public class PartyInfoActivity extends SettingsActivity {
                 tempTextView.setText("" + humon.getSpeed());
                 tempTextView = (TextView) findViewById(R.id.luckValue);
                 tempTextView.setText("" + humon.getLuck());
+                tempTextView = (TextView) findViewById(R.id.hpTextView);
+                tempTextView.setText(humon.getHp() + "/" + humon.getHealth());
+                tempTextView = (TextView) findViewById(R.id.xpTextView);
+                tempTextView.setText(humon.getXp() + "/" + humon.getMaxXp());
 
                 //load health and experience bars (values from 0 to 100)
                 ProgressBar healthBar = (ProgressBar) findViewById(R.id.healthBar);
@@ -92,7 +96,7 @@ public class PartyInfoActivity extends SettingsActivity {
 
 
                 ProgressBar experienceBar = (ProgressBar) findViewById(R.id.experienceBar);
-                experienceBar.setMax(humon.getLevel()*20);
+                experienceBar.setMax(humon.getMaxXp());
                 experienceBar.setProgress(humon.getXp());
 
                 //load moves into grid

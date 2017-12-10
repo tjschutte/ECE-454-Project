@@ -1,29 +1,30 @@
 package edu.wisc.ece454.hu_mon.Services;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Map;
 
 import edu.wisc.ece454.hu_mon.Activities.MenuActivity;
-import edu.wisc.ece454.hu_mon.Models.User;
+import edu.wisc.ece454.hu_mon.Activities.OnlineBattleActivity;
 import edu.wisc.ece454.hu_mon.R;
+import edu.wisc.ece454.hu_mon.Utilities.ServerBroadcastReceiver;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "MyFirebaseMsgService";
+    private final int DELAY_MIN = 3;
+    private final int SEC_IN_MIN = 60;
+    private final int MILISEC_IN_SEC = 1000;
 
     /**
      * Called when message is received. Notification messages are only received here in onMessageReceived when the app
@@ -51,44 +52,112 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
             // Friend request
             if (data.containsKey(getString(R.string.ServerCommandFriendRequest))) {
-                SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(
-                        getApplicationContext().getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
-                // User object reader.
-                try {
-                    ObjectMapper mapper = new ObjectMapper();
-                    String userString = sharedPref.getString("userObjectKey", null);
-                    User user = mapper.readValue(userString, User.class);
-                    user.addFriendRequest(data.get(getString(R.string.ServerCommandFriendRequest)));
+                String res = getString(R.string.ServerCommandFriendRequest) + ": " + data.get(getString(R.string.ServerCommandFriendRequest));
 
-                    SharedPreferences.Editor editor = sharedPref.edit();
-                    editor.putString("userObjectKey", user.toJson(mapper));
-                    editor.commit();
-                    System.out.println("Got friend request. Request added to user");
-                }
-                catch(FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                Log.d(TAG, "Faking a server message for a friend request");
+                Intent intent = new Intent();
+                intent.setAction(getString(R.string.serverBroadCastEvent));
+                intent.putExtra(getString(R.string.serverBroadCastResponseKey),res);
+                sendBroadcast(intent);
 
             } else if (data.containsKey(getString(R.string.ServerCommandBattleRequest))) {
                 //TODO: Something with pending intents to accept / decline
                 NotificationManager mNotificationManager =
                         (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-                Intent notificationIntent = new Intent(this, MenuActivity.class);
-                PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+                StatusBarNotification[] curNotifications = mNotificationManager.getActiveNotifications();
+                int id;
+                if (curNotifications != null) {
+                    id = curNotifications.length + 1;
+                } else {
+                    id = 1;
+                }
+
+                //Intent notificationIntent = new Intent(this, MenuActivity.class);
+                Intent notificationIntent = new Intent(this, OnlineBattleActivity.class);
+                String enemyEmail = data.get(getString(R.string.ServerCommandBattleRequest));
+                Log.d(TAG, "Battle Request sent by: " + enemyEmail);
+                notificationIntent.putExtra(getString(R.string.emailKey), enemyEmail);
+                notificationIntent.putExtra(getString(R.string.initiatorKey), true);
+                PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                Intent launchIntent = new Intent(this, OnlineBattleActivity.class);
+                PendingIntent acceptIntent = PendingIntent.getActivity(this, 0, launchIntent, 0);
 
                 Notification notification = new Notification.Builder(this)
-                        .setContentTitle("Battle Request")
-                        .setContentText("It's t-t-t-t-time to duel!")
+                        .setContentTitle(remoteMessage.getNotification().getTitle())
+                        .setContentText(remoteMessage.getNotification().getBody()) // TODO: Fill these in from the data from server
                         .setContentIntent(pendingIntent)
                         .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
-                        .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "I GOT THIS", null) // #0
-                        .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "I DON'T GOT THIS", null)  // #1
+                        .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "Accept", acceptIntent)
+                        .setAutoCancel(true)
                         .build();
 
-                mNotificationManager.notify(69, notification);
+                // Cancel any other battle requests.
+                mNotificationManager.cancel(id);
+
+                mNotificationManager.notify(id, notification);
+
+                // set up alarm
+                AlarmManager alarmManager = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+                Intent intent = new Intent(getApplicationContext(), ServerBroadcastReceiver.class);
+                intent.setAction("CANCEL_NOTIFICATION");
+                intent.putExtra("notification_id", id);
+                PendingIntent pi = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                // Notification only lives for 1 minute
+                long currentTime = System.currentTimeMillis();
+                long alarmDelay = DELAY_MIN * SEC_IN_MIN * MILISEC_IN_SEC;
+                long alarmTrigger = currentTime + alarmDelay;
+
+                alarmManager.setExact(AlarmManager.RTC, alarmTrigger, pi);
+            }
+            else if (data.containsKey(getString(R.string.ServerCommandBattleStart))) {
+                //TODO: Something with pending intents to accept / decline
+                NotificationManager mNotificationManager =
+                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+                StatusBarNotification[] curNotifications = mNotificationManager.getActiveNotifications();
+                int id;
+                if (curNotifications != null) {
+                    id = curNotifications.length + 1;
+                } else {
+                    id = 1;
+                }
+
+                //Intent notificationIntent = new Intent(this, MenuActivity.class);
+                Intent notificationIntent = new Intent(this, OnlineBattleActivity.class);
+                String enemyEmail = data.get(getString(R.string.ServerCommandBattleStart));
+                Log.d(TAG, "Battle Start sent by: " + enemyEmail);
+                notificationIntent.putExtra(getString(R.string.emailKey), enemyEmail);
+                notificationIntent.putExtra(getString(R.string.initiatorKey), false);
+                PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                Intent launchIntent = new Intent(this, OnlineBattleActivity.class);
+                PendingIntent acceptIntent = PendingIntent.getActivity(this, 0, launchIntent, 0);
+
+                Notification notification = new Notification.Builder(this)
+                        .setContentTitle(remoteMessage.getNotification().getTitle())
+                        .setContentText(remoteMessage.getNotification().getBody()) // TODO: Fill these in from the data from server
+                        .setContentIntent(pendingIntent)
+                        .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
+                        .setAutoCancel(true)
+                        .build();
+
+                // Cancel any other battle requests.
+                mNotificationManager.cancel(id);
+
+                mNotificationManager.notify(id, notification);
+            }
+            else if (data.containsKey(getString(R.string.ServerCommandBattleAction))) {
+                // Player is in a battle, and their opponent just did something.
+                // TODO: Decide how to handlet this
+                String res = getString(R.string.ServerCommandBattleAction) + ": " + data.get(getString(R.string.ServerCommandBattleAction));
+
+                Log.d(TAG, "Faking a server message for a battle action");
+                Intent intent = new Intent();
+                intent.setAction(getString(R.string.serverBroadCastEvent));
+                intent.putExtra(getString(R.string.serverBroadCastResponseKey),res);
+                sendBroadcast(intent);
+
             }
         }
 

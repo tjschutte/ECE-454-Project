@@ -5,6 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
@@ -14,6 +17,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import main.Global;
 import models.Humon;
+import models.User;
+import utilities.NotificationHandler;
 import utilities.SQLHelper;
 
 public class HumonAction {
@@ -29,7 +34,7 @@ public class HumonAction {
 	 * @throws JsonParseException
 	 * @throws SQLException
 	 */
-	static void createNewHumon(ServerThread connection, String data)
+	static void createNewHumon(ServerConnection connection, String data)
 			throws JsonParseException, JsonMappingException, IOException, SQLException {
 
 		if (connection.user == null || connection.user.getEmail().isEmpty()) {
@@ -37,7 +42,7 @@ public class HumonAction {
 			return;
 		}
 		Humon humon = connection.mapper.readValue(data, Humon.class);
-
+		
 		// print it
 		Global.log(connection.clientNumber,
 				connection.user.getEmail() + " is creating a new Humon: " + humon.getName() + ", " + humon.getDescription());
@@ -88,10 +93,11 @@ public class HumonAction {
 		if (rows != 1) {
 			throw new SQLException();
 		}
-
+		humon.setImage();
+		Global.log(connection.clientNumber, humon.toJson(connection.mapper));
 	}
 	
-	static void saveInstance(ServerThread connection, String data) throws JsonParseException, JsonMappingException, IOException, SQLException {
+	static void saveInstance(ServerConnection connection, String data) throws JsonParseException, JsonMappingException, IOException, SQLException {
 		Humon humon = connection.mapper.readValue(data, Humon.class);
 		// print it
 		Global.log(connection.clientNumber, humon.getuID() + " is saving Humon Instance: " + humon.getName() + ", " + humon.getDescription());
@@ -125,9 +131,9 @@ public class HumonAction {
 		connection.sendResponse(Command.SAVE_INSTANCE, Command.SUCCESS);
 	}
 
-	static void getInstance(ServerThread connection, String data) throws JsonParseException, IOException, SQLException {
+	static void getInstance(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException {
 		Global.log(connection.clientNumber, Command.GET_INSTANCE + ": " + data);
-		int iID = 0;
+		String iID = "";
 
 		JsonFactory factory = new JsonFactory();
 		JsonParser parser = factory.createParser(data);
@@ -141,14 +147,13 @@ public class HumonAction {
 			// If there was a populated hID
 			if (JsonToken.FIELD_NAME.equals(token) && "iID".equals(parser.getCurrentName())) {
 				token = parser.nextToken();
-				iID = parser.getValueAsInt(-1);
+				iID = parser.getValueAsString();
 			} 
 
 		}
 		
-		// Do a lookup to get hID
 		ResultSet resultSet = connection.databaseConnection
-				.executeSQL("select * from instance where iID='" + parser.getValueAsInt(-1) + "';");
+				.executeSQL("select * from instance where instanceID='" + iID + "';");
 		
 		if (!resultSet.next()) {
 			connection.sendResponse(Command.ERROR, Message.INSTANCE_DOES_NOT_EXIST);
@@ -156,13 +161,29 @@ public class HumonAction {
 			return;
 		}
 		
-		Humon requested = new Humon();
-		requested = requested.HumonInstance(resultSet);
+		Humon requestedInstance = new Humon();
+		requestedInstance = requestedInstance.HumonInstance(resultSet);
 		
-		connection.sendResponse(Command.GET_INSTANCE, requested.toJson(new ObjectMapper()));
+		resultSet = connection.databaseConnection
+				.executeSQL("select * from humon where humonID='" + requestedInstance.gethID() + "';");
+		
+		if (!resultSet.next()) {
+			connection.sendResponse(Command.ERROR, Message.INSTANCE_DOES_NOT_EXIST);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.INSTANCE_DOES_NOT_EXIST);
+			return;
+		}
+		
+		Humon requestedHumon = new Humon(resultSet);
+		
+		// Combine moves onto the object
+		requestedInstance.setMoves(requestedHumon.getMoves());
+		
+		System.out.println(requestedInstance.toJson(new ObjectMapper()));
+
+		connection.sendResponse(Command.GET_INSTANCE, requestedInstance.toJson(new ObjectMapper()));
 	}
 
-	static void getHumon(ServerThread connection, String data) throws JsonParseException, IOException, SQLException {
+	static void getHumon(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException {
 		Global.log(connection.clientNumber, Command.GET_HUMON + ": " + data);
 		int hID = 0;
 
@@ -183,8 +204,10 @@ public class HumonAction {
 			// Else if it was a iID
 			else if (JsonToken.FIELD_NAME.equals(token) && "iID".equals(parser.getCurrentName())) {
 				// Do a lookup to get hID
+				token = parser.nextToken();
+				String iID = parser.getValueAsString();
 				ResultSet resultSet = connection.databaseConnection
-						.executeSQL("select hID from instance where iID='" + parser.getValueAsInt(-1) + "';");
+						.executeSQL("select humonID from instance where instanceID='" + iID + "';");
 				
 				if (!resultSet.next()) {
 					connection.sendResponse(Command.ERROR, Message.INSTANCE_DOES_NOT_EXIST);
@@ -203,7 +226,7 @@ public class HumonAction {
 		}
 		
 		ResultSet resultSet = connection.databaseConnection
-				.executeSQL("select * from humon where hID='" + hID + "';");
+				.executeSQL("select * from humon where humonID='" + hID + "';");
 
 		if (!resultSet.next()) {
 			connection.sendResponse(Command.ERROR, Message.HUMON_DOES_NOT_EXIST);
@@ -213,37 +236,129 @@ public class HumonAction {
 		
 		Humon requested = new Humon(resultSet);
 		
+		resultSet = connection.databaseConnection
+				.executeSQL("select * from image where imageid='" + hID + "';");
+		
+		if (!resultSet.next()) {
+			connection.sendResponse(Command.ERROR, Message.HUMON_DOES_NOT_EXIST);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.SERVER_ERROR_RETRY);
+			return;
+		}
+		
+		// Sed the image back on the Humon object.
+		requested.setImage(resultSet.getString(2));
+		
 		connection.sendResponse(Command.GET_HUMON, requested.toJson(new ObjectMapper()));
 		
 	}
 	
 	// May choose to deprecate method / command. Just pass data when user call getHumon
-	static void getImage(ServerThread connection, String data) {
+	static void getImage(ServerConnection connection, String data) {
 		// TODO Auto-generated method stub
 		// Need to know what the client will send...
 		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
 		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
 	}
 	
-	static void battleStart(ServerThread connection, String data) {
-		// TODO Auto-generated method stub
-		// Need to know what the client will send...
-		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
-		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+	static void battleStart(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException, JSONException {
+		// Expected data format: {"email":"email"}
+		// Get that person deviceID
+		
+		if (connection.inBattle) {
+			connection.sendResponse(Command.ERROR, Message.USER_ALREADY_IN_BATTLE);
+		}
+		
+		String email = "";
+		boolean notify = false;
+		
+		JsonFactory factory = new JsonFactory();
+		JsonParser parser = factory.createParser(data);
+
+		while (!parser.isClosed()) {
+			JsonToken token = parser.nextToken();
+			if (token == null) {
+				break;
+			}
+			
+			if (JsonToken.FIELD_NAME.equals(token) && "email".equals(parser.getCurrentName())) {
+				token = parser.nextToken();
+				email = parser.getValueAsString();
+			} 
+			if (JsonToken.FIELD_NAME.equals(token) && "initiator".equals(parser.getCurrentName())) {
+				token = parser.nextToken();
+				notify = parser.getValueAsBoolean();
+			} 
+
+		}
+		
+		if (email == null || email.isEmpty()) {
+			connection.error(Message.MALFORMED_DATA_PACKET);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.MALFORMED_DATA_PACKET);
+			return;
+		}
+
+		ResultSet resultSet = connection.databaseConnection
+				.executeSQL("select * from users where email='" + email + "';");
+
+		if (!resultSet.next()) {
+			connection.sendResponse(Command.ERROR, Message.USER_DOES_NOT_EXIST);
+			Global.log(connection.clientNumber, Command.ERROR + ": " + Message.USER_DOES_NOT_EXIST);
+			return;
+		}
+		
+		User requested = new User(resultSet);
+		
+		connection.inBattle = true;
+		connection.enemyDeviceId = requested.getDeviceToken();
+		
+		if (notify) {
+			JSONObject notificationData = new JSONObject();
+			notificationData.put(Command.BATTLE_START, connection.user.getEmail());
+	
+			boolean success = NotificationHandler.sendPushNotification(requested.getDeviceToken(), Message.BATTLE_ACCEPTED,
+					connection.user.getEmail() + Message.BATTLE_ACCEPTED_BODY, notificationData);
+			
+			if (success) {
+				connection.sendResponse(Command.BATTLE_START, Command.SUCCESS);
+			} else {
+				connection.sendResponse(Command.ERROR, Message.SERVER_ERROR_RETRY);
+			}
+		} else {
+			connection.sendResponse(Command.BATTLE_START, Command.SUCCESS);
+		}
+		
+		Global.log(connection.clientNumber, Command.BATTLE_START + ": " + data);
 	}
 	
-	static void battleAction(ServerThread connection, String data) {
+	static void battleAction(ServerConnection connection, String data) throws JSONException, IOException {
+		if (!connection.inBattle) {
+			connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+		}
 		// TODO Auto-generated method stub
 		// Need to know what the client will send...
-		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
-		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+		Global.log(connection.clientNumber, Command.BATTLE_ACTION + ": " + data);
+		
+		JSONObject notificationData = new JSONObject();
+		notificationData.put(Command.BATTLE_ACTION, data);
+
+		boolean success = NotificationHandler.sendPushNotification(connection.enemyDeviceId, Message.BATTLE_ACCEPTED,
+				connection.user.getEmail() + Message.BATTLE_ACCEPTED_BODY, notificationData);
+		
+		if (success) {
+			connection.sendResponse(Command.BATTLE_START, Command.SUCCESS);
+		} else {
+			connection.sendResponse(Command.ERROR, Message.SERVER_ERROR_RETRY);
+		}
+		
 	}
 	
-	static void battleEnd(ServerThread connection, String data) {
-		// TODO Auto-generated method stub
-		// Need to know what the client will send...
-		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
-		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
+	static void battleEnd(ServerConnection connection, String data) {
+		// This method is just used to tell the server that the user is done with
+		// battle.
+		Global.log(connection.clientNumber, Command.BATTLE_END + ": " + data);
+		connection.inBattle = false;
+		connection.enemyDeviceId = "";	
+		connection.sendResponse(Command.BATTLE_END, Message.BATTLE_ENDED);
 	}
 
 }

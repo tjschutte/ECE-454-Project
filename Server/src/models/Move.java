@@ -65,10 +65,16 @@ public class Move {
     public String getDescription() {
         return description;
     }
-
+    
     @Override
     public String toString() {
-        return name;
+    	try {
+			return this.toJson(new ObjectMapper());
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return "";
     }
 
     public String toJson(ObjectMapper mapper) throws JsonProcessingException{

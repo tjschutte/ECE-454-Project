@@ -1,76 +1,85 @@
 package main;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.net.ServerSocket;
+import java.io.PrintStream;
 import java.sql.SQLException;
 
-import server.HttpConnection;
-import server.ServerThread;
-import utilities.Database;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
+import http.HttpConnectionListener;
+import server.ServerConnectionListener;
+import utilities.JTextAreaOutputStream;
 
 public class Main {
 
-	public static void main(String[] args) throws IOException, SQLException {
-		new ServerConnectionListener().start();
-		new HttpConnectionListener().start();
-	}
-}
+	public static void main(String[] args) throws IOException, SQLException  {
+		JFrame frame = new JFrame("Humon Server");
+		frame.setSize(50, 80);
+		final JTextArea messageArea = new JTextArea(30, 80);
+		// Layout GUI
+		messageArea.setEditable(false);
+		frame.getContentPane().add(new JScrollPane(messageArea), "North");
 
-class ServerConnectionListener extends Thread {
-	
-	public ServerConnectionListener() {}
-	
-	public void run() {
-		ServerSocket humonListener = null;
-		try {
-			System.out.println("Starting Humon Server...");
-			int clientNumber = 0;
-			humonListener = new ServerSocket(9898);
+		JPanel config = new JPanel();
 
-			// Ensure that the database is set up, and has tables set up.
-			@SuppressWarnings("unused")
-			Database database = new Database(false, false);
-
-			System.out.println("Waiting for Humon-Service connections.");
-			while (true) {
-				new ServerThread(humonListener.accept(), clientNumber++).start();
-			}
-		} catch (IOException | SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				humonListener.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-}
-
-/**
- * This is so the server can handle http request later on.  This will allow us to distribute the app to 
- * friends by having them visit in a webrowser to download the compiled app.
- * 
- */
-class HttpConnectionListener extends Thread {
-	public void run() {
-		ServerSocket httpListener = null;
-		try {
-			httpListener = new ServerSocket(80);
-
-			System.out.println("Waiting for Http connections.");
-			while (true) {
-				new HttpConnection(httpListener.accept()).start();
-			}
+		config.setSize(20, 80);
+		
+		final JCheckBox dropTablesCheckBox = new JCheckBox("Drop existing database tables?");
+		final JCheckBox testDataCheckBox = new JCheckBox("Insert test data into database tables?");
+		final JCheckBox appendToLogCheckBox = new JCheckBox("Append to exisitng log file if exists?");
+		final JCheckBox startHttpServer = new JCheckBox("Start Http server as well?");
+		startHttpServer.setSelected(true);
+		final JButton start = new JButton("Start");
+		config.add(dropTablesCheckBox);
+		config.add(testDataCheckBox);
+		config.add(appendToLogCheckBox);
+		config.add(startHttpServer);
+		config.add(start);
+		
+		frame.getContentPane().add(config, "Center");
+		
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.pack();
+		frame.setVisible(true);
+		
+		start.addActionListener(new ActionListener() {
 			
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				httpListener.close();
-			} catch (IOException e) {
-				e.printStackTrace();
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				boolean dropTables;
+				boolean testData;
+				boolean appendToLog;
+				
+				dropTables = dropTablesCheckBox.isSelected();
+				testData = testDataCheckBox.isSelected();
+				appendToLog = appendToLogCheckBox.isSelected();
+				start.setEnabled(false);
+				
+				JTextAreaOutputStream out = new JTextAreaOutputStream(messageArea, appendToLog);
+				System.setOut(new PrintStream(out));
+				System.setErr(new PrintStream(out));
+
+				new ServerConnectionListener(dropTables, testData).start();
+				
+				
+				if (startHttpServer.isSelected()) {
+					new HttpConnectionListener().start();
+				}
 			}
-		}
+		});
+		
 	}
 }
+
+
+
+
+
+

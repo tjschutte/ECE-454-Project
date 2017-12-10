@@ -1,25 +1,36 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,14 +47,26 @@ import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.Models.Move;
 import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
+import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 import edu.wisc.ece454.hu_mon.Utilities.HumonPartySaver;
-import edu.wisc.ece454.hu_mon.Utilities.UserHelper;
 
-public class WildBattleActivity extends SettingsActivity {
+public class OnlineBattleActivity extends AppCompatActivity {
 
-    private final String ACTIVITY_TITLE = "Battle";
+    ServerConnection mServerConnection;
+    boolean mBound;
     private final String TAG = "BATTLE";
+    private String enemyEmail;
+    private boolean battleStarting = false;
+    private boolean isInitiaor = false;
+    private boolean waitingForEnemy = true;
+
+    private final String ACTIVITY_TITLE = "Online Battle";
     private String HUMONS_KEY;
+    private final int INSTANCE_TYPE = 0;
+    private final int MOVE_TYPE = 1;
+    private final int RUN_TYPE = 2;
+    private final String COMMAND_TYPE = "commandType";
+    private final String WAITING_MESSAGE = "Waiting for enemy...";
 
     private Humon enemyHumon;
     private Humon playerHumon;
@@ -51,9 +74,13 @@ public class WildBattleActivity extends SettingsActivity {
     private String userEmail;
     private User user;
 
+    private Move playerMove;
+    private Move enemyMove;
+
+    private int playerRng;
+    private int enemyRng;
+
     private boolean gameOver;
-    private boolean canCapture;
-    private boolean capturedHumon;
     private boolean gameSaved;
 
     private Move.Effect playerStatus;
@@ -61,6 +88,7 @@ public class WildBattleActivity extends SettingsActivity {
 
     //Queue of messages to be displayed in console (front is 0)
     private ArrayList<String> consoleDisplayQueue;
+    private String currentConsoleMessage = "";
 
     private ProgressBar playerHealthBar;
     private ProgressBar enemyHealthBar;
@@ -70,20 +98,29 @@ public class WildBattleActivity extends SettingsActivity {
     private ArrayList<String> partyHumons;
     private ArrayList<Integer> partyHumonIndices;
     private ArrayList<Move> playerMoveList;
-    private ArrayList<Move> enemyMoveList;
     private ArrayAdapter<Move> moveAdapter;
 
     private GridView playerMovesView;
     private TextView userConsole;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.wild_battle_layout);
         setTitle(ACTIVITY_TITLE);
-
         HUMONS_KEY = getString(R.string.humonsKey);
+
+        Intent parentIntent = getIntent();
+        enemyEmail = parentIntent.getStringExtra(getString(R.string.emailKey));
+        isInitiaor = parentIntent.getBooleanExtra(getString(R.string.initiatorKey), false);
+        Log.i(TAG, "Battle started with: " + enemyEmail);
+        battleStarting = true;
+
+        // Attach to the server communication service
+        Intent intent = new Intent(this, ServerConnection.class);
+        startService(intent);
+        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
 
         partyHumons = new ArrayList<String>();
         partyHumonIndices = new ArrayList<Integer>();
@@ -92,7 +129,6 @@ public class WildBattleActivity extends SettingsActivity {
 
         //Setup Grid View and Adapter
         playerMoveList = new ArrayList<Move>();
-        enemyMoveList = new ArrayList<Move>();
         playerMovesView = (GridView) findViewById(R.id.moveGridView);
         moveAdapter = new ArrayAdapter<Move>(this,
                 android.R.layout.simple_list_item_1, playerMoveList);
@@ -101,7 +137,11 @@ public class WildBattleActivity extends SettingsActivity {
                 new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        choosePlayerMove(playerMoveList.get(position));
+                        try {
+                            choosePlayerMove(playerMoveList.get(position));
+                        } catch (JsonProcessingException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
         );
@@ -117,6 +157,33 @@ public class WildBattleActivity extends SettingsActivity {
                     }
                 }
         );
+    }
+
+    @Override
+    protected void onDestroy() {
+        // make sure to unbind
+        if (mBound) {
+            //Intent intent = new Intent(this, ServerConnection.class);
+            //stopService(intent);
+            unbindService(mServiceConnection);
+            mBound = false;
+        }
+
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!mBound) {
+            // Attach to the server communication service
+            Intent intent = new Intent(this, ServerConnection.class);
+            startService(intent);
+            bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+        }
+
+        filter.addAction(getString(R.string.serverBroadCastEvent));
+        registerReceiver(receiver, filter);
     }
 
     @Override
@@ -137,34 +204,21 @@ public class WildBattleActivity extends SettingsActivity {
             consoleDisplayQueue.clear();
             gameOver = false;
             gameSaved = false;
-            canCapture = false;
-            capturedHumon = false;
             partyHumons.clear();
             partyHumonIndices.clear();
             playerHumonIndex = 0;
+            waitingForEnemy = true;
 
             //status effects of humons
             playerStatus = null;
             enemyStatus = null;
 
             //load humons into battle
-            loadPartyHumons();
-            choosePlayerHumon();
+            if(!isInitiaor) {
+                loadPartyHumons();
+                choosePlayerHumon();
+            }
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        if(!gameSaved) {
-            saveHumons();
-        }
-        SharedPreferences sharedPref = this.getSharedPreferences(
-                getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putBoolean(getString(R.string.gameRunningKey), false);
-        editor.commit();
-
-        super.onDestroy();
     }
 
     @Override
@@ -174,54 +228,347 @@ public class WildBattleActivity extends SettingsActivity {
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        try {
+            unregisterReceiver(receiver);
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("Receiver not registered")) {
+                // Ignore this exception. This is exactly what is desired
+            } else {
+                // unexpected, re-throw
+                throw e;
+            }
+        }
+    }
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            ServerConnection.LocalBinder myBinder = (ServerConnection.LocalBinder) service;
+            mServerConnection = myBinder.getService();
+            mBound = true;
+            if(battleStarting) {
+                getEnemyParty();
+                notifyEnemyStart();
+                battleStarting = false;
+            }
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            mServiceConnection = null;
+            mBound = false;
+        }
+    };
+
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String response = intent.getStringExtra(getString(R.string.serverBroadCastResponseKey));
+            String command;
+            String data;
+            if (response.indexOf(':') == -1) {
+                // Got a bad response from the server. Do nothing.
+                Toast toast = Toast.makeText(context, "Error communicating with server. Try again.", Toast.LENGTH_SHORT);
+                toast.show();
+                return;
+            }
+
+            command = response.substring(0, response.indexOf(':'));
+            command = command.toUpperCase();
+            data = response.substring(response.indexOf(':') + 1, response.length());
+
+            Log.i(TAG, "In online battle");
+
+            //Receiving iIDs of all enemy Hu-mons, must use hIDs to add to index,
+            //iIDs to add to enemy party
+            if (command.equals(getString(R.string.ServerCommandGetParty))) {
+                Log.i(TAG, "ServerCommandGetPartySuccess");
+
+                //Parse data to get iIDs
+                ArrayList<String> enemyiIDs = new ArrayList<String>();
+                Log.i(TAG, "Get-Party Payload: " + data);
+                try {
+                    JSONObject partyJson = new JSONObject(data);
+                    String rawParty = partyJson.getString("party");
+                    rawParty = rawParty.substring(rawParty.indexOf("[") + 1, rawParty.indexOf("]"));
+                    rawParty = rawParty.replaceAll("\\s+","");
+                    Log.i(TAG, "Formatted Get-Party Payload: " + rawParty);
+                    String [] partyArray = rawParty.split(",");
+                    for(int i = 0; i < partyArray.length; i++) {
+                        enemyiIDs.add(partyArray[i]);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                //Save how many humons should be received
+                SharedPreferences sharedPref = getSharedPreferences(getString(R.string.sharedPreferencesFile),
+                        Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putInt(getString(R.string.expectedEnemiesKey), enemyiIDs.size());
+                editor.putInt(getString(R.string.expectedHumonsKey), enemyiIDs.size());
+                editor.commit();
+
+                //Get instances of all iIDs
+                for(int i = 0; i < enemyiIDs.size(); i++) {
+                    mServerConnection.sendMessage(context.getString(R.string.ServerCommandGetInstance) +
+                            ":{\"iID\":\"" + enemyiIDs.get(i) + "\"}");
+                }
+            }
+            else if(command.equals(getString(R.string.ServerCommandGetInstance))) {
+                ObjectMapper mapper = new ObjectMapper();
+                try {
+                    //create Humon object from payload
+                    Humon enemyHumon = mapper.readValue(data, Humon.class);
+
+                    //determine ownere of humon
+                    String humonOwner = enemyHumon.getiID().substring(0, enemyHumon.getiID().indexOf("-"));
+                    Log.i(TAG, "Owner of humon: " + humonOwner);
+
+                    //retrieve email of the user
+                    SharedPreferences sharedPref = context.getSharedPreferences(
+                            context.getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+                    String userEmail = sharedPref.getString(context.getString(R.string.emailKey), "");
+
+                    //Fetch humon objects of enemy party
+                    if(!userEmail.equals(humonOwner)) {
+                        mServerConnection.sendMessage(context.getString(R.string.ServerCommandGetHumon) + ":{\"hID\":\"" +
+                                enemyHumon.gethID() + "\"}");
+                    }
+
+                } catch (JsonParseException e) {
+                    e.printStackTrace();
+                } catch (JsonMappingException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            else if(command.equals(getString(R.string.ServerCommandBattleAction))) {
+               Log.i(TAG, "Received battle action: " + data);
+                try {
+                    JSONObject battleJson = new JSONObject(data);
+
+                    if(battleJson.getInt(COMMAND_TYPE) == INSTANCE_TYPE) {
+                        String enemyIID = battleJson.getString("iID");
+                        loadEnemy(enemyIID);
+                        //load humons into battle
+                        if(isInitiaor) {
+                            loadPartyHumons();
+                            choosePlayerHumon();
+                        }
+                        waitingForEnemy = false;
+                        endWaitingMessage();
+                    }
+                    else if(battleJson.getInt(COMMAND_TYPE) == MOVE_TYPE) {
+                        enemyMove = new ObjectMapper().readValue(battleJson.getString("move"), Move.class);
+                        enemyRng = battleJson.getInt("rng");
+                        waitingForEnemy = false;
+                        endWaitingMessage();
+
+                        if(playerMove != null) {
+                            startBattleSequence();
+                        }
+                    }
+                    else if(battleJson.getInt(COMMAND_TYPE) == RUN_TYPE) {
+                        finishBattle();
+                    }
+
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (JsonParseException e) {
+                    e.printStackTrace();
+                } catch (JsonMappingException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+    };
+
+    private IntentFilter filter = new IntentFilter();
+
+    //Get enemy's humons
+    private void getEnemyParty() {
+        //Get enemies party
+        if(mBound) {
+            Log.i(TAG, "Attempting to get party");
+            mServerConnection.sendMessage(getString(R.string.ServerCommandGetParty) +
+                    ":{\"email\":\"" + enemyEmail + "\"}");
+        }
+        else {
+            Log.i(TAG, "Error: Connection not bound, cannot get party");
+        }
+    }
+
+    //Notify enemy that battle request was accepted
+    private void notifyEnemyStart() {
+
+        //initiator: true for accepted notification
+
+        //Get enemies party
+        if(mBound) {
+            Log.i(TAG, "Attempting to notify enemy of battle start");
+            mServerConnection.sendMessage(getString(R.string.ServerCommandBattleStart) +
+                    ":{\"email\":\"" + enemyEmail + "\", \"initiator\":" + isInitiaor + "}");
+        }
+        else {
+            Log.i(TAG, "Error: Connection not bound, cannot get notify enemy");
+        }
+    }
+
     /*
-     * Loads the enemy and player humons after player humon chosen to battle.
+     * Loads all humons in party which do not have 0 hp.
      *
      *
      */
-    private void loadBattleHumons() {
-        loadPlayer();
-        loadPlayerMoves();
-        loadEnemy();
-        scaleEnemy();
-
-    }
-
-    //randomly selects a humon from index and loads into UI
-    private void loadEnemy() {
-
+    private void loadPartyHumons() {
+        Log.i(TAG, "Loading Humons to battle");
         Thread loadThread = new Thread() {
             public void run() {
-                String indexFilename =  getFilesDir() + "/" + userEmail + getString(R.string.indexFile);;
+                String partyFilename = getFilesDir() + "/" + userEmail + getString(R.string.partyFile);
 
                 try {
-                    Log.i(TAG,"Attempting to load: " + indexFilename);
+                    Log.i(TAG, "Attempting to load: " + partyFilename);
 
-                    //load index file
-                    String indexString;
-                    FileInputStream inputStream = new FileInputStream(indexFilename);
+                    //load party file
+                    String partyString;
+                    FileInputStream inputStream = new FileInputStream(partyFilename);
                     int inputBytes = inputStream.available();
                     byte[] buffer = new byte[inputBytes];
                     inputStream.read(buffer);
                     inputStream.close();
-                    indexString = new String(buffer, "UTF-8");
-                    JSONObject fileJson = new JSONObject(indexString);
+                    partyString = new String(buffer, "UTF-8");
+                    Log.i(TAG, "User party string: " + partyString);
+                    JSONObject fileJson = new JSONObject(partyString);
                     JSONArray humonsArray = fileJson.getJSONArray(HUMONS_KEY);
-                    Log.i(TAG,indexFilename + " loaded");
-
-                    //randomly choose a humon to fight
-                    Random rng = new Random();
-                    int humonIndex = rng.nextInt(humonsArray.length());
+                    Log.i(TAG, partyFilename + " loaded");
 
                     //load humon into json object format
-                    String humonString = humonsArray.getString(humonIndex);
+                    for(int i = 0; i < humonsArray.length(); i++) {
+                        String humonString = humonsArray.getString(i);
+                        JSONObject humonJson = new JSONObject(humonString);
+                        int hp = humonJson.getInt("hp");
+                        if(hp > 0) {
+                            String name = humonJson.getString("name");
+                            partyHumons.add(name);
+                            partyHumonIndices.add(i);
+                        }
+                    }
+
+                    inputStream.close();
+                } catch (FileNotFoundException e) {
+                    Log.i(TAG, "No party file for: " + userEmail);
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        };
+
+        loadThread.run();
+    }
+
+    /*
+     * Loads a dialogue with all choosable Humons.
+     * Choosing a humon loads it from the file.
+     * If no humons available, ends battle.
+     *
+     */
+    private void choosePlayerHumon() {
+        Log.i(TAG, "Choosing Humon to battle");
+        if(partyHumons.size() == 0) {
+            Toast toast = Toast.makeText(getApplicationContext(), "No available humons!", Toast.LENGTH_SHORT);
+            toast.show();
+
+            //return to the menu
+            finish();
+        }
+        else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+            LayoutInflater inflater = this.getLayoutInflater();
+
+            View dialogView = inflater.inflate(R.layout.party_layout, null);
+            builder.setView(dialogView);
+            builder.setTitle("Choose Hu-mon");
+
+            //Fill listview with all party humons
+            ListView partyListView = (ListView) dialogView.findViewById(R.id.partyListView);
+            ArrayAdapter<String> partyAdapter = new ArrayAdapter<String>(this,
+                    android.R.layout.simple_list_item_1, partyHumons);
+            partyListView.setAdapter(partyAdapter);
+
+            //display the dialog
+            final AlertDialog chooseHumonDialog = builder.create();
+            chooseHumonDialog.show();
+
+            partyListView.setOnItemClickListener(
+                    new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            chooseHumonDialog.dismiss();
+                            playerHumonIndex = position;
+                            loadPlayer();
+                            loadPlayerMoves();
+                            consoleDisplayQueue.add(WAITING_MESSAGE);
+                            displayConsoleMessage();
+                        }
+                    }
+            );
+
+        }
+    }
+
+    //Loads first humon in party
+    private void loadEnemy(final String enemyIID) {
+        Thread loadThread = new Thread() {
+            public void run() {
+                String partyFilename = getFilesDir() + "/" + getString(R.string.enemyPartyFile);
+
+                try {
+                    Log.i(TAG, "Attempting to load: " + partyFilename);
+
+                    //load party file
+                    String partyString;
+                    FileInputStream inputStream = new FileInputStream(partyFilename);
+                    int inputBytes = inputStream.available();
+                    byte[] buffer = new byte[inputBytes];
+                    inputStream.read(buffer);
+                    inputStream.close();
+                    partyString = new String(buffer, "UTF-8");
+                    JSONObject fileJson = new JSONObject(partyString);
+                    JSONArray humonsArray = fileJson.getJSONArray(HUMONS_KEY);
+                    Log.i(TAG, partyFilename + " loaded");
+
+                    //locate enemy to load
+                    int enemyHumonIndex = -1;
+                    for(int i = 0; i < humonsArray.length(); i++) {
+                        String humonString = humonsArray.getString(i);
+                        JSONObject humonJson = new JSONObject(humonString);
+                        if(humonJson.getString("iID").equals(enemyIID)) {
+                            enemyHumonIndex = i;
+                            break;
+                        }
+                    }
+                    String humonString = humonsArray.getString(enemyHumonIndex);
                     JSONObject humonJson = new JSONObject(humonString);
                     String name = humonJson.getString("name");
                     String description = humonJson.getString("description");
                     String image = null;
-                    int level = 1;
+                    int level = humonJson.getInt("level");
                     int xp = humonJson.getInt("xp");
-                    int hp = humonJson.getInt("health");
+                    int hp = humonJson.getInt("hp");
                     int hID = humonJson.getInt("hID");
                     String uID = humonJson.getString("uID");
                     String iID = humonJson.getString("iID");
@@ -272,11 +619,11 @@ public class WildBattleActivity extends SettingsActivity {
                     enemyHumon = new Humon(name, description, image, level, xp, hID, uID,
                             iID, moveList, health, luck, attack, speed, defense, imagePath, hp);
 
-                    Log.i(TAG,"Enemy is: " + enemyHumon.getName());
+                    Log.i(TAG, "Enemy is: " + enemyHumon.getName());
 
                     inputStream.close();
                 } catch (FileNotFoundException e) {
-                    Log.i(TAG,"No index file for: " + userEmail);
+                    Log.i(TAG, "No enemy party file exists");
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -285,11 +632,20 @@ public class WildBattleActivity extends SettingsActivity {
                     e.printStackTrace();
                 }
 
-                //load moves
-                ArrayList<Move> humonMoves = enemyHumon.getMoves();
-                for(int i = 0; i < humonMoves.size(); i++) {
-                    enemyMoveList.add(humonMoves.get(i));
-                }
+                //Load data into UI
+                TextView nameTextView = (TextView) findViewById(R.id.enemyNameTextView);
+                nameTextView.setText(enemyHumon.getName());
+                //Log.i(TAG, "Player textview: " + nameTextView.getText().toString());
+
+                TextView levelTextView = (TextView) findViewById(R.id.enemyLevelTextView);
+                levelTextView.setText("Lvl " + enemyHumon.getLevel());
+
+                enemyStatusTextView = (TextView) findViewById(R.id.enemyStatusTextView);
+                enemyStatusTextView.setText("");
+
+                enemyHealthBar = (ProgressBar) findViewById(R.id.enemyHealthBar);
+                enemyHealthBar.setMax(enemyHumon.getHealth());
+                enemyHealthBar.setProgress(enemyHumon.getHp());
 
                 //load humon image
                 if(enemyHumon.getImagePath() != null) {
@@ -304,144 +660,7 @@ public class WildBattleActivity extends SettingsActivity {
         };
 
         loadThread.run();
-        Log.i(TAG,"Finished loading enemy");
-    }
-
-    //Chooses a level for the enemy humon and scales its stats to that level
-    private void scaleEnemy() {
-        //choose Humon level
-        Random rng = new Random();
-        int humonLevelRange = 5;
-        int humonLevel = rng.nextInt(humonLevelRange * 2) + playerHumon.getLevel() - humonLevelRange;
-        if(humonLevel < 1) {
-            humonLevel = 1;
-        }
-
-        Log.i(TAG,"Scaling enemy to level: " + humonLevel);
-
-        //Increment stats on enemy humon by level
-        for(int i = 1; i < humonLevel; i++) {
-            enemyHumon.levelUp();
-        }
-
-        //Load data into UI
-        TextView nameTextView = (TextView) findViewById(R.id.enemyNameTextView);
-        nameTextView.setText(enemyHumon.getName());
-        Log.i(TAG,"Enemy textview: " + nameTextView.getText().toString());
-
-        TextView levelTextView = (TextView) findViewById(R.id.enemyLevelTextView);
-        levelTextView.setText("Lvl " + enemyHumon.getLevel());
-
-        enemyStatusTextView = (TextView) findViewById(R.id.enemyStatusTextView);
-        enemyStatusTextView.setText("");
-
-        enemyHealthBar = (ProgressBar) findViewById(R.id.enemyHealthBar);
-        enemyHealthBar.setMax(enemyHumon.getHealth());
-        enemyHealthBar.setProgress(enemyHumon.getHp());
-
-    }
-
-    /*
-     * Loads all humons in party which do not have 0 hp.
-     *
-     *
-     */
-    private void loadPartyHumons() {
-        Log.i(TAG,"Loading Humons to battle");
-        Thread loadThread = new Thread() {
-            public void run() {
-                String partyFilename = getFilesDir() + "/" + userEmail + getString(R.string.partyFile);
-
-                try {
-                    Log.i(TAG,"Attempting to load: " + partyFilename);
-
-                    //load party file
-                    String partyString;
-                    FileInputStream inputStream = new FileInputStream(partyFilename);
-                    int inputBytes = inputStream.available();
-                    byte[] buffer = new byte[inputBytes];
-                    inputStream.read(buffer);
-                    inputStream.close();
-                    partyString = new String(buffer, "UTF-8");
-                    JSONObject fileJson = new JSONObject(partyString);
-                    JSONArray humonsArray = fileJson.getJSONArray(HUMONS_KEY);
-                    Log.i(TAG,partyFilename + " loaded");
-
-                    //load humon into json object format
-                    for(int i = 0; i < humonsArray.length(); i++) {
-                        String humonString = humonsArray.getString(i);
-                        JSONObject humonJson = new JSONObject(humonString);
-                        int hp = humonJson.getInt("hp");
-                        if(hp > 0 || userEmail.equals("dev")) {
-                            String name = humonJson.getString("name");
-                            partyHumons.add(name);
-                            partyHumonIndices.add(i);
-                        }
-                    }
-
-                    inputStream.close();
-                } catch (FileNotFoundException e) {
-                    Log.i(TAG,"No party file for: " + userEmail);
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        };
-
-        loadThread.run();
-    }
-
-    /*
-     * Loads a dialogue with all choosable Humons.
-     * Choosing a humon loads it from the file.
-     * If no humons available, ends battle.
-     *
-     */
-    private void choosePlayerHumon() {
-        Log.i(TAG,"Choosing Humon to battle");
-        if(partyHumons.size() == 0) {
-            Toast toast = Toast.makeText(getApplicationContext(), "No available humons!", Toast.LENGTH_SHORT);
-            toast.show();
-
-            //return to the menu
-            finish();
-        }
-        else {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-            LayoutInflater inflater = this.getLayoutInflater();
-
-            View dialogView = inflater.inflate(R.layout.party_layout, null);
-            builder.setView(dialogView);
-            builder.setTitle("Choose Hu-mon");
-
-            //Fill listview with all party humons
-            ListView partyListView = (ListView) dialogView.findViewById(R.id.partyListView);
-            ArrayAdapter<String> partyAdapter = new ArrayAdapter<String>(this,
-                    android.R.layout.simple_list_item_1, partyHumons);
-            partyListView.setAdapter(partyAdapter);
-
-            //display the dialog
-            final AlertDialog chooseHumonDialog = builder.create();
-            chooseHumonDialog.show();
-
-            partyListView.setOnItemClickListener(
-                    new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            chooseHumonDialog.dismiss();
-                            playerHumonIndex = position;
-                            loadBattleHumons();
-                        }
-                    }
-            );
-
-        }
+        Log.i(TAG, "Finished loading enemy");
     }
 
     //Loads first humon in party
@@ -451,7 +670,7 @@ public class WildBattleActivity extends SettingsActivity {
                 String partyFilename = getFilesDir() + "/" + userEmail + getString(R.string.partyFile);
 
                 try {
-                    Log.i(TAG,"Attempting to load: " + partyFilename);
+                    Log.i(TAG, "Attempting to load: " + partyFilename);
 
                     //load party file
                     String partyString;
@@ -463,7 +682,7 @@ public class WildBattleActivity extends SettingsActivity {
                     partyString = new String(buffer, "UTF-8");
                     JSONObject fileJson = new JSONObject(partyString);
                     JSONArray humonsArray = fileJson.getJSONArray(HUMONS_KEY);
-                    Log.i(TAG,partyFilename + " loaded");
+                    Log.i(TAG, partyFilename + " loaded");
 
                     //load humon into json object format
                     String humonString = humonsArray.getString(playerHumonIndex);
@@ -521,19 +740,18 @@ public class WildBattleActivity extends SettingsActivity {
                                 moveHasEffect, moveDescription));
                     }
 
-                    if(userEmail.equals("dev")) {
-                        health *= 5;
-                        hp = health;
-                    }
-
                     playerHumon = new Humon(name, description, image, level, xp, hID, uID,
                             iID, moveList, health, luck, attack, speed, defense, imagePath, hp);
 
-                    Log.i(TAG,"Player is: " + playerHumon.getName());
+                    Log.i(TAG, "Player is: " + playerHumon.getName());
+
+                    //Send server iID of chosen humon
+                    mServerConnection.sendMessage(getString(R.string.ServerCommandBattleAction) +
+                            ":{\"commandType\":"+ INSTANCE_TYPE + ", \"iID\":\"" + playerHumon.getiID() + "\"}");
 
                     inputStream.close();
                 } catch (FileNotFoundException e) {
-                    Log.i(TAG,"No party file for: " + userEmail);
+                    Log.i(TAG, "No party file for: " + userEmail);
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -545,7 +763,7 @@ public class WildBattleActivity extends SettingsActivity {
                 //Load data into UI
                 TextView nameTextView = (TextView) findViewById(R.id.playerNameTextView);
                 nameTextView.setText(playerHumon.getName());
-                Log.i(TAG,"Player textview: " + nameTextView.getText().toString());
+                Log.i(TAG, "Player textview: " + nameTextView.getText().toString());
 
                 TextView levelTextView = (TextView) findViewById(R.id.playerLevelTextView);
                 levelTextView.setText("Lvl " + playerHumon.getLevel());
@@ -574,12 +792,12 @@ public class WildBattleActivity extends SettingsActivity {
         };
 
         loadThread.run();
-        Log.i(TAG,"Finished loading player");
+        Log.i(TAG, "Finished loading player");
     }
 
     private void loadPlayerMoves() {
 
-        Log.i(TAG,"In Load Player Moves");
+        Log.i(TAG, "In Load Player Moves");
 
         //Clear previous moves
         playerMoveList.clear();
@@ -592,26 +810,47 @@ public class WildBattleActivity extends SettingsActivity {
         moveAdapter.notifyDataSetChanged();
 
         for(int i = 0; i < playerMoveList.size(); i++) {
-            Log.i(TAG,"Added move: " + playerMoveList.get(i).getName());
+            Log.i(TAG, "Added move: " + playerMoveList.get(i).getName());
         }
     }
 
-    private void choosePlayerMove(Move move) {
-
-        //choose enemy move
+    private void choosePlayerMove(Move move) throws JsonProcessingException {
+        playerMove = move;
         Random rng = new Random();
-        int enemyMove = rng.nextInt(enemyMoveList.size());
+        playerRng = rng.nextInt(100);
+
+        try {
+            mServerConnection.sendMessage(getString(R.string.ServerCommandBattleAction) +
+                    ":{\"commandType\":"+ MOVE_TYPE + ", \"move\":" + move.toJson(new ObjectMapper()) +
+                    ", \"rng\":" + playerRng +"}");
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+
+
+        if(enemyMove != null) {
+            startBattleSequence();
+        }
+        else {
+            waitingForEnemy = true;
+            consoleDisplayQueue.add(WAITING_MESSAGE);
+            displayConsoleMessage();
+        }
+    }
+
+    private void startBattleSequence() {
 
         String displayMessage;
 
         if(playerFirst()) {
-            useMove(move, true);
+            useMove(playerMove, true);
 
             if(enemyHumon.getHp() == 0) {
                 finishBattle();
             } else {
 
-                useMove(enemyMoveList.get(enemyMove), false);
+                useMove(enemyMove, false);
 
                 if(playerHumon.getHp() == 0) {
                     finishBattle();
@@ -620,13 +859,13 @@ public class WildBattleActivity extends SettingsActivity {
         }
         else {
 
-            useMove(enemyMoveList.get(enemyMove), false);
+            useMove(enemyMove, false);
 
             if(playerHumon.getHp() == 0) {
                 finishBattle();
             }
             else {
-                useMove(move, true);
+                useMove(playerMove, true);
 
                 if(enemyHumon.getHp() == 0) {
                     finishBattle();
@@ -634,14 +873,8 @@ public class WildBattleActivity extends SettingsActivity {
             }
         }
         displayConsoleMessage();
-    }
-
-    //choose which humon will attack first (true if player)
-    private boolean playerFirst() {
-        if(enemyHumon.getSpeed() > playerHumon.getSpeed()) {
-            return false;
-        }
-        return true;
+        enemyMove = null;
+        playerMove = null;
     }
 
     /*
@@ -687,7 +920,7 @@ public class WildBattleActivity extends SettingsActivity {
      *
      */
     private void applyMove(String moveName, int damage, Move.Effect effect, boolean targetEnemy,
-        String displayMessage) {
+                           String displayMessage) {
         if(targetEnemy) {
             int enemyHp = enemyHumon.getHp() - damage;
             if (enemyHp < 0) {
@@ -697,20 +930,20 @@ public class WildBattleActivity extends SettingsActivity {
             enemyHealthBar.setProgress(enemyHp);
 
             if(damage >= 0) {
-                displayMessage += "Applied " + damage + " damage to wild " + enemyHumon.getName();
+                displayMessage += "Applied " + damage + " damage to " + enemyHumon.getName();
             }
             else {
-                displayMessage += "Healed " + (damage * -1) + " damage from wild " + enemyHumon.getName();
+                displayMessage += "Healed " + (damage * -1) + " damage from " + enemyHumon.getName();
             }
 
             //Apply the status effect
             if(effect != null && enemyStatus == null) {
                 enemyStatus = effect;
                 enemyStatusTextView.setText(""+ enemyStatus);
-                displayMessage += "\nWild " + enemyHumon.getName() + " is " + enemyStatus + "!";
+                displayMessage += "\n" + enemyHumon.getName() + " is " + enemyStatus + "!";
             }
 
-            Log.i(TAG,displayMessage);
+            Log.i(TAG, displayMessage);
             consoleDisplayQueue.add(displayMessage);
         }
         else {
@@ -734,9 +967,26 @@ public class WildBattleActivity extends SettingsActivity {
                 playerStatusTextView.setText(""+ playerStatus);
                 displayMessage += "\n" + playerHumon.getName() + " is " + playerStatus + "!";
             }
-            Log.i(TAG,displayMessage);
+            Log.i(TAG, displayMessage);
             consoleDisplayQueue.add(displayMessage);
         }
+    }
+
+    //choose which humon will attack first (true if player)
+    private boolean playerFirst() {
+        if(enemyHumon.getSpeed() == playerHumon.getSpeed()) {
+            if(playerRng > enemyRng) {
+                return true;
+            }
+            else if(enemyRng > playerRng) {
+                return false;
+            }
+            return isInitiaor;
+        }
+        if(enemyHumon.getSpeed() > playerHumon.getSpeed()) {
+            return false;
+        }
+        return true;
     }
 
     /*
@@ -788,13 +1038,19 @@ public class WildBattleActivity extends SettingsActivity {
     private Move.Effect getMoveEffect(Move move, boolean isPlayer) {
         //No effect
         if(!move.isHasEffect()) {
-            Log.i(TAG,"Move has no effect");
+            Log.i(TAG, "Move has no effect");
             return null;
         }
 
         Random rng = new Random();
         boolean willEffect = false;
-        int effectChance = rng.nextInt(100);
+        int effectChance;
+        if(isPlayer) {
+            effectChance = playerRng;
+        }
+        else {
+            effectChance = enemyRng;
+        }
         if(isPlayer) {
             if(move.isSelfCast()) {
                 if (effectChance > playerHumon.getLuck()) {
@@ -829,103 +1085,6 @@ public class WildBattleActivity extends SettingsActivity {
     }
 
     /*
-     * Hides the moves grid view and displays the console
-     *
-     */
-    private void displayConsole() {
-        playerMovesView.setVisibility(View.INVISIBLE);
-        userConsole.setVisibility(View.VISIBLE);
-    }
-
-    /*
-     * Hides the console and displays the moves grid view
-     *
-     */
-    private void displayMoves() {
-        playerMovesView.setVisibility(View.VISIBLE);
-        userConsole.setVisibility(View.INVISIBLE);
-    }
-
-
-
-    /*
-     * Displays the next message in the console message queue.
-     * If queue is empty and game is not over, displays moves grid view
-     *
-     */
-    private void displayConsoleMessage() {
-        displayConsole();
-        if(consoleDisplayQueue.size() == 0) {
-            if(gameOver) {
-                if(canCapture) {
-                    captureHumonDialog();
-                }
-                else {
-                    Toast toast = Toast.makeText(this, "Battle Finished", Toast.LENGTH_SHORT);
-                    toast.show();
-
-                    //Save the humon's state
-                    saveHumons();
-
-                    finish();
-                }
-            }
-            else {
-                displayMoves();
-            }
-        }
-        else {
-            userConsole.setText(consoleDisplayQueue.get(0));
-            consoleDisplayQueue.remove(0);
-        }
-    }
-
-    /*
-     * Prompts the user to capture a Humon. If yes a capture sequence starts, else battle ends.
-     * Can only be called if the player wins the battle.
-     *
-     */
-    private void captureHumonDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        builder.setTitle("Capture wild " + enemyHumon.getName() + "?");
-
-        //Attempt to capture the humon
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton)
-            {
-
-                Toast toast = Toast.makeText(getApplicationContext(), "Humon Captured!", Toast.LENGTH_SHORT);
-                toast.show();
-
-                capturedHumon = true;
-
-                nameHumonDialog();
-            }
-        });
-
-        //End the battle
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton)
-            {
-
-                Toast toast = Toast.makeText(getApplicationContext(), "Battle Finished!", Toast.LENGTH_SHORT);
-                toast.show();
-
-                //Save the humon's state
-                saveHumons();
-
-                //return to the menu
-                finish();
-            }
-        });
-
-        //display the dialog
-        final AlertDialog captureHumonDialog = builder.create();
-        captureHumonDialog.show();
-    }
-
-    /*
      * Gives the user the option to run away from the battle
      * Called by pressing the back button
      *
@@ -944,6 +1103,13 @@ public class WildBattleActivity extends SettingsActivity {
 
                 //Save the humon's state
                 saveHumons();
+
+                //tell enemy you ran away
+                mServerConnection.sendMessage(getString(R.string.ServerCommandBattleAction) +
+                        ":{\"commandType\":"+ RUN_TYPE + "}");
+
+                mServerConnection.sendMessage(getString(R.string.ServerCommandBattleEnd) +
+                        ":{}");
 
                 //return to the menu
                 finish();
@@ -965,59 +1131,67 @@ public class WildBattleActivity extends SettingsActivity {
     }
 
     /*
-     * Dialog for user to name newly captured Humon.
-     * This ends the battle screen.
+     * Displays the next message in the console message queue.
+     * If queue is empty and game is not over, displays moves grid view
      *
      */
-    private void nameHumonDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    private void displayConsoleMessage() {
+        displayConsole();
+        if(consoleDisplayQueue.size() == 0) {
+            if(gameOver) {
+                    Toast toast = Toast.makeText(this, "Battle Finished", Toast.LENGTH_SHORT);
+                    toast.show();
 
-        LayoutInflater inflater = this.getLayoutInflater();
+                    //Save the humon's state
+                    saveHumons();
 
-        View dialogView = inflater.inflate(R.layout.name_humon_dialog, null);
-        builder.setView(dialogView);
-        builder.setTitle("Name Hu-mon");
-
-        //Assign the textboxes so they can be accessed by buttons
-        final EditText nameText = (EditText) dialogView.findViewById(R.id.nameEditText);
-        nameText.setText(enemyHumon.getName());
-
-        TextView promptTextView = (TextView) dialogView.findViewById(R.id.humonNameTextView);
-        promptTextView.setText("Choose a name for newly captured " + enemyHumon.getName() + "!");
-
-        //Add Element to list
-        builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton)
-            {
-                String humonName = nameText.getText().toString();
-                if(!humonName.isEmpty()) {
-                    enemyHumon.setName(humonName);
-                }
-
-                //retrieve user object to get hcount
-                user = UserHelper.loadUser(getApplicationContext());
-
-                //Set instance id for new humon
-                enemyHumon.setIID(userEmail + "-" + user.getHcount());
-                user.incrementHCount();
-
-                Log.i(TAG,"Saved new humon with IID: " + enemyHumon.getiID());
-
-                //Save both humons
-                saveHumons();
-                UserHelper.saveUser(getApplicationContext(), user);
-
-                Toast toast = Toast.makeText(getApplicationContext(), "Battle Finished", Toast.LENGTH_SHORT);
-                toast.show();
-
-                //return to the menu
-                finish();
+                    finish();
             }
-        });
+            else {
+                if(!waitingForEnemy) {
+                    displayMoves();
+                }
+            }
+        }
+        else {
+            userConsole.setText(consoleDisplayQueue.get(0));
+            currentConsoleMessage = consoleDisplayQueue.get(0);
+            consoleDisplayQueue.remove(0);
+        }
+    }
 
-        //display the dialog
-        final AlertDialog nameHumonDialog = builder.create();
-        nameHumonDialog.show();
+    /*
+     * Hides the moves grid view and displays the console
+     *
+     */
+    private void displayConsole() {
+        playerMovesView.setVisibility(View.INVISIBLE);
+        userConsole.setVisibility(View.VISIBLE);
+    }
+
+    /*
+     * Hides the console and displays the moves grid view
+     *
+     */
+    private void displayMoves() {
+        playerMovesView.setVisibility(View.VISIBLE);
+        userConsole.setVisibility(View.INVISIBLE);
+    }
+
+    /*
+     * Called when enemy responds, automatically removes message for waiting
+     *
+     */
+    private void endWaitingMessage() {
+        for(int i = 0; i < consoleDisplayQueue.size(); i++) {
+            if(consoleDisplayQueue.get(i).equals(WAITING_MESSAGE)) {
+                consoleDisplayQueue.remove(i);
+            }
+        }
+        if(consoleDisplayQueue.size() == 0 &&
+                currentConsoleMessage.equals(WAITING_MESSAGE)) {
+            displayConsoleMessage();
+        }
     }
 
     //Called when a humon is defeated, gives option to capture if player wins and notifies user
@@ -1045,12 +1219,14 @@ public class WildBattleActivity extends SettingsActivity {
             TextView levelTextView = (TextView) findViewById(R.id.playerLevelTextView);
             levelTextView.setText("Lvl " + playerHumon.getLevel());
 
-            canCapture = true;
         }
 
         //Update the console
         consoleDisplayQueue.add(displayText);
         displayConsoleMessage();
+
+        mServerConnection.sendMessage(getString(R.string.ServerCommandBattleEnd) +
+        ":{}");
 
     }
 
@@ -1062,15 +1238,11 @@ public class WildBattleActivity extends SettingsActivity {
     private void saveHumons() {
 
         AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(this, false);
-        if(capturedHumon) {
-            //save player's humon data and new humon to party
-            partySaveTask.execute(new Humon[]{playerHumon, enemyHumon});
-        }
-        else {
-            //save player's humon data to party
-            partySaveTask.execute(playerHumon);
-        }
+
+        //save player's humon data to party
+        partySaveTask.execute(playerHumon);
         gameSaved = true;
 
     }
+
 }

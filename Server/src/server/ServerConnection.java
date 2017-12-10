@@ -14,7 +14,7 @@ import main.Global;
 import models.User;
 import utilities.Connector;
 
-public class ServerThread extends Thread {
+public class ServerConnection extends Thread {
 
 	/**
 	 * A private thread to handle requests on a particular socket. The client
@@ -28,8 +28,11 @@ public class ServerThread extends Thread {
 	public BufferedReader clientIn;
 	public PrintWriter clientOut;
 	public User user;
+	
+	public boolean inBattle = false;
+	public String enemyDeviceId = "";
 
-	public ServerThread(Socket socket, int clientNumber) throws IOException {
+	public ServerConnection(Socket socket, int clientNumber) throws IOException {
 		this.socket = socket;
 		this.clientNumber = clientNumber;
 		Global.log(clientNumber, "connected at " + socket);
@@ -99,6 +102,16 @@ public class ServerThread extends Thread {
 					case Command.BATTLE_REQUEST:
 						UserAction.battleRequest(this, data);
 						break;
+					// Accept a battle request from another user
+					case Command.BATTLE_START:
+						HumonAction.battleStart(this, data);
+						break;
+					case Command.BATTLE_ACTION:
+						HumonAction.battleAction(this, data);
+						break;
+					case Command.BATTLE_END:
+						HumonAction.battleEnd(this, data);
+						break;
 					// Get the opposing players party (unique IDs, which can then be used to get humons)
 					case Command.GET_PARTY:
 						UserAction.getParty(this, data);
@@ -157,7 +170,9 @@ public class ServerThread extends Thread {
 	public void sendResponse(String cmd, String msg) {
 		clientOut.println(cmd + ": " + msg);
 		clientOut.flush();
-		Global.log(clientNumber, "Client was sent <cmd:msg> [" + cmd + ": " + msg + "]");
+		if (!cmd.equals(Command.GET_HUMON)) {
+			Global.log(clientNumber, "Client was sent <cmd:msg> [" + cmd + ": " + msg + "]");
+		}
 	}
 
 }

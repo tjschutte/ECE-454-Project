@@ -7,9 +7,11 @@ import java.util.Calendar;
 public class Global {
 
 	public static final long UPDATE_TIME = 					300000000000l;
+	public static final int HUMON_SERVER_PORT = 			9898;
+	public static final int HUMON_HTTP_PORT = 				80;
 	
 	public static final String DATABASE_NAME = 				"jdbc:mysql://localhost:3306/";
-	public static final String TABLE_NAME = 				"humon_test?useSSL=false";
+	public static final String TABLE_NAME = 				"humon_test?useSSL=false&max_allowed_packet=8388608";
 	public static final String DATABASE_USER_NAME = 		"ece454";
 	public static final String DATABASE_USER_PASSWORD = 	"zYFqzVgW3t2Y";
 	public static final String DEFAULT_CONNECTIONS = 		"5";

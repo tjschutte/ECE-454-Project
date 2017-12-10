@@ -3,6 +3,7 @@ package edu.wisc.ece454.hu_mon.Utilities;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -26,6 +27,7 @@ import edu.wisc.ece454.hu_mon.R;
 //Outputs a toast on success or failure
 public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
 
+    private final String TAG = "HIDUPDATER";
     //file name for humon index
     private String iFilename = "";
     //file name for party
@@ -80,7 +82,7 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
             oldIndex = new String(buffer, "UTF-8");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            System.out.println("No index currently exists for: " + email);
+            Log.d(TAG, "No index currently exists for: " + email);
             hasIndexFile = false;
         } catch (IOException e) {
             e.printStackTrace();
@@ -92,7 +94,7 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
             try {
                 //append humon on to current object
                 if (oldIndex.length() == 0) {
-                    System.out.println(iFilename + " is empty.");
+                    Log.d(TAG, iFilename + " is empty.");
                     return false;
                 } else {
                     indexJSON = new JSONObject(oldIndex);
@@ -105,19 +107,19 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
                     if (dupCheck.getString("name").equals(hName)) {
                         if (dupCheck.getString("uID").equals(email)) {
                             if (dupCheck.getString("description").equals(hDescription)) {
-                                System.out.println("Updating " + dupCheck.getString("name") + " with HID:" + hIDs[0]);
+                                Log.d(TAG, "Updating " + dupCheck.getString("name") + " with HID:" + hIDs[0]);
                                 dupCheck.put("hID", hIDs[0]);
 
                                 //rename image file to hID
                                 oldImageFile = new File(dupCheck.getString("imagePath"));
-                                //System.out.println("Old image path: " + oldImageFile.getPath());
+                                //Log.d(TAG, "Old image path: " + oldImageFile.getPath());
                                 newImageFile = new File(context.getFilesDir(), hIDs[0] + ".jpg");
                                 oldImageFile.renameTo(newImageFile);
-                                //System.out.println("New image path: " + newImageFile.getPath());
+                                //Log.d(TAG, "New image path: " + newImageFile.getPath());
                                 dupCheck.put("imagePath", newImageFile.getPath());
 
-                                humonsArray.remove(j);
-                                humonsArray.put(dupCheck);
+                                //humonsArray.remove(j);
+                                humonsArray.put(j, dupCheck);
                                 foundHumon = true;
                                 break;
                             }
@@ -134,8 +136,8 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
             if(foundHumon) {
                 try {
                     //write object to file
-                    //System.out.println("Writing: " + indexJSON.toString());
-                    System.out.println("Data written to: " + iFilename);
+                    //Log.d(TAG, "Writing: " + indexJSON.toString());
+                    Log.d(TAG, "Data written to: " + iFilename);
                     outputStream = new FileOutputStream(indexFile);
                     outputStream.write(indexJSON.toString().getBytes());
                     outputStream.close();
@@ -157,7 +159,7 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
         }
         catch(FileNotFoundException e) {
             e.printStackTrace();
-            System.out.println("No party currently exists for: " + email);
+            Log.d(TAG, "No party currently exists for: " + email);
             hasPartyFile = false;
         } catch (IOException e) {
             e.printStackTrace();
@@ -169,7 +171,7 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
             try {
                 //append humon on to current object
                 if (oldParty.length() == 0) {
-                    System.out.println(pFilename + " is empty.");
+                    Log.d(TAG, pFilename + " is empty.");
                     return goodSave;
                 } else {
                     partyJSON = new JSONObject(oldParty);
@@ -182,7 +184,7 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
                     if (dupCheck.getString("hID").equals("0")) {
                         if (dupCheck.getString("uID").equals(email)) {
                             if (dupCheck.getString("description").equals(hDescription)) {
-                                System.out.println("Updating " + dupCheck.getString("name") + " with HID:" + hIDs[0]);
+                                Log.d(TAG, "Updating " + dupCheck.getString("name") + " with HID:" + hIDs[0]);
                                 dupCheck.put("hID", hIDs[0]);
 
                                 //rename path to new image file
@@ -190,8 +192,8 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
                                     dupCheck.put("imagePath", newImageFile.getPath());
                                 }
 
-                                humonsArray.remove(j);
-                                humonsArray.put(dupCheck);
+                                //humonsArray.remove(j);
+                                humonsArray.put(j, dupCheck);
                                 foundHumon = true;
                                 break;
                             }
@@ -208,8 +210,8 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
             if(foundHumon) {
                 try {
                     //write object to file
-                    //System.out.println("Writing: " + indexJSON.toString());
-                    System.out.println("Data written to: " + pFilename);
+                    //Log.d(TAG, "Writing: " + indexJSON.toString());
+                    Log.d(TAG, "Data written to: " + pFilename);
                     outputStream = new FileOutputStream(partyFile);
                     outputStream.write(partyJSON.toString().getBytes());
                     outputStream.close();

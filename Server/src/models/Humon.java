@@ -1,11 +1,15 @@
 package models;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
 
 import utilities.SQLHelper;
 
@@ -59,18 +63,44 @@ public class Humon {
 		this.imagePath = "";
 	}
 	
-	public Humon(ResultSet resultSet) throws SQLException {
+	public Humon(String name, String description, String image, int level, int xp, int hID, String uID, String iID,
+			String moves, int health, int hp, int luck, int attack, int speed, int defense) throws JsonParseException, JsonMappingException, IOException {
+		this.name = name;
+		this.description = description;
+		this.image = image;
+		this.level = level;
+		this.xp = xp;
+		this.hID = hID;
+		this.uID = uID;
+		this.iID = iID;
+		if (moves.length() > 0) {
+			CollectionType javaType = new ObjectMapper().getTypeFactory()
+				      .constructCollectionType(ArrayList.class, Move.class);
+			this.moves = new ObjectMapper().readValue(moves, javaType);
+		} else {
+			this.moves = null;
+		}
+		this.health = health;
+		this.hp = hp;
+		this.luck = luck;
+		this.attack = attack;
+		this.speed = speed;
+		this.defense = defense;
+		this.imagePath = "";
+	}
+	
+	public Humon(ResultSet resultSet) throws SQLException, JsonParseException, JsonMappingException, IOException {
 		//  2        3         4        5       6       7      8     9       10
 		//(name, description, health, attack, defense, speed, luck, moves, created_by)
-		this(resultSet.getString(2), resultSet.getString(3), "", 0, 0, resultSet.getInt(1), "", "", null, resultSet.getInt(4), 0,
+		this(resultSet.getString(2), resultSet.getString(3), "", 0, 0, resultSet.getInt(1), "", "", resultSet.getString(9), resultSet.getInt(4), 0,
 				resultSet.getInt(8), resultSet.getInt(5), resultSet.getInt(7), resultSet.getInt(6));
 	}
 	
-	public Humon HumonInstance(ResultSet resultSet) throws SQLException {
+	public Humon HumonInstance(ResultSet resultSet) throws SQLException, JsonParseException, JsonMappingException, IOException {
 		//     1         2      3      4         5         6     7     8        9      10     11    12
 		//(instanceID, name, humonID, level, experience, health, hp, attack, defense, speed, luck, user)
 		return new Humon(resultSet.getString(2), "", "", resultSet.getInt(4), resultSet.getInt(5), resultSet.getInt(3), resultSet.getString(12), resultSet.getString(1),
-				null, resultSet.getInt(6), resultSet.getInt(7), resultSet.getInt(11), resultSet.getInt(8), resultSet.getInt(10), resultSet.getInt(9));
+				"", resultSet.getInt(6), resultSet.getInt(7), resultSet.getInt(11), resultSet.getInt(8), resultSet.getInt(10), resultSet.getInt(9));
 	}
 
 	public String getName() {
@@ -83,6 +113,14 @@ public class Humon {
 
 	public String getDescription() {
 		return description;
+	}
+	
+	public void setImage() {
+		this.image = "";
+	}
+	
+	public void setImage(String image) {
+		this.image = image;
 	}
 
 	public String getImage() {
@@ -115,6 +153,10 @@ public class Humon {
 
 	public ArrayList<Move> getMoves() {
 		return moves;
+	}
+	
+	public void setMoves(ArrayList<Move> moves) {
+		this.moves = moves;
 	}
 
 	public int getLevel() {

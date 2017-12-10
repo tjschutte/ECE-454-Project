@@ -38,7 +38,12 @@ public class MoveInfoActivity extends SettingsActivity {
                 tempTextView.setText(move.getName());
 
                 tempTextView = (TextView) findViewById(R.id.damageTextView);
-                tempTextView.setText("Damage: " + move.getDmg());
+                if(move.getDmg() < 0) {
+                    tempTextView.setText("Healing: " + (move.getDmg() * -1));
+                }
+                else {
+                    tempTextView.setText("Damage: " + move.getDmg());
+                }
 
                 tempTextView = (TextView) findViewById(R.id.descTextView);
                 tempTextView.setText(move.getDescription());

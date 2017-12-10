@@ -1,22 +1,20 @@
 package edu.wisc.ece454.hu_mon.Models;
 
-import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Base64;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Humon extends Jsonable implements Parcelable{
 
     private String name; 			// humon name
     private String description;     // Description about how kewl your humon is
-    private Bitmap image;			// image of humon
+    private String image;			// image of humon
     private String imagePath;       // location of image file on phone
     private int level;              // The current level of the humon-instance
     private int xp;                 // current amount of xp
@@ -33,7 +31,11 @@ public class Humon extends Jsonable implements Parcelable{
 
     // Moves will be a combination of <Name, id> to m ap to template moves.
 
-    public Humon(String name, String description, Bitmap image, int level, int xp, int hID, String uID,
+    public Humon() {
+
+    }
+
+    public Humon(String name, String description, String image, int level, int xp, int hID, String uID,
                  String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense,
                  String imagePath, int hp) {
         this.name = name;
@@ -54,10 +56,6 @@ public class Humon extends Jsonable implements Parcelable{
         this.defense = defense;
     }
 
-    public Humon(ObjectMapper mapper, String json) {
-        System.out.println("This is not yet supported");
-    }
-
     public String getName() {
         return name;
     }
@@ -70,9 +68,7 @@ public class Humon extends Jsonable implements Parcelable{
 
     public String getImage() {
         if(image != null) {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            image.compress(Bitmap.CompressFormat.PNG, 100, bytes);
-            return Base64.encodeToString(bytes.toByteArray(), Base64.DEFAULT);
+            return image;
         }
         else {
             return "";
@@ -81,11 +77,6 @@ public class Humon extends Jsonable implements Parcelable{
 
     public String getImagePath() {
         return imagePath;
-    }
-
-    @JsonIgnore
-    public Bitmap getBitmap() {
-        return image;
     }
 
     public int gethID() {
@@ -98,6 +89,10 @@ public class Humon extends Jsonable implements Parcelable{
 
     public String getiID() {
         return iID;
+    }
+
+    public void setIID(String iID) {
+        this.iID = iID;
     }
 
     public int getHealth() {
@@ -118,6 +113,103 @@ public class Humon extends Jsonable implements Parcelable{
 
     public int getHp() { return hp;}
 
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public void setHp(int hp) {
+        if(hp < 0) {
+            hp = 0;
+        }
+        if(hp > health) {
+            hp = health;
+        }
+        this.hp = hp;
+    }
+
+    public void setHealth(int health) {
+        if(health > 0) {
+            this.health = health;
+        }
+    }
+
+    public void setLuck(int luck) {
+        this.luck = luck;
+    }
+
+    public void setAttack(int attack) {
+        this.attack = attack;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
+
+    public void setDefense(int defense) {
+        this.defense = defense;
+    }
+
+    //Returns amount of experience points for next level up
+    @JsonIgnore
+    public int getMaxXp() {
+        return level * 5;
+    }
+
+    public void addXp(int experience) {
+        xp += experience;
+
+        if(xp >= getMaxXp()) {
+            xp -= getMaxXp();
+            levelUp();
+        }
+    }
+
+    public void levelUp() {
+        //increment stats
+        Random rng = new Random();
+        int chance = rng.nextInt(10);
+        if(chance < 2) {
+            health += 20;
+        }
+        else {
+            health += 10;
+        }
+        chance = rng.nextInt(10);
+        if(chance < 2) {
+            attack += 2;
+        }
+        else {
+            attack++;
+        }
+        chance = rng.nextInt(10);
+        if(chance < 2) {
+            defense += 2;
+        }
+        else {
+            defense++;
+        }
+        chance = rng.nextInt(10);
+        if(chance < 2) {
+            speed += 2;
+        }
+        else {
+            speed++;
+        }
+        chance = rng.nextInt(10);
+        if(chance < 2) {
+            luck += 2;
+        }
+        else {
+            luck++;
+        }
+
+        //Fully heal after level up
+        hp = health;
+
+        level++;
+
+    }
+
     public int getLuck() {
         return luck;
     }
@@ -134,7 +226,7 @@ public class Humon extends Jsonable implements Parcelable{
         return defense;
     }
 
-    public void setImage(Bitmap image) {
+    public void setImage(String image) {
         this.image = image;
     }
 
@@ -167,7 +259,7 @@ public class Humon extends Jsonable implements Parcelable{
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(name);
         dest.writeString(description);
-        dest.writeValue(image);
+        dest.writeString(image);
         dest.writeString(imagePath);
         dest.writeInt(level);
         dest.writeInt(xp);
@@ -200,7 +292,7 @@ public class Humon extends Jsonable implements Parcelable{
     private Humon(Parcel in) {
         name = in.readString();
         description = in.readString();
-        image = (Bitmap) in.readValue(null);
+        image = in.readString();
         imagePath = in.readString();
         level = in.readInt();
         xp = in.readInt();

@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -39,19 +41,22 @@ import java.util.Arrays;
 
 import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.Models.Move;
+import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 import edu.wisc.ece454.hu_mon.Utilities.HumonIndexSaver;
 import edu.wisc.ece454.hu_mon.Utilities.HumonPartySaver;
+import edu.wisc.ece454.hu_mon.Utilities.UserHelper;
 
 public class CreateHumonActivity extends SettingsActivity {
 
+    private final String TAG = "CREATE";
     private final String ACTIVITY_TITLE = "Create Hu-mon";
     private final int MOVE_REQUEST_CODE = 1;
     private final String MOVE_DEFAULT_VALUE = "Add Move";
     private String MOVE_POSITION_KEY;
     private String MOVE_KEY;
-    private final int MAX_WIDTH = 1920;
+    private final int MAX_WIDTH = 1080;
 
     private TextView statTextView;
     private String[] moveDisplayList;
@@ -60,6 +65,7 @@ public class CreateHumonActivity extends SettingsActivity {
     ServerConnection mServerConnection;
     boolean mBound;
     private String userEmail;
+    private User user;
 
     //image data
     private String tempImagePath;
@@ -155,12 +161,13 @@ public class CreateHumonActivity extends SettingsActivity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         // make sure to unbind
         if (mBound) {
             unbindService(mServiceConnection);
             mBound = false;
         }
+
+        super.onDestroy();
     }
 
     @Override
@@ -232,7 +239,7 @@ public class CreateHumonActivity extends SettingsActivity {
                     currStatView = (TextView) findViewById(R.id.luckValue);
                     break;
                 default:
-                    System.out.print("No stat for tag: " + statTag);
+                    Log.i(TAG, "No stat for tag: " + statTag);
                     return;
             }
 
@@ -272,7 +279,7 @@ public class CreateHumonActivity extends SettingsActivity {
                 currStatView = (TextView) findViewById(R.id.luckValue);
                 break;
             default:
-                System.out.print("No stat for tag: " + statTag);
+                Log.i(TAG, "No stat for tag: " + statTag);
                 return;
         }
 
@@ -389,29 +396,34 @@ public class CreateHumonActivity extends SettingsActivity {
                 getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
         userEmail = sharedPref.getString(getString(R.string.emailKey), "");
 
+        //convert to string to send to server
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        humonImage.compress(Bitmap.CompressFormat.PNG, 100, bytes);
+        String humonImageString = Base64.encodeToString(bytes.toByteArray(), Base64.DEFAULT);
+
         // String name, String description, Bitmap image, int level, int xp, int hID, String uID, String iID, ArrayList<Move> moves, int health, int luck, int attack, int speed, int defense
-        Humon h = new Humon(humonName, humonDescription, humonImage, 1, 0, 0, userEmail, "",
-                movesArrayList, health, luck, attack, speed, defense, "", health);
+        Humon h = new Humon(humonName, humonDescription, humonImageString, 1, 0, 0, userEmail, "",
+                movesArrayList, health*10, luck, attack, speed, defense, "", health*10);
 
         //Store image path instead of image locally
         Humon localHumon = new Humon(humonName, humonDescription, null, 1, 0, 0, userEmail, "",
-                movesArrayList, health, luck, attack, speed, defense, "", health);
+                movesArrayList, health*10, luck, attack, speed, defense, "", health*10);
         File imageFile = new File(getFilesDir(),humonName + ".jpg");
         storeImageFile(imageFile);
         localHumon.setImagePath(imageFile.getPath());
-        System.out.println("Old image path: " + tempImagePath);
-        System.out.println("New image path: " + localHumon.getImagePath());
+        Log.i(TAG, "Old image path: " + tempImagePath);
+        Log.i(TAG, "New image path: " + localHumon.getImagePath());
 
         //save humon data to index
         AsyncTask<Humon, Integer, Boolean> indexSaveTask = new HumonIndexSaver(userEmail + getString(R.string.indexFile),
-                userEmail, this, getString(R.string.humonsKey));
+                userEmail, this, getString(R.string.humonsKey), false);
         indexSaveTask.execute(localHumon);
 
         //Create an instance if first humon
         //TODO:Add hCount to iID
         if(!hasHumons()) {
-            Humon partyHumon = new Humon(humonName, humonDescription, null, 1, 5, 0, userEmail, userEmail + "-0",
-                    movesArrayList, health, luck, attack, speed, defense, localHumon.getImagePath(), health);
+            Humon partyHumon = new Humon(humonName, humonDescription, null, 1, 1, 0, userEmail, userEmail + "-0",
+                    movesArrayList, health*10, luck, attack, speed, defense, localHumon.getImagePath(), health*10);
             nameHumonDialog(partyHumon, h);
         }
         else {
@@ -471,7 +483,7 @@ public class CreateHumonActivity extends SettingsActivity {
                 hasHumons = false;
             }
         } catch(FileNotFoundException e) {
-            System.out.println("No party file for " + userEmail);
+            Log.i(TAG, "No party file for " + userEmail);
             hasHumons = false;
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -501,6 +513,10 @@ public class CreateHumonActivity extends SettingsActivity {
 
         //set to final (required to save)
         final Humon saveHumon = humon;
+        user = UserHelper.loadUser(this);
+        saveHumon.setIID(userEmail + "-" + user.getHcount());
+        user.incrementHCount();
+        UserHelper.saveUser(this, user);
 
         //Add Element to list
         builder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
@@ -509,14 +525,16 @@ public class CreateHumonActivity extends SettingsActivity {
                 String humonName = nameText.getText().toString();
                 if(humonName.isEmpty()) {
                     //save humon data to party
-                    AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext());
+                    AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext(), false);
                     partySaveTask.execute(saveHumon);
                 }
                 else {
                     //save humon data to index
                     saveHumon.setName(humonName);
-                    AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext());
+                    AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext(), false);
                     partySaveTask.execute(saveHumon);
+
+
                 }
 
                 //send humon object to server

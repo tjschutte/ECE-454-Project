@@ -245,7 +245,7 @@ public class User {
 	public String updateSyntax() {
 		String update = "";
 		update += "email = '" + SQLHelper.sqlString(email) + "',";
-		update += "password = '" + SQLHelper.sqlString(password) + "',";
+		//update += "password = '" + SQLHelper.sqlString(password) + "',";
 		update += "party = '" + party + "',";
 		update += "encountered_humons = '" + encounteredHumons + "',";
 		update += "friends = '" + friends + "',";

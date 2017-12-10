@@ -50,6 +50,7 @@ public class MenuActivity extends SettingsActivity {
     private final String FRIENDS_LIST = "Friends List";
     private final String MAP = "Map";
     private final String CREATE_HUMON = "Create Hu-mon";
+    private final String TUT = "Tutorial";
     private final String FIND_HUMONS = "Find Hu-mons anywhere (cheat)";
     private final String HEAL_HUMONS = "Fully Heal Hu-mons (cheat)";
 
@@ -84,8 +85,7 @@ public class MenuActivity extends SettingsActivity {
             editor.commit();
         }
 
-        menuOption = new String[]{HUMON_INDEX, PARTY, FRIENDS_LIST, MAP, CREATE_HUMON, HEAL_HUMONS, FIND_HUMONS};
-
+        menuOption = new String[]{HUMON_INDEX, PARTY, FRIENDS_LIST, MAP, TUT, CREATE_HUMON, HEAL_HUMONS, FIND_HUMONS};
 
         menuListView = (ListView) findViewById(R.id.menuListView);
         ArrayAdapter<String> menuAdapter = new ArrayAdapter<String>(this,
@@ -176,6 +176,10 @@ public class MenuActivity extends SettingsActivity {
                 break;
             case MAP:
                 intent = new Intent(this, MapsActivity.class);
+                startActivity(intent);
+                break;
+            case TUT:
+                intent = new Intent(this, TutorialActivity.class);
                 startActivity(intent);
                 break;
             case CREATE_HUMON:

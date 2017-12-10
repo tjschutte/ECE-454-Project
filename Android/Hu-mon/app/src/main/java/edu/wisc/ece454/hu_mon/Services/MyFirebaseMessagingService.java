@@ -126,7 +126,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
                 //Intent notificationIntent = new Intent(this, MenuActivity.class);
                 Intent notificationIntent = new Intent(this, OnlineBattleActivity.class);
-                String enemyEmail = data.get(getString(R.string.ServerCommandBattleRequest));
+                String enemyEmail = data.get(getString(R.string.ServerCommandBattleStart));
                 System.out.println("Battle Start sent by: " + enemyEmail);
                 notificationIntent.putExtra(getString(R.string.emailKey), enemyEmail);
                 notificationIntent.putExtra(getString(R.string.initiatorKey), false);

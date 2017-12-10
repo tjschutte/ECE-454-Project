@@ -59,6 +59,8 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
     private final String ACTIVITY_TITLE = "Online Battle";
     private String HUMONS_KEY;
+    private final int INSTANCE_TYPE = 0;
+    private final String COMMAND_TYPE = "commandType";
 
     private Humon enemyHumon;
     private Humon playerHumon;
@@ -195,8 +197,10 @@ public class OnlineBattleActivity extends AppCompatActivity {
             enemyStatus = null;
 
             //load humons into battle
-            loadPartyHumons();
-            choosePlayerHumon();
+            if(!isInitiaor) {
+                loadPartyHumons();
+                choosePlayerHumon();
+            }
         }
     }
 
@@ -323,6 +327,25 @@ public class OnlineBattleActivity extends AppCompatActivity {
                 } catch (JsonMappingException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            else if(command.equals(getString(R.string.ServerCommandBattleAction))) {
+               System.out.println("Received battle action: " + data);
+                try {
+                    JSONObject battleJson = new JSONObject(data);
+
+                    if(battleJson.getInt(COMMAND_TYPE) == INSTANCE_TYPE) {
+                        String enemyIID = battleJson.getString("iID");
+                        loadEnemy(enemyIID);
+                        if(isInitiaor) {
+                            loadPlayer();
+                            loadPlayerMoves();
+                        }
+                    }
+
+
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
@@ -469,6 +492,139 @@ public class OnlineBattleActivity extends AppCompatActivity {
     }
 
     //Loads first humon in party
+    private void loadEnemy(final String enemyIID) {
+        Thread loadThread = new Thread() {
+            public void run() {
+                String partyFilename = getFilesDir() + "/" + getString(R.string.enemyPartyFile);
+
+                try {
+                    System.out.println("Attempting to load: " + partyFilename);
+
+                    //load party file
+                    String partyString;
+                    FileInputStream inputStream = new FileInputStream(partyFilename);
+                    int inputBytes = inputStream.available();
+                    byte[] buffer = new byte[inputBytes];
+                    inputStream.read(buffer);
+                    inputStream.close();
+                    partyString = new String(buffer, "UTF-8");
+                    JSONObject fileJson = new JSONObject(partyString);
+                    JSONArray humonsArray = fileJson.getJSONArray(HUMONS_KEY);
+                    System.out.println(partyFilename + " loaded");
+
+                    //locate enemy to load
+                    int enemyHumonIndex = -1;
+                    for(int i = 0; i < humonsArray.length(); i++) {
+                        String humonString = humonsArray.getString(i);
+                        JSONObject humonJson = new JSONObject(humonString);
+                        if(humonJson.getString("iID").equals(enemyIID)) {
+                            enemyHumonIndex = i;
+                            break;
+                        }
+                    }
+                    String humonString = humonsArray.getString(enemyHumonIndex);
+                    JSONObject humonJson = new JSONObject(humonString);
+                    String name = humonJson.getString("name");
+                    String description = humonJson.getString("description");
+                    String image = null;
+                    int level = humonJson.getInt("level");
+                    int xp = humonJson.getInt("xp");
+                    int hp = humonJson.getInt("hp");
+                    int hID = humonJson.getInt("hID");
+                    String uID = humonJson.getString("uID");
+                    String iID = humonJson.getString("iID");
+                    int health = humonJson.getInt("health");
+                    int luck = humonJson.getInt("luck");
+                    int attack = humonJson.getInt("attack");
+                    int speed = humonJson.getInt("speed");
+                    int defense = humonJson.getInt("defense");
+                    String imagePath = humonJson.getString("imagePath");
+
+                    //load moves
+                    ArrayList<Move> moveList = new ArrayList<Move>();
+                    JSONArray moveArray = humonJson.getJSONArray("moves");
+                    for(int j = 0; j < moveArray.length(); j++) {
+                        JSONObject moveJson = moveArray.getJSONObject(j);
+                        int moveId = moveJson.getInt("id");
+                        String moveName = moveJson.getString("name");
+                        boolean moveSelfCast = moveJson.getBoolean("selfCast");
+                        int dmg = moveJson.getInt("dmg");
+                        Move.Effect moveEffect;
+                        String moveEffectString = moveJson.getString("effect");
+                        switch(moveEffectString) {
+                            case "CONFUSED":
+                                moveEffect = Move.Effect.CONFUSED;
+                                break;
+                            case "PARALYZED":
+                                moveEffect = Move.Effect.PARALYZED;
+                                break;
+                            case "EMBARRASSED":
+                                moveEffect = Move.Effect.EMBARRASSED;
+                                break;
+                            case "POISONED":
+                                moveEffect = Move.Effect.POISONED;
+                                break;
+                            case "SLEPT":
+                                moveEffect = Move.Effect.SLEPT;
+                                break;
+                            default:
+                                moveEffect = null;
+                        }
+                        boolean moveHasEffect = moveJson.getBoolean("hasEffect");
+                        String moveDescription = moveJson.getString("description");
+
+                        moveList.add(new Move(moveId, moveName, moveSelfCast, dmg, moveEffect,
+                                moveHasEffect, moveDescription));
+                    }
+
+                    enemyHumon = new Humon(name, description, image, level, xp, hID, uID,
+                            iID, moveList, health, luck, attack, speed, defense, imagePath, hp);
+
+                    System.out.println("Enemy is: " + enemyHumon.getName());
+
+                    inputStream.close();
+                } catch (FileNotFoundException e) {
+                    System.out.println("No enemy party file exists");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                //Load data into UI
+                TextView nameTextView = (TextView) findViewById(R.id.enemyNameTextView);
+                nameTextView.setText(enemyHumon.getName());
+                //System.out.println("Player textview: " + nameTextView.getText().toString());
+
+                TextView levelTextView = (TextView) findViewById(R.id.enemyLevelTextView);
+                levelTextView.setText("Lvl " + enemyHumon.getLevel());
+
+                enemyStatusTextView = (TextView) findViewById(R.id.enemyStatusTextView);
+                enemyStatusTextView.setText("");
+
+                enemyHealthBar = (ProgressBar) findViewById(R.id.enemyHealthBar);
+                enemyHealthBar.setMax(enemyHumon.getHealth());
+                enemyHealthBar.setProgress(enemyHumon.getHp());
+
+                //load humon image
+                if(enemyHumon.getImagePath() != null) {
+                    if(enemyHumon.getImagePath().length() != 0) {
+                        Bitmap humonImage = BitmapFactory.decodeFile(enemyHumon.getImagePath());
+                        ImageView humonImageView = (ImageView) findViewById(R.id.enemyImageView);
+                        humonImageView.setImageBitmap(humonImage);
+                    }
+                }
+
+            }
+        };
+
+        loadThread.run();
+        System.out.println("Finished loading enemy");
+    }
+
+    //Loads first humon in party
     private void loadPlayer() {
         Thread loadThread = new Thread() {
             public void run() {
@@ -550,7 +706,9 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
                     System.out.println("Player is: " + playerHumon.getName());
 
-                    //TODO: Send server iID of chosen humon
+                    //Send server iID of chosen humon
+                    mServerConnection.sendMessage(getString(R.string.ServerCommandBattleAction) +
+                            ":{\"commandType\":"+ INSTANCE_TYPE + ", \"iID\":\"" + playerHumon.getiID() + "\"}");
 
                     inputStream.close();
                 } catch (FileNotFoundException e) {

@@ -45,31 +45,6 @@ public class WildBattleActivity extends SettingsActivity {
     private final String TAG = "BATTLE";
     private String HUMONS_KEY;
 
-    //chance of effect being applied
-    private final int PARALYZE_APPLY_CHANCE = 40;
-    private final int CONFUSE_APPLY_CHANCE = 40;
-    private final int SLEEP_APPLY_CHANCE = 40;
-    private final int POISON_APPLY_CHANCE = 40;
-    private final int EMBARASS_APPLY_CHANCE = 40;
-
-    //Chance of effect occuring
-    private final int PARALYZE_EFFECT_CHANCE = 40;
-    private final int CONFUSE_EFFECT_CHANCE = 40;
-    private final int EMBARASS_EFFECT_CHANCE = 50;
-
-    //chance of effect being cured
-    private final int PARALYZE_CURE_CHANCE = 20;
-    private final int CONFUSE_CURE_CHANCE = 20;
-    private final int SLEEP_CURE_CHANCE = 20;
-    private final int POISON_CURE_CHANCE = 20;
-    private final int EMBARASS_CURE_CHANCE = 20;
-
-    //chance of a critical attack
-    private final int CRITICAL_CHANCE = 10;
-
-    //percent of health lost by poison
-    private final int POISON_DAMAGE = 5;
-
     private Humon enemyHumon;
     private Humon playerHumon;
     private int playerHumonIndex;
@@ -696,35 +671,35 @@ public class WildBattleActivity extends SettingsActivity {
         if(isPlayer) {
             switch(playerStatus) {
                 case PARALYZED:
-                    if(playerRng < PARALYZE_CURE_CHANCE) {
+                    if(playerRng < Move.PARALYZE_CURE_CHANCE) {
                         consoleDisplayQueue.add(playerHumon.getName() + " is no longer paralyzed.\n");
                         playerStatus = null;
                         playerStatusTextView.setText("");
                     }
                     break;
                 case CONFUSED:
-                    if(playerRng < CONFUSE_CURE_CHANCE) {
+                    if(playerRng < Move.CONFUSE_CURE_CHANCE) {
                         consoleDisplayQueue.add(playerHumon.getName() + " is no longer confused.\n");
                         playerStatus = null;
                         playerStatusTextView.setText("");
                     }
                     break;
                 case SLEPT:
-                    if(playerRng < SLEEP_CURE_CHANCE) {
+                    if(playerRng < Move.SLEEP_CURE_CHANCE) {
                         consoleDisplayQueue.add(playerHumon.getName() + " woke up!\n");
                         playerStatus = null;
                         playerStatusTextView.setText("");
                     }
                     break;
                 case POISONED:
-                    if(playerRng < POISON_CURE_CHANCE) {
+                    if(playerRng < Move.POISON_CURE_CHANCE) {
                         consoleDisplayQueue.add(playerHumon.getName() + " is no longer poisoned.\n");
                         playerStatus = null;
                         playerStatusTextView.setText("");
                     }
                     break;
                 case EMBARRASSED:
-                    if(playerRng < EMBARASS_CURE_CHANCE) {
+                    if(playerRng < Move.EMBARASS_CURE_CHANCE) {
                         consoleDisplayQueue.add(playerHumon.getName() + " is no longer embarrassed.\n");
                         playerStatus = null;
                         playerStatusTextView.setText("");
@@ -737,35 +712,35 @@ public class WildBattleActivity extends SettingsActivity {
         if(!isPlayer) {
             switch(enemyStatus) {
                 case PARALYZED:
-                    if(enemyRng < PARALYZE_CURE_CHANCE) {
+                    if(enemyRng < Move.PARALYZE_CURE_CHANCE) {
                         consoleDisplayQueue.add("Wild " + enemyHumon.getName() + " is no longer paralyzed.\n");
                         enemyStatus = null;
                         enemyStatusTextView.setText("");
                     }
                     break;
                 case CONFUSED:
-                    if(enemyRng < CONFUSE_CURE_CHANCE) {
+                    if(enemyRng < Move.CONFUSE_CURE_CHANCE) {
                         consoleDisplayQueue.add("Wild " + enemyHumon.getName() + " is no longer confused.\n");
                         enemyStatus = null;
                         enemyStatusTextView.setText("");
                     }
                     break;
                 case SLEPT:
-                    if(enemyRng < SLEEP_CURE_CHANCE) {
+                    if(enemyRng < Move.SLEEP_CURE_CHANCE) {
                         consoleDisplayQueue.add("Wild " + enemyHumon.getName() + " woke up!\n");
                         enemyStatus = null;
                         enemyStatusTextView.setText("");
                     }
                     break;
                 case POISONED:
-                    if(enemyRng < POISON_CURE_CHANCE) {
+                    if(enemyRng < Move.POISON_CURE_CHANCE) {
                         consoleDisplayQueue.add("Wild " + enemyHumon.getName() + " is no longer poisoned.\n");
                         enemyStatus = null;
                         enemyStatusTextView.setText("");
                     }
                     break;
                 case EMBARRASSED:
-                    if(enemyRng < EMBARASS_CURE_CHANCE) {
+                    if(enemyRng < Move.EMBARASS_CURE_CHANCE) {
                         consoleDisplayQueue.add("Wild " + enemyHumon.getName() + " is no longer embarrassed.\n");
                         enemyStatus = null;
                         enemyStatusTextView.setText("");
@@ -784,7 +759,7 @@ public class WildBattleActivity extends SettingsActivity {
      */
     private void applyPoison(boolean isPlayer) {
         if(isPlayer && playerStatus == Move.Effect.POISONED) {
-            int damage = playerHumon.getHealth() * (POISON_DAMAGE/100);
+            int damage = playerHumon.getHealth() * (Move.POISON_DAMAGE/100);
             if(damage < 1) {
                 damage = 1;
             }
@@ -792,7 +767,7 @@ public class WildBattleActivity extends SettingsActivity {
             playerHumon.setHp(playerHumon.getHp() - damage);
         }
         else if(!isPlayer && enemyStatus == Move.Effect.POISONED) {
-            int damage = enemyHumon.getHealth() * (POISON_DAMAGE/100);
+            int damage = enemyHumon.getHealth() * (Move.POISON_DAMAGE/100);
             if(damage < 1) {
                 damage = 1;
             }
@@ -823,7 +798,7 @@ public class WildBattleActivity extends SettingsActivity {
                 consoleDisplayQueue.add(displayMessage);
             }
             else if(playerStatus == Move.Effect.PARALYZED &&
-                    playerRng < PARALYZE_EFFECT_CHANCE) {
+                    playerRng < Move.PARALYZE_EFFECT_CHANCE) {
                 displayMessage = playerHumon.getName() + " is paralyzed...\n";
                 playerMoveDamage = 0;
                 playerMoveEffect = null;
@@ -831,13 +806,13 @@ public class WildBattleActivity extends SettingsActivity {
                 consoleDisplayQueue.add(displayMessage);
             }
             else if(playerStatus == Move.Effect.CONFUSED &&
-                    playerRng < CONFUSE_EFFECT_CHANCE) {
+                    playerRng < Move.CONFUSE_EFFECT_CHANCE) {
                 displayMessage = playerHumon.getName() + " targeted the wrong Humon in confusion!\n";
                 isConfused = true;
                 playerMoveDamage = getMoveDamage(confusedMove, true);
             }
             else if(playerStatus == Move.Effect.EMBARRASSED &&
-                    playerRng < EMBARASS_EFFECT_CHANCE) {
+                    playerRng < Move.EMBARASS_EFFECT_CHANCE) {
                 displayMessage = playerHumon.getName() + " forgot their move! How embarassing!\n";
                 move = playerMoveList.get(playerRng % playerMoveList.size());
                 playerMoveDamage = getMoveDamage(move, true);
@@ -874,7 +849,7 @@ public class WildBattleActivity extends SettingsActivity {
                 consoleDisplayQueue.add(displayMessage);
             }
             else if(enemyStatus == Move.Effect.PARALYZED &&
-                    enemyRng < PARALYZE_EFFECT_CHANCE) {
+                    enemyRng < Move.PARALYZE_EFFECT_CHANCE) {
                 displayMessage = "Wild " + enemyHumon.getName() + " is paralyzed...\n";
                 enemyMoveDamage = 0;
                 enemyMoveEffect = null;
@@ -882,13 +857,13 @@ public class WildBattleActivity extends SettingsActivity {
                 consoleDisplayQueue.add(displayMessage);
             }
             else if(enemyStatus == Move.Effect.CONFUSED &&
-                    enemyRng < CONFUSE_EFFECT_CHANCE) {
+                    enemyRng < Move.CONFUSE_EFFECT_CHANCE) {
                 displayMessage = "Wild " + enemyHumon.getName() + " targeted the wrong Humon in confusion!\n";
                 isConfused = true;
                 enemyMoveDamage = getMoveDamage(confusedMove, true);
             }
             else if(enemyStatus == Move.Effect.EMBARRASSED &&
-                    enemyRng < EMBARASS_EFFECT_CHANCE) {
+                    enemyRng < Move.EMBARASS_EFFECT_CHANCE) {
                 displayMessage = "Wild " + enemyHumon.getName() + " forgot their move! How embarassing!\n";
                 move = enemyMoveList.get(enemyRng % enemyMoveList.size());
                 enemyMoveDamage = getMoveDamage(move, true);
@@ -998,7 +973,7 @@ public class WildBattleActivity extends SettingsActivity {
             else if(move.getDmg() < 0 && damage > -1) {
                 damage = -1;
             }
-            if(playerRng < CRITICAL_CHANCE) {
+            if(playerRng < Move.CRITICAL_CHANCE) {
                 damage *= 2;
             }
         }
@@ -1015,7 +990,7 @@ public class WildBattleActivity extends SettingsActivity {
             else if(move.getDmg() < 0 && damage > -1) {
                 damage = -1;
             }
-            if(enemyRng < CRITICAL_CHANCE) {
+            if(enemyRng < Move.CRITICAL_CHANCE) {
                 damage *= 2;
             }
         }
@@ -1040,27 +1015,27 @@ public class WildBattleActivity extends SettingsActivity {
             if(move.isSelfCast()) {
                 switch(move.getEffect()) {
                     case PARALYZED:
-                        if(enemyRng < PARALYZE_APPLY_CHANCE) {
+                        if(enemyRng < Move.PARALYZE_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case CONFUSED:
-                        if(enemyRng < CONFUSE_APPLY_CHANCE) {
+                        if(enemyRng < Move.CONFUSE_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case SLEPT:
-                        if(enemyRng < SLEEP_APPLY_CHANCE) {
+                        if(enemyRng < Move.SLEEP_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case POISONED:
-                        if(enemyRng < POISON_APPLY_CHANCE) {
+                        if(enemyRng < Move.POISON_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case EMBARRASSED:
-                        if(enemyRng < EMBARASS_APPLY_CHANCE) {
+                        if(enemyRng < Move.EMBARASS_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
@@ -1071,27 +1046,27 @@ public class WildBattleActivity extends SettingsActivity {
             else {
                 switch(move.getEffect()) {
                     case PARALYZED:
-                        if(playerRng < PARALYZE_APPLY_CHANCE) {
+                        if(playerRng < Move.PARALYZE_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case CONFUSED:
-                        if(playerRng < CONFUSE_APPLY_CHANCE) {
+                        if(playerRng < Move.CONFUSE_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case SLEPT:
-                        if(playerRng < SLEEP_APPLY_CHANCE) {
+                        if(playerRng < Move.SLEEP_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case POISONED:
-                        if(playerRng < POISON_APPLY_CHANCE) {
+                        if(playerRng < Move.POISON_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case EMBARRASSED:
-                        if(playerRng < EMBARASS_APPLY_CHANCE) {
+                        if(playerRng < Move.EMBARASS_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
@@ -1104,27 +1079,27 @@ public class WildBattleActivity extends SettingsActivity {
             if(move.isSelfCast()) {
                 switch(move.getEffect()) {
                     case PARALYZED:
-                        if(playerRng < PARALYZE_APPLY_CHANCE) {
+                        if(playerRng < Move.PARALYZE_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case CONFUSED:
-                        if(playerRng < CONFUSE_APPLY_CHANCE) {
+                        if(playerRng < Move.CONFUSE_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case SLEPT:
-                        if(playerRng < SLEEP_APPLY_CHANCE) {
+                        if(playerRng < Move.SLEEP_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case POISONED:
-                        if(playerRng < POISON_APPLY_CHANCE) {
+                        if(playerRng < Move.POISON_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case EMBARRASSED:
-                        if(playerRng < EMBARASS_APPLY_CHANCE) {
+                        if(playerRng < Move.EMBARASS_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
@@ -1135,27 +1110,27 @@ public class WildBattleActivity extends SettingsActivity {
             else {
                 switch(move.getEffect()) {
                     case PARALYZED:
-                        if(enemyRng < PARALYZE_APPLY_CHANCE) {
+                        if(enemyRng < Move.PARALYZE_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case CONFUSED:
-                        if(enemyRng < CONFUSE_APPLY_CHANCE) {
+                        if(enemyRng < Move.CONFUSE_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case SLEPT:
-                        if(enemyRng < SLEEP_APPLY_CHANCE) {
+                        if(enemyRng < Move.SLEEP_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case POISONED:
-                        if(enemyRng < POISON_APPLY_CHANCE) {
+                        if(enemyRng < Move.POISON_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
                     case EMBARRASSED:
-                        if(enemyRng < EMBARASS_APPLY_CHANCE) {
+                        if(enemyRng < Move.EMBARASS_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;

@@ -3,10 +3,51 @@ package edu.wisc.ece454.hu_mon.Models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Move extends Jsonable implements Parcelable {
+
+    //chance of effect being applied
+    @JsonIgnore
+    public static final int PARALYZE_APPLY_CHANCE = 40;
+    @JsonIgnore
+    public static final int CONFUSE_APPLY_CHANCE = 40;
+    @JsonIgnore
+    public static final int SLEEP_APPLY_CHANCE = 40;
+    @JsonIgnore
+    public static final int POISON_APPLY_CHANCE = 40;
+    @JsonIgnore
+    public static final int EMBARASS_APPLY_CHANCE = 40;
+
+    //Chance of effect occuring
+    @JsonIgnore
+    public static final int PARALYZE_EFFECT_CHANCE = 40;
+    @JsonIgnore
+    public static final int CONFUSE_EFFECT_CHANCE = 40;
+    @JsonIgnore
+    public static final int EMBARASS_EFFECT_CHANCE = 50;
+
+    //chance of effect being cured
+    @JsonIgnore
+    public static final int PARALYZE_CURE_CHANCE = 20;
+    @JsonIgnore
+    public static final int CONFUSE_CURE_CHANCE = 20;
+    @JsonIgnore
+    public static final int SLEEP_CURE_CHANCE = 20;
+    @JsonIgnore
+    public static final int POISON_CURE_CHANCE = 20;
+    @JsonIgnore
+    public static final int EMBARASS_CURE_CHANCE = 20;
+
+    //chance of a critical attack
+    @JsonIgnore
+    public static final int CRITICAL_CHANCE = 10;
+
+    //percent of health lost by poison
+    @JsonIgnore
+    public static final int POISON_DAMAGE = 5;
 
     @Override
     public int describeContents() {

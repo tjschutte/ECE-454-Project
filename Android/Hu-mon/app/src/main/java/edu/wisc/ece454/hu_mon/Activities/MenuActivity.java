@@ -67,7 +67,7 @@ public class MenuActivity extends SettingsActivity {
         userEmail = getIntent().getStringExtra(EMAIL_KEY);
         // Get the user object so all activities have access to it.
         userObject = getIntent().getStringExtra(getString(R.string.userObjectKey));
-        System.out.println("User string (Menu) was: " + userObject);
+        Log.i(TAG, "User string (Menu) was: " + userObject);
 
         SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.sharedPreferencesFile),
                 Context.MODE_PRIVATE);
@@ -80,7 +80,7 @@ public class MenuActivity extends SettingsActivity {
         }
         // Save User object to the sharedPreferences
         if (userObject != null) {
-            System.out.println("Saving user object to shared prefs");
+            Log.i(TAG, "Saving user object to shared prefs");
             editor.putString(getString(R.string.userObjectKey), userObject);
             editor.commit();
         }
@@ -219,7 +219,7 @@ public class MenuActivity extends SettingsActivity {
             saveEncounteredHumons(user);
             saveHumons = saveParty(user);
         }
-        System.out.println("Encountered humons saved: " + user.getEncounteredHumons().size()
+        Log.i(TAG, "Encountered humons saved: " + user.getEncounteredHumons().size()
                 + " Party humons saved: " + user.getParty().size());
 
         String[] saveUser;
@@ -244,7 +244,7 @@ public class MenuActivity extends SettingsActivity {
      */
     private String[] saveParty(User user) {
 
-        System.out.println("In saveParty");
+        Log.i(TAG, "In saveParty");
         //read in current party(if it exists)
         boolean hasPartyFile = true;
         FileInputStream inputStream;
@@ -264,7 +264,7 @@ public class MenuActivity extends SettingsActivity {
         }
         catch(FileNotFoundException e) {
             e.printStackTrace();
-            System.out.println("No party currently exists for: " + userEmail);
+            Log.i(TAG, "No party currently exists for: " + userEmail);
             hasPartyFile = false;
         } catch (IOException e) {
             e.printStackTrace();
@@ -275,7 +275,7 @@ public class MenuActivity extends SettingsActivity {
             try {
                 //append humon on to current object
                 if (oldParty.length() == 0) {
-                    System.out.println("Party is empty.");
+                    Log.i(TAG, "Party is empty.");
                     return saveHumons;
                 } else {
                     partyJSON = new JSONObject(oldParty);
@@ -283,7 +283,7 @@ public class MenuActivity extends SettingsActivity {
                 }
 
                 saveHumons = new String[humonsArray.length()];
-                System.out.println("Party humons in file: " + humonsArray.length());
+                Log.i(TAG, "Party humons in file: " + humonsArray.length());
 
                 //store all humons as JSON strings to pass to service
                 for (int j = 0; j < humonsArray.length(); j++) {
@@ -291,8 +291,8 @@ public class MenuActivity extends SettingsActivity {
                     humonJSON.put("imagePath", "");
                     saveHumons[j] = humonJSON.toString();
                     user.addPartyMember(humonJSON.getString("iID"));
-                    System.out.println("Updated user");
-                    System.out.println(humonJSON.getString("iID"));
+                    Log.i(TAG, "Updated user");
+                    Log.i(TAG, humonJSON.getString("iID"));
                 }
 
             } catch (Exception e) {
@@ -300,7 +300,7 @@ public class MenuActivity extends SettingsActivity {
             }
         }
         else {
-            System.out.println("Unable to find party file");
+            Log.i(TAG, "Unable to find party file");
         }
         return saveHumons;
     }
@@ -312,7 +312,7 @@ public class MenuActivity extends SettingsActivity {
      */
     private void saveEncounteredHumons(User user) {
 
-        System.out.println("In saveEncounteredHumons");
+        Log.i(TAG, "In saveEncounteredHumons");
         //read in encountered humons
         boolean hasIndexFile = true;
         FileInputStream inputStream;
@@ -331,7 +331,7 @@ public class MenuActivity extends SettingsActivity {
         }
         catch(FileNotFoundException e) {
             e.printStackTrace();
-            System.out.println("No index currently exists for: " + userEmail);
+            Log.i(TAG, "No index currently exists for: " + userEmail);
             hasIndexFile = false;
         } catch (IOException e) {
             e.printStackTrace();
@@ -342,14 +342,14 @@ public class MenuActivity extends SettingsActivity {
             try {
                 //append humon on to current object
                 if (oldIndex.length() == 0) {
-                    System.out.println("Index is empty.");
+                    Log.i(TAG, "Index is empty.");
                     return;
                 } else {
                     indexJSON = new JSONObject(oldIndex);
                     humonsArray = indexJSON.getJSONArray(getString(R.string.humonsKey));
                 }
 
-                System.out.println("Index humons in file: " + humonsArray.length());
+                Log.i(TAG, "Index humons in file: " + humonsArray.length());
 
                 //update user object with hIDs
                 for (int j = 0; j < humonsArray.length(); j++) {
@@ -362,7 +362,7 @@ public class MenuActivity extends SettingsActivity {
             }
         }
         else {
-            System.out.println("Unable to find index file");
+            Log.i(TAG, "Unable to find index file");
         }
     }
 }

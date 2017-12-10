@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +25,7 @@ import edu.wisc.ece454.hu_mon.R;
 public class ServerBroadcastReceiver extends BroadcastReceiver {
     final String RESPONSE_KEY = "RESPONSE";
 
+    private final String TAG = "BRDCSTREC";
     //queue of humons to be saved
     private static ArrayList<Humon> indexHumons = new ArrayList<Humon>();
     private static ArrayList<Humon> partyHumons = new ArrayList<Humon>();
@@ -57,10 +59,10 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
 
 
         if(data.length() < 100) {
-            System.out.println(command + ": " + data);
+            Log.d(TAG, command + ": " + data);
         }
         else {
-            System.out.println(command);
+            Log.d(TAG, command);
         }
 
         if(command.equals("CREATE-HUMON")) {
@@ -99,10 +101,10 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                     context.getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
             // User object reader.
             try {
-                System.out.println("Data: " + data);
+                Log.d(TAG, "Data: " + data);
                 ObjectMapper mapper = new ObjectMapper();
                 String userString = sharedPref.getString("userObjectKey", null);
-                System.out.println("User String was: " + userString);
+                Log.d(TAG, "User String was: " + userString);
                 User user = mapper.readValue(userString, User.class);
                 user.addFriend(data.trim());
 
@@ -125,7 +127,7 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 String userString = sharedPref.getString("userObjectKey", null);
-                System.out.println("User String was: " + userString);
+                Log.d(TAG, "User String was: " + userString);
                 User user = mapper.readValue(userString, User.class);
                 User friend = mapper.readValue(data, User.class);
                 user.addFriendRequest(friend.getEmail());
@@ -148,19 +150,19 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
             }
         }
         else if(command.equals(context.getString(R.string.ServerCommandGetInstance))) {
-            System.out.println("Received Instance Humon");
+            Log.d(TAG, "Received Instance Humon");
             ObjectMapper mapper = new ObjectMapper();
             try {
                 //create Humon object from payload
                 Humon partyHumon = mapper.readValue(data, Humon.class);
-                System.out.println("Received Party Humon: " + partyHumon.getName() + " iID: " + partyHumon.getiID());
+                Log.d(TAG, "Received Party Humon: " + partyHumon.getName() + " iID: " + partyHumon.getiID());
 
                 //tell Humon where to expect image file
                 File imageFile = new File(context.getFilesDir(), partyHumon.gethID() + ".jpg");
                 partyHumon.setImagePath(imageFile.getPath());
 
                 String humonOwner = partyHumon.getiID().substring(0, partyHumon.getiID().indexOf("-"));
-                System.out.println("Owner of humon: " + humonOwner);
+                Log.d(TAG, "Owner of humon: " + humonOwner);
 
                 //retrieve email of the user
                 SharedPreferences sharedPref = context.getSharedPreferences(
@@ -177,7 +179,7 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                         Humon [] partyHumonArray = partyHumons.toArray(new Humon[partyHumons.size()]);
                         partyHumons.clear();
 
-                        System.out.println("Saving " + partyHumonArray.length + " party humons");
+                        Log.d(TAG, "Saving " + partyHumonArray.length + " party humons");
 
                         AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(context, false);
                         partySaveTask.execute(partyHumonArray);
@@ -194,7 +196,7 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                         Humon [] enemyHumonArray = enemyHumons.toArray(new Humon[enemyHumons.size()]);
                         enemyHumons.clear();
 
-                        System.out.println("Saving " + enemyHumonArray.length + " enemy humons");
+                        Log.d(TAG, "Saving " + enemyHumonArray.length + " enemy humons");
 
                         AsyncTask<Humon, Integer, Boolean> enemySaveTask = new HumonPartySaver(context, true);
                         enemySaveTask.execute(enemyHumonArray);
@@ -209,14 +211,14 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
         else if(command.equals(context.getString(R.string.ServerCommandGetHumon))) {
             final String humonData = data;
             final Context saveContext = context;
-            System.out.println("Received Encountered Humon");
+            Log.d(TAG, "Received Encountered Humon");
 
 
                     try {
                         ObjectMapper mapper = new ObjectMapper();
                         //create Humon object from payload
                         Humon indexHumon = mapper.readValue(humonData, Humon.class);
-                        System.out.println("Received Encountered Humon: " + indexHumon.getName() + " hID: " + indexHumon.gethID());
+                        Log.d(TAG, "Received Encountered Humon: " + indexHumon.getName() + " hID: " + indexHumon.gethID());
 
                         //retrieve email of the user
                         SharedPreferences sharedPref = saveContext.getSharedPreferences(
@@ -226,7 +228,7 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                         //Add Humon to queue to be saved
                         indexHumons.add(indexHumon);
 
-                        System.out.println("Number encountered: "+ indexHumons.size() + " Expected: " +
+                        Log.d(TAG, "Number encountered: "+ indexHumons.size() + " Expected: " +
                                 sharedPref.getInt(saveContext.getString(R.string.expectedHumonsKey), 0));
 
                         //save Humon to file
@@ -234,7 +236,7 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                             Humon [] indexHumonArray = indexHumons.toArray(new Humon[indexHumons.size()]);
                             indexHumons.clear();
 
-                            System.out.println("Saving " + indexHumonArray.length + " encountered humons");
+                            Log.d(TAG, "Saving " + indexHumonArray.length + " encountered humons");
 
                             AsyncTask<Humon, Integer, Boolean> indexSaveTask = new HumonIndexSaver(userEmail + saveContext.getString(R.string.indexFile),
                                 userEmail, saveContext, saveContext.getString(R.string.humonsKey), true);
@@ -250,8 +252,8 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
         }
 
         else {
-            System.out.println("Command: " + command);
-            System.out.println("Data: " + data);
+            Log.d(TAG, "Command: " + command);
+            Log.d(TAG, "Data: " + data);
         }
     }
 

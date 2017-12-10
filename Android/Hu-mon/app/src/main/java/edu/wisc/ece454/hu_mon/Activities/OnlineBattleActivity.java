@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -53,7 +54,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
     ServerConnection mServerConnection;
     boolean mBound;
-
+    private final String TAG = "BATTLE";
     private String enemyEmail;
     private boolean battleStarting = false;
     private boolean isInitiaor = false;
@@ -113,7 +114,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
         Intent parentIntent = getIntent();
         enemyEmail = parentIntent.getStringExtra(getString(R.string.emailKey));
         isInitiaor = parentIntent.getBooleanExtra(getString(R.string.initiatorKey), false);
-        System.out.println("Battle started with: " + enemyEmail);
+        Log.i(TAG, "Battle started with: " + enemyEmail);
         battleStarting = true;
 
         // Attach to the server communication service
@@ -279,22 +280,22 @@ public class OnlineBattleActivity extends AppCompatActivity {
             command = command.toUpperCase();
             data = response.substring(response.indexOf(':') + 1, response.length());
 
-            System.out.println("In online battle");
+            Log.i(TAG, "In online battle");
 
             //Receiving iIDs of all enemy Hu-mons, must use hIDs to add to index,
             //iIDs to add to enemy party
             if (command.equals(getString(R.string.ServerCommandGetParty))) {
-                System.out.println("ServerCommandGetPartySuccess");
+                Log.i(TAG, "ServerCommandGetPartySuccess");
 
                 //Parse data to get iIDs
                 ArrayList<String> enemyiIDs = new ArrayList<String>();
-                System.out.println("Get-Party Payload: " + data);
+                Log.i(TAG, "Get-Party Payload: " + data);
                 try {
                     JSONObject partyJson = new JSONObject(data);
                     String rawParty = partyJson.getString("party");
                     rawParty = rawParty.substring(rawParty.indexOf("[") + 1, rawParty.indexOf("]"));
                     rawParty = rawParty.replaceAll("\\s+","");
-                    System.out.println("Formatted Get-Party Payload: " + rawParty);
+                    Log.i(TAG, "Formatted Get-Party Payload: " + rawParty);
                     String [] partyArray = rawParty.split(",");
                     for(int i = 0; i < partyArray.length; i++) {
                         enemyiIDs.add(partyArray[i]);
@@ -325,7 +326,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
                     //determine ownere of humon
                     String humonOwner = enemyHumon.getiID().substring(0, enemyHumon.getiID().indexOf("-"));
-                    System.out.println("Owner of humon: " + humonOwner);
+                    Log.i(TAG, "Owner of humon: " + humonOwner);
 
                     //retrieve email of the user
                     SharedPreferences sharedPref = context.getSharedPreferences(
@@ -347,7 +348,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
                 }
             }
             else if(command.equals(getString(R.string.ServerCommandBattleAction))) {
-               System.out.println("Received battle action: " + data);
+               Log.i(TAG, "Received battle action: " + data);
                 try {
                     JSONObject battleJson = new JSONObject(data);
 
@@ -397,12 +398,12 @@ public class OnlineBattleActivity extends AppCompatActivity {
     private void getEnemyParty() {
         //Get enemies party
         if(mBound) {
-            System.out.println("Attempting to get party");
+            Log.i(TAG, "Attempting to get party");
             mServerConnection.sendMessage(getString(R.string.ServerCommandGetParty) +
                     ":{\"email\":\"" + enemyEmail + "\"}");
         }
         else {
-            System.out.println("Error: Connection not bound, cannot get party");
+            Log.i(TAG, "Error: Connection not bound, cannot get party");
         }
     }
 
@@ -413,12 +414,12 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
         //Get enemies party
         if(mBound) {
-            System.out.println("Attempting to notify enemy of battle start");
+            Log.i(TAG, "Attempting to notify enemy of battle start");
             mServerConnection.sendMessage(getString(R.string.ServerCommandBattleStart) +
                     ":{\"email\":\"" + enemyEmail + "\", \"initiator\":" + isInitiaor + "}");
         }
         else {
-            System.out.println("Error: Connection not bound, cannot get notify enemy");
+            Log.i(TAG, "Error: Connection not bound, cannot get notify enemy");
         }
     }
 
@@ -428,13 +429,13 @@ public class OnlineBattleActivity extends AppCompatActivity {
      *
      */
     private void loadPartyHumons() {
-        System.out.println("Loading Humons to battle");
+        Log.i(TAG, "Loading Humons to battle");
         Thread loadThread = new Thread() {
             public void run() {
                 String partyFilename = getFilesDir() + "/" + userEmail + getString(R.string.partyFile);
 
                 try {
-                    System.out.println("Attempting to load: " + partyFilename);
+                    Log.i(TAG, "Attempting to load: " + partyFilename);
 
                     //load party file
                     String partyString;
@@ -444,10 +445,10 @@ public class OnlineBattleActivity extends AppCompatActivity {
                     inputStream.read(buffer);
                     inputStream.close();
                     partyString = new String(buffer, "UTF-8");
-                    System.out.println("User party string: " + partyString);
+                    Log.i(TAG, "User party string: " + partyString);
                     JSONObject fileJson = new JSONObject(partyString);
                     JSONArray humonsArray = fileJson.getJSONArray(HUMONS_KEY);
-                    System.out.println(partyFilename + " loaded");
+                    Log.i(TAG, partyFilename + " loaded");
 
                     //load humon into json object format
                     for(int i = 0; i < humonsArray.length(); i++) {
@@ -463,7 +464,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
                     inputStream.close();
                 } catch (FileNotFoundException e) {
-                    System.out.println("No party file for: " + userEmail);
+                    Log.i(TAG, "No party file for: " + userEmail);
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -485,7 +486,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
      *
      */
     private void choosePlayerHumon() {
-        System.out.println("Choosing Humon to battle");
+        Log.i(TAG, "Choosing Humon to battle");
         if(partyHumons.size() == 0) {
             Toast toast = Toast.makeText(getApplicationContext(), "No available humons!", Toast.LENGTH_SHORT);
             toast.show();
@@ -536,7 +537,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
                 String partyFilename = getFilesDir() + "/" + getString(R.string.enemyPartyFile);
 
                 try {
-                    System.out.println("Attempting to load: " + partyFilename);
+                    Log.i(TAG, "Attempting to load: " + partyFilename);
 
                     //load party file
                     String partyString;
@@ -548,7 +549,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
                     partyString = new String(buffer, "UTF-8");
                     JSONObject fileJson = new JSONObject(partyString);
                     JSONArray humonsArray = fileJson.getJSONArray(HUMONS_KEY);
-                    System.out.println(partyFilename + " loaded");
+                    Log.i(TAG, partyFilename + " loaded");
 
                     //locate enemy to load
                     int enemyHumonIndex = -1;
@@ -618,11 +619,11 @@ public class OnlineBattleActivity extends AppCompatActivity {
                     enemyHumon = new Humon(name, description, image, level, xp, hID, uID,
                             iID, moveList, health, luck, attack, speed, defense, imagePath, hp);
 
-                    System.out.println("Enemy is: " + enemyHumon.getName());
+                    Log.i(TAG, "Enemy is: " + enemyHumon.getName());
 
                     inputStream.close();
                 } catch (FileNotFoundException e) {
-                    System.out.println("No enemy party file exists");
+                    Log.i(TAG, "No enemy party file exists");
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -634,7 +635,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
                 //Load data into UI
                 TextView nameTextView = (TextView) findViewById(R.id.enemyNameTextView);
                 nameTextView.setText(enemyHumon.getName());
-                //System.out.println("Player textview: " + nameTextView.getText().toString());
+                //Log.i(TAG, "Player textview: " + nameTextView.getText().toString());
 
                 TextView levelTextView = (TextView) findViewById(R.id.enemyLevelTextView);
                 levelTextView.setText("Lvl " + enemyHumon.getLevel());
@@ -659,7 +660,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
         };
 
         loadThread.run();
-        System.out.println("Finished loading enemy");
+        Log.i(TAG, "Finished loading enemy");
     }
 
     //Loads first humon in party
@@ -669,7 +670,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
                 String partyFilename = getFilesDir() + "/" + userEmail + getString(R.string.partyFile);
 
                 try {
-                    System.out.println("Attempting to load: " + partyFilename);
+                    Log.i(TAG, "Attempting to load: " + partyFilename);
 
                     //load party file
                     String partyString;
@@ -681,7 +682,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
                     partyString = new String(buffer, "UTF-8");
                     JSONObject fileJson = new JSONObject(partyString);
                     JSONArray humonsArray = fileJson.getJSONArray(HUMONS_KEY);
-                    System.out.println(partyFilename + " loaded");
+                    Log.i(TAG, partyFilename + " loaded");
 
                     //load humon into json object format
                     String humonString = humonsArray.getString(playerHumonIndex);
@@ -742,7 +743,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
                     playerHumon = new Humon(name, description, image, level, xp, hID, uID,
                             iID, moveList, health, luck, attack, speed, defense, imagePath, hp);
 
-                    System.out.println("Player is: " + playerHumon.getName());
+                    Log.i(TAG, "Player is: " + playerHumon.getName());
 
                     //Send server iID of chosen humon
                     mServerConnection.sendMessage(getString(R.string.ServerCommandBattleAction) +
@@ -750,7 +751,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
                     inputStream.close();
                 } catch (FileNotFoundException e) {
-                    System.out.println("No party file for: " + userEmail);
+                    Log.i(TAG, "No party file for: " + userEmail);
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -762,7 +763,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
                 //Load data into UI
                 TextView nameTextView = (TextView) findViewById(R.id.playerNameTextView);
                 nameTextView.setText(playerHumon.getName());
-                System.out.println("Player textview: " + nameTextView.getText().toString());
+                Log.i(TAG, "Player textview: " + nameTextView.getText().toString());
 
                 TextView levelTextView = (TextView) findViewById(R.id.playerLevelTextView);
                 levelTextView.setText("Lvl " + playerHumon.getLevel());
@@ -791,12 +792,12 @@ public class OnlineBattleActivity extends AppCompatActivity {
         };
 
         loadThread.run();
-        System.out.println("Finished loading player");
+        Log.i(TAG, "Finished loading player");
     }
 
     private void loadPlayerMoves() {
 
-        System.out.println("In Load Player Moves");
+        Log.i(TAG, "In Load Player Moves");
 
         //Clear previous moves
         playerMoveList.clear();
@@ -809,7 +810,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
         moveAdapter.notifyDataSetChanged();
 
         for(int i = 0; i < playerMoveList.size(); i++) {
-            System.out.println("Added move: " + playerMoveList.get(i).getName());
+            Log.i(TAG, "Added move: " + playerMoveList.get(i).getName());
         }
     }
 
@@ -942,7 +943,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
                 displayMessage += "\n" + enemyHumon.getName() + " is " + enemyStatus + "!";
             }
 
-            System.out.println(displayMessage);
+            Log.i(TAG, displayMessage);
             consoleDisplayQueue.add(displayMessage);
         }
         else {
@@ -966,7 +967,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
                 playerStatusTextView.setText(""+ playerStatus);
                 displayMessage += "\n" + playerHumon.getName() + " is " + playerStatus + "!";
             }
-            System.out.println(displayMessage);
+            Log.i(TAG, displayMessage);
             consoleDisplayQueue.add(displayMessage);
         }
     }
@@ -1037,7 +1038,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
     private Move.Effect getMoveEffect(Move move, boolean isPlayer) {
         //No effect
         if(!move.isHasEffect()) {
-            System.out.println("Move has no effect");
+            Log.i(TAG, "Move has no effect");
             return null;
         }
 

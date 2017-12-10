@@ -2,6 +2,7 @@ package edu.wisc.ece454.hu_mon.Utilities;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,6 +28,7 @@ import edu.wisc.ece454.hu_mon.Models.Humon;
 //Outputs a toast on success or failure
 public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
 
+    private final String TAG = "HINDSAVER";
     private String filename = "";
     private String email = "";
     private Context context;
@@ -60,11 +62,11 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
             inputStream.read(buffer);
             inputStream.close();
             oldIndex = new String(buffer, "UTF-8");
-            //System.out.println("Current humon index: " + oldIndex);
+            //Log.d(TAG, "Current humon index: " + oldIndex);
         }
         catch(FileNotFoundException e) {
             e.printStackTrace();
-            System.out.println("No index currently exists for: " + email);
+            Log.d(TAG, "No index currently exists for: " + email);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -129,8 +131,8 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
 
         try {
             //write object to file
-            //System.out.println("Writing: " + indexJSON.toString());
-            System.out.println("Data written to: " + filename);
+            //Log.d(TAG, "Writing: " + indexJSON.toString());
+            Log.d(TAG, "Data written to: " + filename);
             outputStream = new FileOutputStream(indexFile);
             outputStream.write(indexJSON.toString().getBytes());
             outputStream.close();

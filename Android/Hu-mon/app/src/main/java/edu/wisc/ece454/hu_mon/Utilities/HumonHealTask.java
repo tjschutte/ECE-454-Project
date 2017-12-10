@@ -3,6 +3,7 @@ package edu.wisc.ece454.hu_mon.Utilities;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,6 +26,7 @@ import edu.wisc.ece454.hu_mon.R;
 //Outputs a toast on success or failure
 public class HumonHealTask extends AsyncTask<Integer, Integer, Boolean> {
 
+    private final String TAG = "HHTASK";
     private Context context;
 
     public HumonHealTask(Context context) {
@@ -56,11 +58,11 @@ public class HumonHealTask extends AsyncTask<Integer, Integer, Boolean> {
             inputStream.read(buffer);
             inputStream.close();
             oldParty= new String(buffer, "UTF-8");
-            //System.out.println("Current humon index: " + oldIndex);
+            //Log.d(TAG, "Current humon index: " + oldIndex);
         }
         catch(FileNotFoundException e) {
             e.printStackTrace();
-            System.out.println("No party currently exists for: " + userEmail);
+            Log.d(TAG, "No party currently exists for: " + userEmail);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -107,8 +109,8 @@ public class HumonHealTask extends AsyncTask<Integer, Integer, Boolean> {
 
         try {
             //write object to file
-            //System.out.println("Writing: " + indexJSON.toString());
-            System.out.println("Data written to: " + filename);
+            //Log.d(TAG, "Writing: " + indexJSON.toString());
+            Log.d(TAG, "Data written to: " + filename);
             outputStream = new FileOutputStream(partyFile);
             outputStream.write(partyJSON.toString().getBytes());
             outputStream.close();
@@ -121,10 +123,10 @@ public class HumonHealTask extends AsyncTask<Integer, Integer, Boolean> {
 
     protected void onPostExecute(Boolean result) {
         if(result) {
-            System.out.println("Party Successfully Healed");
+            Log.d(TAG, "Party Successfully Healed");
         }
         else {
-            System.out.println("Party Healing Failed");
+            Log.d(TAG, "Party Healing Failed");
         }
     }
 }

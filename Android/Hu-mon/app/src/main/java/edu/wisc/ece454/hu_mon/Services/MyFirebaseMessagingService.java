@@ -54,7 +54,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             if (data.containsKey(getString(R.string.ServerCommandFriendRequest))) {
                 String res = getString(R.string.ServerCommandFriendRequest) + ": " + data.get(getString(R.string.ServerCommandFriendRequest));
 
-                System.out.println("Faking a server message for a friend request");
+                Log.d(TAG, "Faking a server message for a friend request");
                 Intent intent = new Intent();
                 intent.setAction(getString(R.string.serverBroadCastEvent));
                 intent.putExtra(getString(R.string.serverBroadCastResponseKey),res);
@@ -76,7 +76,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 //Intent notificationIntent = new Intent(this, MenuActivity.class);
                 Intent notificationIntent = new Intent(this, OnlineBattleActivity.class);
                 String enemyEmail = data.get(getString(R.string.ServerCommandBattleRequest));
-                System.out.println("Battle Request sent by: " + enemyEmail);
+                Log.d(TAG, "Battle Request sent by: " + enemyEmail);
                 notificationIntent.putExtra(getString(R.string.emailKey), enemyEmail);
                 notificationIntent.putExtra(getString(R.string.initiatorKey), true);
                 PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -127,7 +127,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 //Intent notificationIntent = new Intent(this, MenuActivity.class);
                 Intent notificationIntent = new Intent(this, OnlineBattleActivity.class);
                 String enemyEmail = data.get(getString(R.string.ServerCommandBattleStart));
-                System.out.println("Battle Start sent by: " + enemyEmail);
+                Log.d(TAG, "Battle Start sent by: " + enemyEmail);
                 notificationIntent.putExtra(getString(R.string.emailKey), enemyEmail);
                 notificationIntent.putExtra(getString(R.string.initiatorKey), false);
                 PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -152,7 +152,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 // TODO: Decide how to handlet this
                 String res = getString(R.string.ServerCommandBattleAction) + ": " + data.get(getString(R.string.ServerCommandBattleAction));
 
-                System.out.println("Faking a server message for a battle action");
+                Log.d(TAG, "Faking a server message for a battle action");
                 Intent intent = new Intent();
                 intent.setAction(getString(R.string.serverBroadCastEvent));
                 intent.putExtra(getString(R.string.serverBroadCastResponseKey),res);

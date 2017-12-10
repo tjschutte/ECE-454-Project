@@ -50,6 +50,7 @@ import edu.wisc.ece454.hu_mon.Utilities.UserHelper;
 
 public class CreateHumonActivity extends SettingsActivity {
 
+    private final String TAG = "CREATE";
     private final String ACTIVITY_TITLE = "Create Hu-mon";
     private final int MOVE_REQUEST_CODE = 1;
     private final String MOVE_DEFAULT_VALUE = "Add Move";
@@ -238,7 +239,7 @@ public class CreateHumonActivity extends SettingsActivity {
                     currStatView = (TextView) findViewById(R.id.luckValue);
                     break;
                 default:
-                    System.out.print("No stat for tag: " + statTag);
+                    Log.i(TAG, "No stat for tag: " + statTag);
                     return;
             }
 
@@ -278,7 +279,7 @@ public class CreateHumonActivity extends SettingsActivity {
                 currStatView = (TextView) findViewById(R.id.luckValue);
                 break;
             default:
-                System.out.print("No stat for tag: " + statTag);
+                Log.i(TAG, "No stat for tag: " + statTag);
                 return;
         }
 
@@ -410,8 +411,8 @@ public class CreateHumonActivity extends SettingsActivity {
         File imageFile = new File(getFilesDir(),humonName + ".jpg");
         storeImageFile(imageFile);
         localHumon.setImagePath(imageFile.getPath());
-        System.out.println("Old image path: " + tempImagePath);
-        System.out.println("New image path: " + localHumon.getImagePath());
+        Log.i(TAG, "Old image path: " + tempImagePath);
+        Log.i(TAG, "New image path: " + localHumon.getImagePath());
 
         //save humon data to index
         AsyncTask<Humon, Integer, Boolean> indexSaveTask = new HumonIndexSaver(userEmail + getString(R.string.indexFile),
@@ -482,7 +483,7 @@ public class CreateHumonActivity extends SettingsActivity {
                 hasHumons = false;
             }
         } catch(FileNotFoundException e) {
-            System.out.println("No party file for " + userEmail);
+            Log.i(TAG, "No party file for " + userEmail);
             hasHumons = false;
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

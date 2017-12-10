@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -41,6 +42,7 @@ import edu.wisc.ece454.hu_mon.Utilities.UserHelper;
 public class WildBattleActivity extends SettingsActivity {
 
     private final String ACTIVITY_TITLE = "Battle";
+    private final String TAG = "BATTLE";
     private String HUMONS_KEY;
 
     private Humon enemyHumon;
@@ -193,7 +195,7 @@ public class WildBattleActivity extends SettingsActivity {
                 String indexFilename =  getFilesDir() + "/" + userEmail + getString(R.string.indexFile);;
 
                 try {
-                    System.out.println("Attempting to load: " + indexFilename);
+                    Log.i(TAG,"Attempting to load: " + indexFilename);
 
                     //load index file
                     String indexString;
@@ -205,7 +207,7 @@ public class WildBattleActivity extends SettingsActivity {
                     indexString = new String(buffer, "UTF-8");
                     JSONObject fileJson = new JSONObject(indexString);
                     JSONArray humonsArray = fileJson.getJSONArray(HUMONS_KEY);
-                    System.out.println(indexFilename + " loaded");
+                    Log.i(TAG,indexFilename + " loaded");
 
                     //randomly choose a humon to fight
                     Random rng = new Random();
@@ -270,11 +272,11 @@ public class WildBattleActivity extends SettingsActivity {
                     enemyHumon = new Humon(name, description, image, level, xp, hID, uID,
                             iID, moveList, health, luck, attack, speed, defense, imagePath, hp);
 
-                    System.out.println("Enemy is: " + enemyHumon.getName());
+                    Log.i(TAG,"Enemy is: " + enemyHumon.getName());
 
                     inputStream.close();
                 } catch (FileNotFoundException e) {
-                    System.out.println("No index file for: " + userEmail);
+                    Log.i(TAG,"No index file for: " + userEmail);
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -302,7 +304,7 @@ public class WildBattleActivity extends SettingsActivity {
         };
 
         loadThread.run();
-        System.out.println("Finished loading enemy");
+        Log.i(TAG,"Finished loading enemy");
     }
 
     //Chooses a level for the enemy humon and scales its stats to that level
@@ -315,7 +317,7 @@ public class WildBattleActivity extends SettingsActivity {
             humonLevel = 1;
         }
 
-        System.out.println("Scaling enemy to level: " + humonLevel);
+        Log.i(TAG,"Scaling enemy to level: " + humonLevel);
 
         //Increment stats on enemy humon by level
         for(int i = 1; i < humonLevel; i++) {
@@ -325,7 +327,7 @@ public class WildBattleActivity extends SettingsActivity {
         //Load data into UI
         TextView nameTextView = (TextView) findViewById(R.id.enemyNameTextView);
         nameTextView.setText(enemyHumon.getName());
-        System.out.println("Enemy textview: " + nameTextView.getText().toString());
+        Log.i(TAG,"Enemy textview: " + nameTextView.getText().toString());
 
         TextView levelTextView = (TextView) findViewById(R.id.enemyLevelTextView);
         levelTextView.setText("Lvl " + enemyHumon.getLevel());
@@ -345,13 +347,13 @@ public class WildBattleActivity extends SettingsActivity {
      *
      */
     private void loadPartyHumons() {
-        System.out.println("Loading Humons to battle");
+        Log.i(TAG,"Loading Humons to battle");
         Thread loadThread = new Thread() {
             public void run() {
                 String partyFilename = getFilesDir() + "/" + userEmail + getString(R.string.partyFile);
 
                 try {
-                    System.out.println("Attempting to load: " + partyFilename);
+                    Log.i(TAG,"Attempting to load: " + partyFilename);
 
                     //load party file
                     String partyString;
@@ -363,7 +365,7 @@ public class WildBattleActivity extends SettingsActivity {
                     partyString = new String(buffer, "UTF-8");
                     JSONObject fileJson = new JSONObject(partyString);
                     JSONArray humonsArray = fileJson.getJSONArray(HUMONS_KEY);
-                    System.out.println(partyFilename + " loaded");
+                    Log.i(TAG,partyFilename + " loaded");
 
                     //load humon into json object format
                     for(int i = 0; i < humonsArray.length(); i++) {
@@ -379,7 +381,7 @@ public class WildBattleActivity extends SettingsActivity {
 
                     inputStream.close();
                 } catch (FileNotFoundException e) {
-                    System.out.println("No party file for: " + userEmail);
+                    Log.i(TAG,"No party file for: " + userEmail);
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -401,7 +403,7 @@ public class WildBattleActivity extends SettingsActivity {
      *
      */
     private void choosePlayerHumon() {
-        System.out.println("Choosing Humon to battle");
+        Log.i(TAG,"Choosing Humon to battle");
         if(partyHumons.size() == 0) {
             Toast toast = Toast.makeText(getApplicationContext(), "No available humons!", Toast.LENGTH_SHORT);
             toast.show();
@@ -449,7 +451,7 @@ public class WildBattleActivity extends SettingsActivity {
                 String partyFilename = getFilesDir() + "/" + userEmail + getString(R.string.partyFile);
 
                 try {
-                    System.out.println("Attempting to load: " + partyFilename);
+                    Log.i(TAG,"Attempting to load: " + partyFilename);
 
                     //load party file
                     String partyString;
@@ -461,7 +463,7 @@ public class WildBattleActivity extends SettingsActivity {
                     partyString = new String(buffer, "UTF-8");
                     JSONObject fileJson = new JSONObject(partyString);
                     JSONArray humonsArray = fileJson.getJSONArray(HUMONS_KEY);
-                    System.out.println(partyFilename + " loaded");
+                    Log.i(TAG,partyFilename + " loaded");
 
                     //load humon into json object format
                     String humonString = humonsArray.getString(playerHumonIndex);
@@ -527,11 +529,11 @@ public class WildBattleActivity extends SettingsActivity {
                     playerHumon = new Humon(name, description, image, level, xp, hID, uID,
                             iID, moveList, health, luck, attack, speed, defense, imagePath, hp);
 
-                    System.out.println("Player is: " + playerHumon.getName());
+                    Log.i(TAG,"Player is: " + playerHumon.getName());
 
                     inputStream.close();
                 } catch (FileNotFoundException e) {
-                    System.out.println("No party file for: " + userEmail);
+                    Log.i(TAG,"No party file for: " + userEmail);
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -543,7 +545,7 @@ public class WildBattleActivity extends SettingsActivity {
                 //Load data into UI
                 TextView nameTextView = (TextView) findViewById(R.id.playerNameTextView);
                 nameTextView.setText(playerHumon.getName());
-                System.out.println("Player textview: " + nameTextView.getText().toString());
+                Log.i(TAG,"Player textview: " + nameTextView.getText().toString());
 
                 TextView levelTextView = (TextView) findViewById(R.id.playerLevelTextView);
                 levelTextView.setText("Lvl " + playerHumon.getLevel());
@@ -572,12 +574,12 @@ public class WildBattleActivity extends SettingsActivity {
         };
 
         loadThread.run();
-        System.out.println("Finished loading player");
+        Log.i(TAG,"Finished loading player");
     }
 
     private void loadPlayerMoves() {
 
-        System.out.println("In Load Player Moves");
+        Log.i(TAG,"In Load Player Moves");
 
         //Clear previous moves
         playerMoveList.clear();
@@ -590,7 +592,7 @@ public class WildBattleActivity extends SettingsActivity {
         moveAdapter.notifyDataSetChanged();
 
         for(int i = 0; i < playerMoveList.size(); i++) {
-            System.out.println("Added move: " + playerMoveList.get(i).getName());
+            Log.i(TAG,"Added move: " + playerMoveList.get(i).getName());
         }
     }
 
@@ -708,7 +710,7 @@ public class WildBattleActivity extends SettingsActivity {
                 displayMessage += "\nWild " + enemyHumon.getName() + " is " + enemyStatus + "!";
             }
 
-            System.out.println(displayMessage);
+            Log.i(TAG,displayMessage);
             consoleDisplayQueue.add(displayMessage);
         }
         else {
@@ -732,7 +734,7 @@ public class WildBattleActivity extends SettingsActivity {
                 playerStatusTextView.setText(""+ playerStatus);
                 displayMessage += "\n" + playerHumon.getName() + " is " + playerStatus + "!";
             }
-            System.out.println(displayMessage);
+            Log.i(TAG,displayMessage);
             consoleDisplayQueue.add(displayMessage);
         }
     }
@@ -786,7 +788,7 @@ public class WildBattleActivity extends SettingsActivity {
     private Move.Effect getMoveEffect(Move move, boolean isPlayer) {
         //No effect
         if(!move.isHasEffect()) {
-            System.out.println("Move has no effect");
+            Log.i(TAG,"Move has no effect");
             return null;
         }
 
@@ -999,7 +1001,7 @@ public class WildBattleActivity extends SettingsActivity {
                 enemyHumon.setIID(userEmail + "-" + user.getHcount());
                 user.incrementHCount();
 
-                System.out.println("Saved new humon with IID: " + enemyHumon.getiID());
+                Log.i(TAG,"Saved new humon with IID: " + enemyHumon.getiID());
 
                 //Save both humons
                 saveHumons();

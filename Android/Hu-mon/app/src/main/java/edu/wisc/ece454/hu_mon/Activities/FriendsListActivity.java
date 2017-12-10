@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +40,7 @@ import edu.wisc.ece454.hu_mon.Utilities.UserHelper;
 public class FriendsListActivity extends SettingsActivity {
 
     private final String ACTIVITY_TITLE = "Friends List";
-
+    private final String TAG = "FList";
     private ListView friendListView;
     ArrayAdapter<String> friendsListAdapter;
     private ListView friendRequestListView;
@@ -83,12 +84,12 @@ public class FriendsListActivity extends SettingsActivity {
             command = command.toUpperCase();
             data = response.substring(response.indexOf(':') + 1, response.length());
 
-            System.out.println("In friendslist");
+            Log.i(TAG, "In friendslist");
 
             // Server data is always assumed correct on login. Save to file and overwrite existing data.
             //  If the email was found by the server, add it to the user object.
             if (command.equals(getString(R.string.ServerCommandFriendRequestSuccess))) {
-                System.out.println("ServerCommandFriendRequestSuccess");
+                Log.i(TAG, "ServerCommandFriendRequestSuccess");
                 user = UserHelper.loadUser(context);
 
                 try {
@@ -101,7 +102,7 @@ public class FriendsListActivity extends SettingsActivity {
                 UserHelper.saveUser(context, user);
                 refreshContent();
             } else if (command.equals(getString(R.string.ServerCommandFriendRequest))) {
-                System.out.println("Caught in friendslist");
+                Log.i(TAG, "Caught in friendslist");
                 user = UserHelper.loadUser(context);
                 //User friend = new ObjectMapper().readValue(data, User.class);
                 user.addFriendRequest(data.trim());

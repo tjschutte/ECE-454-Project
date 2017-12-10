@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Base64;
+import android.util.Log;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -26,6 +27,7 @@ import edu.wisc.ece454.hu_mon.Models.Jsonable;
 import edu.wisc.ece454.hu_mon.R;
 
 public class ServerConnection extends Service {
+    private final String TAG = "SERVCONN";
     public static final String SERVERIP = "68.185.171.192";
     public static final int SERVERPORT = 9898;
     PrintWriter out;
@@ -88,25 +90,25 @@ public class ServerConnection extends Service {
         public void run() {
             try {
                 if (obj == null) {
-                    System.out.println("Attempting to send: " + msg);
+                    Log.d(TAG, "Attempting to send: " + msg);
                     if (out != null && !out.checkError()) {
-                        System.out.println("Sending...");
+                        Log.d(TAG, "Sending...");
                         out.println(msg);
                         out.flush();
                     } else {
-                        System.out.println("Out was null, or had an error");
+                        Log.d(TAG, "Out was null, or had an error");
                     }
                 } else {
                     String data = obj.toJson(new ObjectMapper());
                     if(msg.length() < 100) {
-                        System.out.println("Attempting to send: " + msg + ": " + data);
+                        Log.d(TAG, "Attempting to send: " + msg + ": " + data);
                     }
                     if (out != null && !out.checkError()) {
-                        System.out.println("Sending...");
+                        Log.d(TAG, "Sending...");
                         out.println( msg + ": " + data);
                         out.flush();
                     } else {
-                        System.out.println("Out was null, or had an error");
+                        Log.d(TAG, "Out was null, or had an error");
                     }
                 }
             } catch (Exception e) {
@@ -139,15 +141,15 @@ public class ServerConnection extends Service {
                 //create a socket to make the connection with the server
                 socket = new Socket(serverAddr, SERVERPORT);
 
-                System.out.println("Setting up socket");
+                Log.d(TAG, "Setting up socket");
                 //send the message to the server
                 out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-                System.out.println("Waiting for responses");
+                Log.d(TAG, "Waiting for responses");
                 while (true) {
                     String res = in.readLine();
-                    System.out.println("Server response: " + res);
+                    Log.d(TAG, "Server response: " + res);
 
                     //Rewrite image since too large for parcel
                     if (res != null && res.indexOf(':') != -1) {
@@ -156,7 +158,7 @@ public class ServerConnection extends Service {
 
                         //write image
                         if(command.toUpperCase().equals(getString(R.string.ServerCommandGetHumon))) {
-                            System.out.println("GET-HUMON response, saving image");
+                            Log.d(TAG, "GET-HUMON response, saving image");
                             ObjectMapper mapper = new ObjectMapper();
                             //create Humon object from payload
                             Humon indexHumon = mapper.readValue(data, Humon.class);
@@ -179,7 +181,7 @@ public class ServerConnection extends Service {
 
                             //fix response
                             res = command + ": " + indexHumon.toJson(mapper);
-                            System.out.println("New response: " + res);
+                            Log.d(TAG, "New response: " + res);
                         }
                     }
 
@@ -201,7 +203,7 @@ public class ServerConnection extends Service {
                 }
 
             } catch (IOException e) {
-                System.out.println(e);
+                Log.d(TAG, e.toString());
             }
         }
     }

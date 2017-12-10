@@ -2,6 +2,7 @@ package edu.wisc.ece454.hu_mon.Utilities;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,13 +15,15 @@ import edu.wisc.ece454.hu_mon.R;
 
 public class UserHelper {
 
+    private static final String TAG = "USERHELPER";
+
     public static User loadUser(Context context) {
         SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.sharedPreferencesFile),
                 Context.MODE_PRIVATE);
         // User object reader.
         try {
             String userString = sharedPref.getString(context.getString(R.string.userObjectKey), null);
-            System.out.println("User String was: " + userString);
+            Log.d(TAG, "User String was: " + userString);
             User user = new ObjectMapper().readValue(userString, User.class);
             return user;
         } catch (FileNotFoundException e) {

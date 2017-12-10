@@ -63,6 +63,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
     private String HUMONS_KEY;
     private final int INSTANCE_TYPE = 0;
     private final int MOVE_TYPE = 1;
+    private final int RUN_TYPE = 2;
     private final String COMMAND_TYPE = "commandType";
     private final String WAITING_MESSAGE = "Waiting for enemy...";
 
@@ -86,6 +87,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
     //Queue of messages to be displayed in console (front is 0)
     private ArrayList<String> consoleDisplayQueue;
+    private String currentConsoleMessage = "";
 
     private ProgressBar playerHealthBar;
     private ProgressBar enemyHealthBar;
@@ -369,6 +371,9 @@ public class OnlineBattleActivity extends AppCompatActivity {
                         if(playerMove != null) {
                             startBattleSequence();
                         }
+                    }
+                    else if(battleJson.getInt(COMMAND_TYPE) == RUN_TYPE) {
+                        finishBattle();
                     }
 
 
@@ -969,6 +974,12 @@ public class OnlineBattleActivity extends AppCompatActivity {
     //choose which humon will attack first (true if player)
     private boolean playerFirst() {
         if(enemyHumon.getSpeed() == playerHumon.getSpeed()) {
+            if(playerRng > enemyRng) {
+                return true;
+            }
+            else if(enemyRng > playerRng) {
+                return false;
+            }
             return isInitiaor;
         }
         if(enemyHumon.getSpeed() > playerHumon.getSpeed()) {
@@ -1092,6 +1103,13 @@ public class OnlineBattleActivity extends AppCompatActivity {
                 //Save the humon's state
                 saveHumons();
 
+                //tell enemy you ran away
+                mServerConnection.sendMessage(getString(R.string.ServerCommandBattleAction) +
+                        ":{\"commandType\":"+ RUN_TYPE + "}");
+
+                mServerConnection.sendMessage(getString(R.string.ServerCommandBattleEnd) +
+                        ":{}");
+
                 //return to the menu
                 finish();
 
@@ -1136,6 +1154,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
         }
         else {
             userConsole.setText(consoleDisplayQueue.get(0));
+            currentConsoleMessage = consoleDisplayQueue.get(0);
             consoleDisplayQueue.remove(0);
         }
     }
@@ -1168,7 +1187,8 @@ public class OnlineBattleActivity extends AppCompatActivity {
                 consoleDisplayQueue.remove(i);
             }
         }
-        if(consoleDisplayQueue.size() == 0) {
+        if(consoleDisplayQueue.size() == 0 &&
+                currentConsoleMessage.equals(WAITING_MESSAGE)) {
             displayConsoleMessage();
         }
     }
@@ -1203,6 +1223,9 @@ public class OnlineBattleActivity extends AppCompatActivity {
         //Update the console
         consoleDisplayQueue.add(displayText);
         displayConsoleMessage();
+
+        mServerConnection.sendMessage(getString(R.string.ServerCommandBattleEnd) +
+        ":{}");
 
     }
 

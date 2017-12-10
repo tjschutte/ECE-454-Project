@@ -31,6 +31,7 @@
     <string name="ServerCommandBattleRequest">BATTLE-REQUEST</string>
     <string name="ServerCommandBattleAction">BATTLE-ACTION</string>
     <string name="ServerCommandBattleStart">BATTLE-START</string>
+    <string name="ServerCommandBattleEnd">BATTLE-END</string>
     <string name="ServerCommandCreateHumon">CREATE-HUMON</string>
     <string name="ServerCommandSaveUser">SAVE-USER</string>
     <string name="ServerCommandSaveInstance">SAVE-INSTANCE</string>

@@ -249,6 +249,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
             mServerConnection = myBinder.getService();
             mBound = true;
             if(battleStarting) {
+                saveBack();
                 getEnemyParty();
                 notifyEnemyStart();
                 battleStarting = false;
@@ -262,6 +263,17 @@ public class OnlineBattleActivity extends AppCompatActivity {
             mBound = false;
         }
     };
+
+    private void saveBack() {
+        if(mBound) {
+            Log.i(TAG, "Attempting to save user");
+            mServerConnection.sendMessage(getString(R.string.ServerCommandSaveUser) +
+                    ":" + getSharedPreferences(getString(R.string.userObjectKey), MODE_PRIVATE));
+        }
+        else {
+            Log.i(TAG, "Error: Connection not bound, cannot get party");
+        }
+    }
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override

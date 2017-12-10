@@ -386,10 +386,12 @@ public class FriendsListActivity extends SettingsActivity {
 
     private void sendBattleInvite(String friendName) {
         if (mBound) {
-            mServerConnection.sendMessage(getString(R.string.ServerCommandBattleRequest) + ":{\"email\":\"" + friendName + "\"}");
             try {
                 mServerConnection.sendMessage(getString(R.string.ServerCommandSaveUser) + ":" + user.toJson(new ObjectMapper()));
+                mServerConnection.sendMessage(getString(R.string.ServerCommandBattleRequest) + ":{\"email\":\"" + friendName + "\"}");
             } catch (JsonProcessingException e) {
+                Toast toast = Toast.makeText(getApplicationContext(), "Error communicating with server. Try again.", Toast.LENGTH_SHORT);
+                toast.show();
                 e.printStackTrace();
             }
         }

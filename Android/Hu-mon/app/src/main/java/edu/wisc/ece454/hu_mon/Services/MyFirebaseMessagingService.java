@@ -131,8 +131,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 notificationIntent.putExtra(getString(R.string.emailKey), enemyEmail);
                 notificationIntent.putExtra(getString(R.string.initiatorKey), false);
                 PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                Intent launchIntent = new Intent(this, OnlineBattleActivity.class);
-                PendingIntent acceptIntent = PendingIntent.getActivity(this, 0, launchIntent, 0);
 
                 Notification notification = new Notification.Builder(this)
                         .setContentTitle(remoteMessage.getNotification().getTitle())
@@ -141,6 +139,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
                         .setAutoCancel(true)
                         .build();
+
+                notification.flags |= Notification.FLAG_AUTO_CANCEL;
 
                 // Cancel any other battle requests.
                 mNotificationManager.cancel(id);

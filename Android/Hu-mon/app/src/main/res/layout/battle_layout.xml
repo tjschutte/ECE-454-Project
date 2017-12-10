@@ -44,7 +44,7 @@
             android:layout_toLeftOf="@id/enemyImageView"
             android:textSize="16dp"
             android:paddingRight="32dp"
-            android:text="Enemy Status"/>
+            android:text="Enemy Status" />
 
         <ProgressBar
             android:id="@+id/enemyHealthBar"

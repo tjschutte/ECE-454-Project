@@ -107,7 +107,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.wild_battle_layout);
+        setContentView(R.layout.battle_layout);
         setTitle(ACTIVITY_TITLE);
         HUMONS_KEY = getString(R.string.humonsKey);
 

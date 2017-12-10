@@ -45,6 +45,31 @@ public class WildBattleActivity extends SettingsActivity {
     private final String TAG = "BATTLE";
     private String HUMONS_KEY;
 
+    //chance of effect being applied
+    private final int PARALYZE_APPLY_CHANCE = 40;
+    private final int CONFUSE_APPLY_CHANCE = 40;
+    private final int SLEEP_APPLY_CHANCE = 40;
+    private final int POISON_APPLY_CHANCE = 40;
+    private final int EMBARASS_APPLY_CHANCE = 40;
+
+    //Chance of effect occuring
+    private final int PARALYZE_EFFECT_CHANCE = 40;
+    private final int CONFUSE_EFFECT_CHANCE = 40;
+    private final int EMBARASS_EFFECT_CHANCE = 50;
+
+    //chance of effect being cured
+    private final int PARALYZE_CURE_CHANCE = 20;
+    private final int CONFUSE_CURE_CHANCE = 20;
+    private final int SLEEP_CURE_CHANCE = 20;
+    private final int POISON_CURE_CHANCE = 20;
+    private final int EMBARASS_CURE_CHANCE = 20;
+
+    //chance of a critical attack
+    private final int CRITICAL_CHANCE = 10;
+
+    //percent of health lost by poison
+    private final int POISON_DAMAGE = 5;
+
     private Humon enemyHumon;
     private Humon playerHumon;
     private int playerHumonIndex;
@@ -58,6 +83,9 @@ public class WildBattleActivity extends SettingsActivity {
 
     private Move.Effect playerStatus;
     private Move.Effect enemyStatus;
+
+    private int playerRng;
+    private int enemyRng;
 
     //Queue of messages to be displayed in console (front is 0)
     private ArrayList<String> consoleDisplayQueue;
@@ -80,7 +108,7 @@ public class WildBattleActivity extends SettingsActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.wild_battle_layout);
+        setContentView(R.layout.battle_layout);
         setTitle(ACTIVITY_TITLE);
 
         HUMONS_KEY = getString(R.string.humonsKey);
@@ -101,7 +129,7 @@ public class WildBattleActivity extends SettingsActivity {
                 new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        choosePlayerMove(playerMoveList.get(position));
+                        startBattleSequence(playerMoveList.get(position));
                     }
                 }
         );
@@ -596,39 +624,47 @@ public class WildBattleActivity extends SettingsActivity {
         }
     }
 
-    private void choosePlayerMove(Move move) {
+    private void startBattleSequence(Move move) {
 
         //choose enemy move
         Random rng = new Random();
         int enemyMove = rng.nextInt(enemyMoveList.size());
-
-        String displayMessage;
+        enemyRng = Math.max(rng.nextInt(100) - Math.min(enemyHumon.getLuck(), 40), 0);
+        playerRng = Math.max(rng.nextInt(100) - Math.min(playerHumon.getLuck(), 40), 0);
 
         if(playerFirst()) {
+            cureEffect(true);
             useMove(move, true);
+            applyPoison(true);
 
-            if(enemyHumon.getHp() == 0) {
+            if(playerHumon.getHp() == 0 || enemyHumon.getHp() == 0) {
                 finishBattle();
             } else {
 
+                cureEffect(false);
                 useMove(enemyMoveList.get(enemyMove), false);
+                applyPoison(false);
 
-                if(playerHumon.getHp() == 0) {
+                if(playerHumon.getHp() == 0 || enemyHumon.getHp() == 0) {
                     finishBattle();
                 }
             }
         }
         else {
 
+            cureEffect(false);
             useMove(enemyMoveList.get(enemyMove), false);
+            applyPoison(false);
 
-            if(playerHumon.getHp() == 0) {
+            if(playerHumon.getHp() == 0 || enemyHumon.getHp() == 0) {
                 finishBattle();
             }
             else {
+                cureEffect(true);
                 useMove(move, true);
+                applyPoison(true);
 
-                if(enemyHumon.getHp() == 0) {
+                if(playerHumon.getHp() == 0 || enemyHumon.getHp() == 0) {
                     finishBattle();
                 }
             }
@@ -645,33 +681,234 @@ public class WildBattleActivity extends SettingsActivity {
     }
 
     /*
+     * Attempts to cure the player of any effect they have
+     *
+     * @param isPlayer  true if the player is being cured
+     */
+    private void cureEffect(boolean isPlayer) {
+        if(isPlayer && playerStatus == null) {
+            return;
+        }
+        if(!isPlayer && enemyStatus == null) {
+            return;
+        }
+
+        if(isPlayer) {
+            switch(playerStatus) {
+                case PARALYZED:
+                    if(playerRng < PARALYZE_CURE_CHANCE) {
+                        consoleDisplayQueue.add(playerHumon.getName() + " is no longer paralyzed.\n");
+                        playerStatus = null;
+                        playerStatusTextView.setText("");
+                    }
+                    break;
+                case CONFUSED:
+                    if(playerRng < CONFUSE_CURE_CHANCE) {
+                        consoleDisplayQueue.add(playerHumon.getName() + " is no longer confused.\n");
+                        playerStatus = null;
+                        playerStatusTextView.setText("");
+                    }
+                    break;
+                case SLEPT:
+                    if(playerRng < SLEEP_CURE_CHANCE) {
+                        consoleDisplayQueue.add(playerHumon.getName() + " woke up!\n");
+                        playerStatus = null;
+                        playerStatusTextView.setText("");
+                    }
+                    break;
+                case POISONED:
+                    if(playerRng < POISON_CURE_CHANCE) {
+                        consoleDisplayQueue.add(playerHumon.getName() + " is no longer poisoned.\n");
+                        playerStatus = null;
+                        playerStatusTextView.setText("");
+                    }
+                    break;
+                case EMBARRASSED:
+                    if(playerRng < EMBARASS_CURE_CHANCE) {
+                        consoleDisplayQueue.add(playerHumon.getName() + " is no longer embarrassed.\n");
+                        playerStatus = null;
+                        playerStatusTextView.setText("");
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        if(!isPlayer) {
+            switch(enemyStatus) {
+                case PARALYZED:
+                    if(enemyRng < PARALYZE_CURE_CHANCE) {
+                        consoleDisplayQueue.add("Wild " + enemyHumon.getName() + " is no longer paralyzed.\n");
+                        enemyStatus = null;
+                        enemyStatusTextView.setText("");
+                    }
+                    break;
+                case CONFUSED:
+                    if(enemyRng < CONFUSE_CURE_CHANCE) {
+                        consoleDisplayQueue.add("Wild " + enemyHumon.getName() + " is no longer confused.\n");
+                        enemyStatus = null;
+                        enemyStatusTextView.setText("");
+                    }
+                    break;
+                case SLEPT:
+                    if(enemyRng < SLEEP_CURE_CHANCE) {
+                        consoleDisplayQueue.add("Wild " + enemyHumon.getName() + " woke up!\n");
+                        enemyStatus = null;
+                        enemyStatusTextView.setText("");
+                    }
+                    break;
+                case POISONED:
+                    if(enemyRng < POISON_CURE_CHANCE) {
+                        consoleDisplayQueue.add("Wild " + enemyHumon.getName() + " is no longer poisoned.\n");
+                        enemyStatus = null;
+                        enemyStatusTextView.setText("");
+                    }
+                    break;
+                case EMBARRASSED:
+                    if(enemyRng < EMBARASS_CURE_CHANCE) {
+                        consoleDisplayQueue.add("Wild " + enemyHumon.getName() + " is no longer embarrassed.\n");
+                        enemyStatus = null;
+                        enemyStatusTextView.setText("");
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    /*
+     * Applies poison damage to target
+     *
+     * @param isPlayer  true if the player is being poisoned
+     */
+    private void applyPoison(boolean isPlayer) {
+        if(isPlayer && playerStatus == Move.Effect.POISONED) {
+            int damage = playerHumon.getHealth() * (POISON_DAMAGE/100);
+            if(damage < 1) {
+                damage = 1;
+            }
+            consoleDisplayQueue.add(playerHumon.getName() + " took " + damage + " damage from poison.\n");
+            playerHumon.setHp(playerHumon.getHp() - damage);
+        }
+        else if(!isPlayer && enemyStatus == Move.Effect.POISONED) {
+            int damage = enemyHumon.getHealth() * (POISON_DAMAGE/100);
+            if(damage < 1) {
+                damage = 1;
+            }
+            consoleDisplayQueue.add("Wild " + enemyHumon.getName() + " took " + damage + " damage from poison.\n");
+            enemyHumon.setHp(enemyHumon.getHp() - damage);
+        }
+    }
+
+    /*
      * Uses the given move and applies damage and effect
      *
      * @param move Move being used
      * @param isPlayer  true if the player is using the move
      */
     private void useMove(Move move, boolean isPlayer) {
+        boolean isConfused = false;
+        boolean isStunned = false;
+        Move confusedMove = copyConfusedMove(move);
         if(isPlayer) {
             int playerMoveDamage = getMoveDamage(move, true);
             Move.Effect playerMoveEffect = getMoveEffect(move, true);
             String displayMessage = playerHumon.getName() + " used " + move.getName() + ".\n";
-            if(move.isSelfCast()) {
-                applyMove(move.getName(), playerMoveDamage, playerMoveEffect, false, displayMessage);
+            if(playerStatus == Move.Effect.SLEPT) {
+                displayMessage = playerHumon.getName() + " is sleeping...\n";
+                playerMoveDamage = 0;
+                playerMoveEffect = null;
+                isStunned = true;
+                consoleDisplayQueue.add(displayMessage);
             }
-            else {
-                applyMove(move.getName(), playerMoveDamage, playerMoveEffect, true, displayMessage);
+            else if(playerStatus == Move.Effect.PARALYZED &&
+                    playerRng < PARALYZE_EFFECT_CHANCE) {
+                displayMessage = playerHumon.getName() + " is paralyzed...\n";
+                playerMoveDamage = 0;
+                playerMoveEffect = null;
+                isStunned = true;
+                consoleDisplayQueue.add(displayMessage);
+            }
+            else if(playerStatus == Move.Effect.CONFUSED &&
+                    playerRng < CONFUSE_EFFECT_CHANCE) {
+                displayMessage = playerHumon.getName() + " targeted the wrong Humon in confusion!\n";
+                isConfused = true;
+                playerMoveDamage = getMoveDamage(confusedMove, true);
+            }
+            else if(playerStatus == Move.Effect.EMBARRASSED &&
+                    playerRng < EMBARASS_EFFECT_CHANCE) {
+                displayMessage = playerHumon.getName() + " forgot their move! How embarassing!\n";
+                move = playerMoveList.get(playerRng % playerMoveList.size());
+                playerMoveDamage = getMoveDamage(move, true);
+                playerMoveEffect = getMoveEffect(move, true);
+            }
+
+            if(move.isSelfCast() && !isStunned) {
+                if(isConfused) {
+                    applyMove(move.getName(), playerMoveDamage, playerMoveEffect, true, displayMessage);
+                }
+                else {
+                    applyMove(move.getName(), playerMoveDamage, playerMoveEffect, false, displayMessage);
+                }
+            }
+            else if(!isStunned) {
+                if(isConfused) {
+                    applyMove(move.getName(), playerMoveDamage, playerMoveEffect, false, displayMessage);
+                }
+                else {
+                    applyMove(move.getName(), playerMoveDamage, playerMoveEffect, true, displayMessage);
+                }
             }
         }
 
         else {
             int enemyMoveDamage = getMoveDamage(move, false);
             Move.Effect enemyMoveEffect = getMoveEffect(move, false);
-            String displayMessage = enemyHumon.getName() + " used " + move.getName() + ".\n";
-            if(move.isSelfCast()) {
-                applyMove(move.getName(), enemyMoveDamage, enemyMoveEffect, true, displayMessage);
+            String displayMessage = "Wild " + enemyHumon.getName() + " used " + move.getName() + ".\n";
+            if(enemyStatus == Move.Effect.SLEPT) {
+                displayMessage = "Wild " + enemyHumon.getName() + " is sleeping...\n";
+                enemyMoveDamage = 0;
+                enemyMoveEffect = null;
+                isStunned = true;
+                consoleDisplayQueue.add(displayMessage);
             }
-            else {
-                applyMove(move.getName(), enemyMoveDamage, enemyMoveEffect, false, displayMessage);
+            else if(enemyStatus == Move.Effect.PARALYZED &&
+                    enemyRng < PARALYZE_EFFECT_CHANCE) {
+                displayMessage = "Wild " + enemyHumon.getName() + " is paralyzed...\n";
+                enemyMoveDamage = 0;
+                enemyMoveEffect = null;
+                isStunned = true;
+                consoleDisplayQueue.add(displayMessage);
+            }
+            else if(enemyStatus == Move.Effect.CONFUSED &&
+                    enemyRng < CONFUSE_EFFECT_CHANCE) {
+                displayMessage = "Wild " + enemyHumon.getName() + " targeted the wrong Humon in confusion!\n";
+                isConfused = true;
+                enemyMoveDamage = getMoveDamage(confusedMove, true);
+            }
+            else if(enemyStatus == Move.Effect.EMBARRASSED &&
+                    enemyRng < EMBARASS_EFFECT_CHANCE) {
+                displayMessage = "Wild " + enemyHumon.getName() + " forgot their move! How embarassing!\n";
+                move = enemyMoveList.get(enemyRng % enemyMoveList.size());
+                enemyMoveDamage = getMoveDamage(move, true);
+                enemyMoveEffect = getMoveEffect(move, true);
+            }
+            if(move.isSelfCast() && !isStunned) {
+                if(isConfused) {
+                    applyMove(move.getName(), enemyMoveDamage, enemyMoveEffect, false, displayMessage);
+                }
+                else {
+                    applyMove(move.getName(), enemyMoveDamage, enemyMoveEffect, true, displayMessage);
+                }
+            }
+            else if(!isStunned){
+                if(isConfused) {
+                    applyMove(move.getName(), enemyMoveDamage, enemyMoveEffect, true, displayMessage);
+                }
+                else {
+                    applyMove(move.getName(), enemyMoveDamage, enemyMoveEffect, false, displayMessage);
+                }
             }
         }
     }
@@ -761,6 +998,9 @@ public class WildBattleActivity extends SettingsActivity {
             else if(move.getDmg() < 0 && damage > -1) {
                 damage = -1;
             }
+            if(playerRng < CRITICAL_CHANCE) {
+                damage *= 2;
+            }
         }
         else {
             if(move.isSelfCast()) {
@@ -774,6 +1014,9 @@ public class WildBattleActivity extends SettingsActivity {
             }
             else if(move.getDmg() < 0 && damage > -1) {
                 damage = -1;
+            }
+            if(enemyRng < CRITICAL_CHANCE) {
+                damage *= 2;
             }
         }
         return damage;
@@ -792,30 +1035,132 @@ public class WildBattleActivity extends SettingsActivity {
             return null;
         }
 
-        Random rng = new Random();
         boolean willEffect = false;
-        int effectChance = rng.nextInt(100);
         if(isPlayer) {
             if(move.isSelfCast()) {
-                if (effectChance > playerHumon.getLuck()) {
-                    willEffect = true;
+                switch(move.getEffect()) {
+                    case PARALYZED:
+                        if(enemyRng < PARALYZE_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case CONFUSED:
+                        if(enemyRng < CONFUSE_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case SLEPT:
+                        if(enemyRng < SLEEP_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case POISONED:
+                        if(enemyRng < POISON_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case EMBARRASSED:
+                        if(enemyRng < EMBARASS_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    default:
+                        break;
                 }
             }
             else {
-                if (effectChance < playerHumon.getLuck()) {
-                    willEffect = true;
+                switch(move.getEffect()) {
+                    case PARALYZED:
+                        if(playerRng < PARALYZE_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case CONFUSED:
+                        if(playerRng < CONFUSE_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case SLEPT:
+                        if(playerRng < SLEEP_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case POISONED:
+                        if(playerRng < POISON_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case EMBARRASSED:
+                        if(playerRng < EMBARASS_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    default:
+                        break;
                 }
             }
         }
         else {
             if(move.isSelfCast()) {
-                if (effectChance > enemyHumon.getLuck()) {
-                    willEffect = true;
+                switch(move.getEffect()) {
+                    case PARALYZED:
+                        if(playerRng < PARALYZE_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case CONFUSED:
+                        if(playerRng < CONFUSE_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case SLEPT:
+                        if(playerRng < SLEEP_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case POISONED:
+                        if(playerRng < POISON_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case EMBARRASSED:
+                        if(playerRng < EMBARASS_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    default:
+                        break;
                 }
             }
             else {
-                if (effectChance < enemyHumon.getLuck()) {
-                    willEffect = true;
+                switch(move.getEffect()) {
+                    case PARALYZED:
+                        if(enemyRng < PARALYZE_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case CONFUSED:
+                        if(enemyRng < CONFUSE_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case SLEPT:
+                        if(enemyRng < SLEEP_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case POISONED:
+                        if(enemyRng < POISON_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    case EMBARRASSED:
+                        if(enemyRng < EMBARASS_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        break;
+                    default:
+                        break;
                 }
             }
         }
@@ -895,12 +1240,27 @@ public class WildBattleActivity extends SettingsActivity {
             public void onClick(DialogInterface dialog, int whichButton)
             {
 
-                Toast toast = Toast.makeText(getApplicationContext(), "Humon Captured!", Toast.LENGTH_SHORT);
-                toast.show();
+                Random rng = new Random();
+                playerRng = Math.max(rng.nextInt(100) - Math.min(playerHumon.getLuck(), 40), 0);
+                if(playerRng < 70) {
+                    Toast toast = Toast.makeText(getApplicationContext(), "Humon Captured!", Toast.LENGTH_SHORT);
+                    toast.show();
 
-                capturedHumon = true;
+                    capturedHumon = true;
 
-                nameHumonDialog();
+                    nameHumonDialog();
+                }
+                else {
+                    Toast toast = Toast.makeText(getApplicationContext(), "Humon Escaped!", Toast.LENGTH_SHORT);
+                    toast.show();
+
+                    //Save the humon's state
+                    saveHumons();
+
+                    //return to the menu
+                    finish();
+                }
+
             }
         });
 
@@ -1072,5 +1432,16 @@ public class WildBattleActivity extends SettingsActivity {
         }
         gameSaved = true;
 
+    }
+
+    /*
+     * Creates a copy of the old move in the new move.
+     * The target is opposite.
+     *
+     */
+    private Move copyConfusedMove(Move oldMove) {
+        Move newMove = new Move(oldMove.getId(), oldMove.getName(), !oldMove.isSelfCast(),
+                oldMove.getDmg(), oldMove.getEffect(), oldMove.isHasEffect(), oldMove.getDescription());
+        return newMove;
     }
 }

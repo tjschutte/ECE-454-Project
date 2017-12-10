@@ -25,6 +25,7 @@ public class Message {
 	public static final String INSTANCE_DOES_NOT_EXIST = 	"015 - Could not find Humon instance.";
 	public static final String USER_ALREADY_IN_BATTLE = 	"016 - User is already in a battle.";
 	public static final String USER_NOT_IN_A_BATTLE = 		"017 - User is not currently in a battle.";
+	public static final String USER_CANNOT_FRIEND_SELF = 	"018 - Can't add yourself as a freind";
 	
 	public static final String COMMAND_NOT_SUPPORTED = 		"666 - The command you issued was valid, but ther sever does nothing for it as this time.";
 	

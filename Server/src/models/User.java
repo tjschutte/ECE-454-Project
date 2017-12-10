@@ -14,10 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import utilities.SQLHelper;
 
 public class User {
-	/**
-	 * TODO: Make sure constructors sanitize data.
-	 */
-	
+
 
 	private String email;
 	private String password;
@@ -257,6 +254,15 @@ public class User {
 
 	public void setDeviceToken(String deviceToken) {
 		this.deviceToken = deviceToken;
+	}
+	
+	public void dataCleaner() {
+		// Make sure we dont have someone who is a friend in friend requests.
+		for (String friend : friends) {
+			if (friendRequests.contains(friend)) {
+				friendRequests.remove(friend);
+			}
+		}
 	}
 
 }

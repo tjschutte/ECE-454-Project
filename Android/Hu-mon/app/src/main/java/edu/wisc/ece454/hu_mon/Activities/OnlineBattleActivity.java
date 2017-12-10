@@ -338,10 +338,12 @@ public class OnlineBattleActivity extends AppCompatActivity {
                     if(battleJson.getInt(COMMAND_TYPE) == INSTANCE_TYPE) {
                         String enemyIID = battleJson.getString("iID");
                         loadEnemy(enemyIID);
+                        //load humons into battle
                         if(isInitiaor) {
-                            loadPlayer();
-                            loadPlayerMoves();
+                            loadPartyHumons();
+                            choosePlayerHumon();
                         }
+                        waitingForEnemy = false;
                     }
 
 

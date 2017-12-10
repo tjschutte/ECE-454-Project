@@ -150,6 +150,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             else if (data.containsKey(getString(R.string.ServerCommandBattleAction))) {
                 // Player is in a battle, and their opponent just did something.
                 // TODO: Decide how to handlet this
+                String res = getString(R.string.ServerCommandBattleAction) + ": " + data.get(getString(R.string.ServerCommandBattleAction));
+
+                System.out.println("Faking a server message for a battle action");
+                Intent intent = new Intent();
+                intent.setAction(getString(R.string.serverBroadCastEvent));
+                intent.putExtra(getString(R.string.serverBroadCastResponseKey),res);
+                sendBroadcast(intent);
+
             }
         }
 

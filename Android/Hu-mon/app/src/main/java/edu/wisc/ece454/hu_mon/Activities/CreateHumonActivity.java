@@ -124,7 +124,7 @@ public class CreateHumonActivity extends SettingsActivity {
 
         GridView moveGridView = (GridView) findViewById(R.id.moveGridView);
         moveAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, moveDisplayList);
+                R.layout.move_grid_element, moveDisplayList);
         moveGridView.setAdapter(moveAdapter);
 
         moveGridView.setOnItemClickListener(

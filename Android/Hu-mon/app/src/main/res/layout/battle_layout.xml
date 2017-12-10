@@ -124,15 +124,18 @@
             android:layout_height="200dp"
             android:layout_alignParentBottom="true"
             android:paddingTop="32dp"
-            android:background="@color/colorPrimary"
-            android:textSize="16dp"/>
+            android:background="@color/colorMoveBackground"
+            android:textColor="@color/colorMoveText"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:textSize="@dimen/fontSizeConsole"/>
 
         <GridView
             android:id="@+id/moveGridView"
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:layout_alignParentBottom="true"
-            android:background="@color/colorPrimary"
+            android:background="@color/colorMoveBackground"
             android:stretchMode="columnWidth"
             android:columnWidth="90dp"
             android:gravity="center"

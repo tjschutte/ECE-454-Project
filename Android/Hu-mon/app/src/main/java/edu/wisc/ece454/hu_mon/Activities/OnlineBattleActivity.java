@@ -133,7 +133,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
         enemyMoveList = new ArrayList<Move>();
         playerMovesView = (GridView) findViewById(R.id.moveGridView);
         moveAdapter = new ArrayAdapter<Move>(this,
-                android.R.layout.simple_list_item_1, playerMoveList);
+                R.layout.move_grid_element, playerMoveList);
         playerMovesView.setAdapter(moveAdapter);
         playerMovesView.setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
@@ -388,6 +388,9 @@ public class OnlineBattleActivity extends AppCompatActivity {
                         }
                     }
                     else if(battleJson.getInt(COMMAND_TYPE) == RUN_TYPE) {
+                        Toast toast = Toast.makeText(getApplicationContext(), "Opponent ran away!", Toast.LENGTH_SHORT);
+                        toast.show();
+
                         finishBattle();
                     }
 

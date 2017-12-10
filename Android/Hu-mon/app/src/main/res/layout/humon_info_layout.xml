@@ -155,13 +155,13 @@
             android:layout_width="match_parent"
             android:layout_height="125dp"
             android:layout_below="@+id/moveTitle"
-            android:background="@color/colorPrimary"
+            android:background="@color/colorMoveBackground"
             android:columnWidth="90dp"
             android:gravity="center"
             android:horizontalSpacing="10dp"
             android:numColumns="2"
             android:verticalSpacing="10dp"
-            android:paddingTop="32dp"/>
+            android:paddingTop="32dp" />
 
     </RelativeLayout>
 

@@ -36,7 +36,7 @@ public class HumonInfoActivity extends SettingsActivity {
         moveList = new ArrayList<Move>();
         GridView moveGridView = (GridView) findViewById(R.id.moveGridView);
         moveAdapter = new ArrayAdapter<Move>(this,
-                android.R.layout.simple_list_item_1, moveList);
+                R.layout.move_grid_element, moveList);
         moveGridView.setAdapter(moveAdapter);
 
         moveGridView.setOnItemClickListener(
@@ -85,6 +85,7 @@ public class HumonInfoActivity extends SettingsActivity {
 
                 //load moves into grid
                 ArrayList<Move> humonMoves = humon.getMoves();
+                moveList.clear();
                 for(int i = 0; i < humonMoves.size(); i++) {
                     moveList.add(humonMoves.get(i));
                 }

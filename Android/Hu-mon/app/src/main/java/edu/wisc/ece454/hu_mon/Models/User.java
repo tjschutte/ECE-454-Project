@@ -211,4 +211,13 @@ public class User {
         this.deviceToken = deviceToken;
     }
 
+    public void dataCleaner() {
+        // Make sure we dont have someone who is a friend in friend requests.
+        for (String friend : friends) {
+            if (friendRequests.contains(friend)) {
+                friendRequests.remove(friend);
+            }
+        }
+    }
+
 }

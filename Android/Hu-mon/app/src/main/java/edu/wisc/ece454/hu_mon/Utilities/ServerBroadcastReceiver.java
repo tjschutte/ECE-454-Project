@@ -106,7 +106,7 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                 String userString = sharedPref.getString("userObjectKey", null);
                 Log.d(TAG, "User String was: " + userString);
                 User user = mapper.readValue(userString, User.class);
-                user.addFriend(data.trim());
+                user.addFriendRequest(data.trim());
 
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putString("userObjectKey", user.toJson(mapper));

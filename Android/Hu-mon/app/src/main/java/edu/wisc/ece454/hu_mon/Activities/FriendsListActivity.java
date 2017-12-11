@@ -65,6 +65,7 @@ public class FriendsListActivity extends SettingsActivity {
         Intent intent = new Intent(this, ServerConnection.class);
         startService(intent);
         bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+
     }
 
     BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -104,7 +105,7 @@ public class FriendsListActivity extends SettingsActivity {
             } else if (command.equals(getString(R.string.ServerCommandFriendRequest))) {
                 Log.i(TAG, "Caught in friendslist");
                 user = UserHelper.loadUser(context);
-                //User friend = new ObjectMapper().readValue(data, User.class);
+
                 user.addFriendRequest(data.trim());
 
                 UserHelper.saveUser(context, user);
@@ -219,33 +220,23 @@ public class FriendsListActivity extends SettingsActivity {
                 android.R.layout.simple_list_item_1, user.getfriendRequests());
         friendRequestListView.setAdapter(friendRequestListAdapter);
 
-        if (user.getFriends().size() > 0) {
-            friendListView.setOnItemClickListener(
-                    new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            battleInviteDialog(user.getFriends().get(position));
-                        }
+        friendListView.setOnItemClickListener(
+                new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        battleInviteDialog(user.getFriends().get(position));
                     }
-            );
-        } else {
-            //user.addFriend("No friends yet!");
-            //friendsListAdapter.notifyDataSetChanged();
-        }
+                }
+        );
 
-        if (user.getfriendRequests().size() > 0) {
-            friendRequestListView.setOnItemClickListener(
-                    new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            friendRequestChoiceDialog(user.getfriendRequests().get(position));
-                        }
+        friendRequestListView.setOnItemClickListener(
+                new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        friendRequestChoiceDialog(user.getfriendRequests().get(position));
                     }
-            );
-        } else {
-            //user.addFriendRequest("No pending friend requests.");
-            //friendRequestListAdapter.notifyDataSetChanged();
-        }
+                }
+        );
 
         setDynamicHeight(friendListView);
         setDynamicHeight(friendRequestListView);
@@ -289,6 +280,7 @@ public class FriendsListActivity extends SettingsActivity {
                 user = UserHelper.loadUser(getApplicationContext());
                 user.removeFriend(friendName);
                 UserHelper.saveUser(getApplicationContext(), user);
+                user = UserHelper.loadUser(getApplicationContext());
                 refreshContent();
                 if (mBound) {
                     try {

@@ -39,6 +39,8 @@ public class UserHelper {
                 Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
 
+        user.dataCleaner();
+
         try {
             editor.putString(context.getString(R.string.userObjectKey), user.toJson(new ObjectMapper()));
             editor.commit();

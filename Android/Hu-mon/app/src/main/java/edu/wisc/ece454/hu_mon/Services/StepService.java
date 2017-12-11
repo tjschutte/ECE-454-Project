@@ -27,7 +27,6 @@ public class StepService extends Service implements SensorEventListener {
     private Sensor stepSensor;
     private Intent notificationIntent;
 
-    private boolean backupSensor;
     private int backupSteps;
     private final double ALPHA = 0.8;
     private final double NOISE = .1;
@@ -42,16 +41,17 @@ public class StepService extends Service implements SensorEventListener {
     public void onCreate() {
 
         //setup data for accelerometer
-        backupSensor = false;
         backupSteps = 0;
         firstStep = true;
 
         //setup sensor data
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
-        if(stepSensor == null) {
+        if(sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) == null) {
+            Log.d(TAG, "Using backup step counter");
             stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-            backupSensor = true;
+        }
+        else {
+            stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         }
     }
 
@@ -59,7 +59,7 @@ public class StepService extends Service implements SensorEventListener {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG,"Step Service Started");
 
-        if(backupSensor) {
+        if(sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) == null) {
             sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
         else {

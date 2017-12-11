@@ -114,8 +114,8 @@ public class MenuActivity extends SettingsActivity {
                 toast.show();
                 placeService = new Intent(this, PlaceDetectionService.class);
                 stepServiceIntent = new Intent(this, StepService.class);
-                startService(placeService);
                 startService(stepServiceIntent);
+                startService(placeService);
             }
         }
     }

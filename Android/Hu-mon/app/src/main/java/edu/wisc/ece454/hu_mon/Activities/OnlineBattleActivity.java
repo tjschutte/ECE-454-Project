@@ -49,6 +49,7 @@ import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 import edu.wisc.ece454.hu_mon.Utilities.HumonPartySaver;
+import edu.wisc.ece454.hu_mon.Utilities.UserHelper;
 
 public class OnlineBattleActivity extends AppCompatActivity {
 
@@ -269,8 +270,13 @@ public class OnlineBattleActivity extends AppCompatActivity {
     private void saveBack() {
         if(mBound) {
             Log.i(TAG, "Attempting to save user");
-            mServerConnection.sendMessage(getString(R.string.ServerCommandSaveUser) +
-                    ":" + getSharedPreferences(getString(R.string.userObjectKey), MODE_PRIVATE));
+            User U = UserHelper.loadUser(this);
+            try {
+                mServerConnection.sendMessage(getString(R.string.ServerCommandSaveUser) +
+                        ":" + U.toJson(new ObjectMapper()));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
         }
         else {
             Log.i(TAG, "Error: Connection not bound, cannot get party");

@@ -20,10 +20,6 @@ import java.io.IOException;
 import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.R;
 
-/**
- * Created by Michael on 10/30/2017.
- */
-
 //Saves a list of humons to the current users
 //Required inputs: List of humons passed in constructor, filename to write to, email of user, context (obtained from activity or service),
 //key from getString(R.string.humonsKey)

@@ -8,7 +8,7 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <dimen name="fontSizeMove">16dp</dimen>
-    <dimen name="fontSizeConsole">16dp</dimen>
+    <dimen name="fontSizeMove">20dp</dimen>
+    <dimen name="fontSizeConsole">18dp</dimen>
 
 </resources>

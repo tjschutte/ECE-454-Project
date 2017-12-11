@@ -120,6 +120,7 @@ public class CreateHumonActivity extends SettingsActivity {
         moveList = new Move[4];
         for(int i = 0; i < moveDisplayList.length; i++) {
             moveDisplayList[i] = MOVE_DEFAULT_VALUE;
+            moveList[i] = new Move(-1, "", false, 0, null, false, "");
         }
 
         GridView moveGridView = (GridView) findViewById(R.id.moveGridView);
@@ -131,8 +132,14 @@ public class CreateHumonActivity extends SettingsActivity {
                 new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        int [] moveIds = new int[moveList.length];
+                        for(int i = 0; i < moveList.length; i++) {
+                            moveIds[i] = moveList[i].getId();
+                        }
+
                         Intent moveIntent = new Intent(getApplication(), MoveListActivity.class);
                         moveIntent.putExtra(MOVE_POSITION_KEY, position);
+                        moveIntent.putExtra(MOVE_KEY, moveIds);
                         startActivityForResult(moveIntent, MOVE_REQUEST_CODE);
                     }
                 }

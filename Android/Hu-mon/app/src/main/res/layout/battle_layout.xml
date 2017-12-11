@@ -128,7 +128,8 @@
             android:textColor="@color/colorMoveText"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
-            android:textSize="@dimen/fontSizeConsole"/>
+            android:textSize="@dimen/fontSizeConsole"
+            android:textStyle="bold"/>
 
         <GridView
             android:id="@+id/moveGridView"

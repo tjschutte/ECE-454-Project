@@ -33,6 +33,7 @@ public class MoveListActivity extends SettingsActivity {
     private String MOVE_KEY;
     private String MOVE_POSITION_KEY;
     private int movePosition;
+    private int[] usedMoves;
 
     private ArrayList<Move> moveList;
     private ListView moveListView;
@@ -48,6 +49,9 @@ public class MoveListActivity extends SettingsActivity {
 
         //retrieve position of selected move
         movePosition = getIntent().getIntExtra(MOVE_POSITION_KEY, -1);
+
+        //retrieve moves already chosen (no duplicates)
+        usedMoves = getIntent().getIntArrayExtra(MOVE_KEY);
 
         moveList = new ArrayList<Move>();
 
@@ -115,6 +119,19 @@ public class MoveListActivity extends SettingsActivity {
                     for(int i = 0; i < movesArray.length(); i++) {
                         JSONObject moveJson = movesArray.getJSONObject(i);
                         int moveId = moveJson.getInt("id");
+                        boolean isDuplicate = false;
+
+                        //check if this move was already chosen
+                        for(int j = 0; j < usedMoves.length; j++) {
+                            if(moveId == usedMoves[j]) {
+                                isDuplicate = true;
+                                break;
+                            }
+                        }
+
+                        if(isDuplicate) {
+                            continue;
+                        }
                         String moveName = moveJson.getString("name");
                         boolean moveSelfCast = moveJson.getBoolean("selfCast");
                         int dmg = moveJson.getInt("dmg");

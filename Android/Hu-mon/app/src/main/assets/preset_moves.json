@@ -17,5 +17,14 @@
   {"id":15, "name":"Give a Jacket","dmg":-25,"effect":"EMBARRASSED","hasEffect":true,"selfCast":false, "description":"It's chilly outside, they might catch a cold!"},
   {"id":16, "name":"Join the NFL","dmg":-25,"effect":"PARALYZED","hasEffect":true,"selfCast":true, "description":"Sure the money's good, but this will have a lasting impact!"},
   {"id":17, "name":"Butt Stuff","dmg":-55,"effect":"CONFUSED","hasEffect":true,"selfCast":false, "description":"Maybe it feels good? They'll never be the same."},
-  {"id":18, "name":"Splash","dmg":0,"effect":null,"hasEffect":false,"selfCast":true, "description":"That'll show them!"}
+  {"id":18, "name":"Splash","dmg":0,"effect":null,"hasEffect":false,"selfCast":true, "description":"That'll show them!"},
+  {"id":19, "name":"Aid the Enemy","dmg":-30,"effect":"CONFUSED","hasEffect":true,"selfCast":false, "description":"Apply first aid to your enemy, this confuses them!"},
+  {"id":20, "name":"Smack Yourself","dmg":30,"effect":"CONFUSED","hasEffect":true,"selfCast":true, "description":"Stop Hitting Yourself!!"},
+  {"id":21, "name":"Surprise Exam!","dmg":40,"effect":"PARALYZED","hasEffect":true,"selfCast":false, "description":"You inform the enemy of a exam they forgot to study for!"},
+  {"id":22, "name":"Disappointed Father","dmg":50,"effect":"EMBARRASSED","hasEffect":true,"selfCast":false, "description":"What are these, grades for ants?!"},
+  {"id":23, "name":"Dorm Food","dmg":25,"effect":"POISONED","hasEffect":true,"selfCast":false, "description":"You feed your foe some food from Gordons."},
+  {"id":24, "name":"Daylight","dmg":-50,"effect":"CONFUSED","hasEffect":true,"selfCast":true, "description":"You step outside for the first time in years!"},
+  {"id":25, "name":"Thanksgiving Break","dmg":-70,"effect":"PARALYZED","hasEffect":true,"selfCast":true, "description":"So much turkey... can't move."},
+  {"id":26, "name":"Finals","dmg":0,"effect":"PARALYZED","hasEffect":true,"selfCast":false, "description":"Its time."}
+
 ]}

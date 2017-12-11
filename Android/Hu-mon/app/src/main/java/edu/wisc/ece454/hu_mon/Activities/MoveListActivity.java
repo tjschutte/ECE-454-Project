@@ -6,14 +6,22 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Random;
 
 import edu.wisc.ece454.hu_mon.Models.Move;
 import edu.wisc.ece454.hu_mon.R;
@@ -21,6 +29,7 @@ import edu.wisc.ece454.hu_mon.Utilities.MoveListAdapter;
 
 public class MoveListActivity extends SettingsActivity {
     private final String ACTIVITY_TITLE = "Select Move";
+    private final String TAG = "Moves List";
     private String MOVE_KEY;
     private String MOVE_POSITION_KEY;
     private int movePosition;
@@ -55,13 +64,12 @@ public class MoveListActivity extends SettingsActivity {
                     }
                 }
         );
+        loadMoves();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-
-        loadMoves();
     }
 
     @Override
@@ -82,46 +90,78 @@ public class MoveListActivity extends SettingsActivity {
         super.onResume();
     }
 
-    //TODO: Read in all possible moves and populate list
-    //TODO: This needs to be done on a background thread
+    //Load preset moves from assets
     private void loadMoves() {
+        Thread loadThread = new Thread() {
+            public void run() {
+                try {
+                    moveList.clear();
+                    String filename = "preset_moves.json";
+                    Log.i(TAG,"Attempting to load: " + filename);
+                    //load moves file
+                    String movesString;
+                    InputStream inputStream = getAssets().open(filename);
+                    int inputBytes = inputStream.available();
+                    byte[] buffer = new byte[inputBytes];
+                    inputStream.read(buffer);
+                    inputStream.close();
+                    movesString = new String(buffer, "UTF-8");
+                    JSONObject fileJson = new JSONObject(movesString);
+                    JSONArray movesArray = fileJson.getJSONArray("moves");
 
-        moveList.clear();
-        for(int i = 0; i < 10; i++) {
-            String moveName = "Test Move ";
-            char uniqueLetter = 'A';
-            uniqueLetter += i;
-            moveName += uniqueLetter;
+                    Log.i(TAG,filename + " loaded");
 
-            Random rng = new Random();
-            boolean target = rng.nextBoolean();
-            int dmg = rng.nextInt(200) - 100;
+                    //add each move to list
+                    for(int i = 0; i < movesArray.length(); i++) {
+                        JSONObject moveJson = movesArray.getJSONObject(i);
+                        int moveId = moveJson.getInt("id");
+                        String moveName = moveJson.getString("name");
+                        boolean moveSelfCast = moveJson.getBoolean("selfCast");
+                        int dmg = moveJson.getInt("dmg");
 
+                        Move.Effect moveEffect;
+                        String moveEffectString = moveJson.getString("effect");
+                        switch(moveEffectString) {
+                            case "CONFUSED":
+                                moveEffect = Move.Effect.CONFUSED;
+                                break;
+                            case "PARALYZED":
+                                moveEffect = Move.Effect.PARALYZED;
+                                break;
+                            case "EMBARRASSED":
+                                moveEffect = Move.Effect.EMBARRASSED;
+                                break;
+                            case "POISONED":
+                                moveEffect = Move.Effect.POISONED;
+                                break;
+                            case "SLEPT":
+                                moveEffect = Move.Effect.SLEPT;
+                                break;
+                            default:
+                                moveEffect = null;
+                        }
 
-            Move.Effect effect = null;
-            boolean hasEffect = true;
-            switch(rng.nextInt(6)) {
-                case 5:
-                    effect = Move.Effect.PARALYZED;
-                    break;
-                case 4:
-                    effect = Move.Effect.CONFUSED;
-                    break;
-                case 3:
-                    effect = Move.Effect.EMBARRASSED;
-                    break;
-                case 2:
-                    effect = Move.Effect.POISONED;
-                    break;
-                case 1:
-                    effect = Move.Effect.SLEPT;
-                    break;
-                default:
-                    hasEffect = false;
+                        boolean moveHasEffect = moveJson.getBoolean("hasEffect");
+                        String moveDescription = moveJson.getString("description");
+
+                        moveList.add(new Move(moveId, moveName, moveSelfCast, dmg, moveEffect,
+                                    moveHasEffect, moveDescription));
+                    }
+                    inputStream.close();
+                } catch (FileNotFoundException e) {
+                    Log.i(TAG, "No file found for preset_moves.json");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
+        };
 
-            moveList.add(new Move(i, moveName, target, dmg, effect, hasEffect, "Wattup"));
-        }
+        loadThread.run();
+        Log.i(TAG, "Finished loading");
     }
 
     private void renameMove(final Move move) {

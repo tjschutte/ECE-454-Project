@@ -359,6 +359,11 @@ public class CreateHumonActivity extends SettingsActivity {
             toast.show();
             return;
         }
+        else if(humonName.contains("\'") || humonDescription.contains("\'")) {
+            Toast toast = Toast.makeText(this, "Fields cannot contain apostrophes!", Toast.LENGTH_SHORT);
+            toast.show();
+            return;
+        }
         else if(statPoints > 0) {
             Toast toast = Toast.makeText(this, "Stat Point(s) Remaining", Toast.LENGTH_SHORT);
             toast.show();
@@ -530,25 +535,30 @@ public class CreateHumonActivity extends SettingsActivity {
             public void onClick(DialogInterface dialog, int whichButton)
             {
                 String humonName = nameText.getText().toString();
-                if(humonName.isEmpty()) {
-                    //save humon data to party
-                    AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext(), false);
-                    partySaveTask.execute(saveHumon);
+                if(humonName.contains("\'")) {
+                    Toast toast = Toast.makeText(getApplicationContext(), "Fields cannot contain apostrophes!", Toast.LENGTH_SHORT);
+                    toast.show();
                 }
                 else {
-                    //save humon data to index
-                    saveHumon.setName(humonName);
-                    AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext(), false);
-                    partySaveTask.execute(saveHumon);
+                    if (humonName.isEmpty()) {
+                        //save humon data to party
+                        AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext(), false);
+                        partySaveTask.execute(saveHumon);
+                    } else {
+                        //save humon data to index
+                        saveHumon.setName(humonName);
+                        AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext(), false);
+                        partySaveTask.execute(saveHumon);
 
 
+                    }
+
+                    //send humon object to server
+                    mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), serverHumon);
+
+                    //return to the menu
+                    finish();
                 }
-
-                //send humon object to server
-                mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), serverHumon);
-
-                //return to the menu
-                finish();
             }
         });
 

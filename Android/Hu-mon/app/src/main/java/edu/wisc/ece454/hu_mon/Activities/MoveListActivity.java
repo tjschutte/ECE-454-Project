@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -210,16 +211,23 @@ public class MoveListActivity extends SettingsActivity {
                     moveDesc = move.getDescription();
                 }
 
-                //id, name, selfcast, dmg, effect, hasEffect, description
-                Move userMove = new Move(move.getId(), moveName, move.getSelfCast(),
-                        move.getDmg(), move.getEffect(), move.isHasEffect(),
-                moveDesc);
+                if(moveName.contains("\'") || moveDesc.contains("\'")) {
+                    Toast toast = Toast.makeText(getApplicationContext(), "Fields cannot contain apostrophes!", Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+                else {
 
-                Intent returnIntent = new Intent();
-                returnIntent.putExtra(MOVE_KEY, (Parcelable) userMove);
-                returnIntent.putExtra(MOVE_POSITION_KEY, movePosition);
-                setResult(Activity.RESULT_OK, returnIntent);
-                finish();
+                    //id, name, selfcast, dmg, effect, hasEffect, description
+                    Move userMove = new Move(move.getId(), moveName, move.getSelfCast(),
+                            move.getDmg(), move.getEffect(), move.isHasEffect(),
+                            moveDesc);
+
+                    Intent returnIntent = new Intent();
+                    returnIntent.putExtra(MOVE_KEY, (Parcelable) userMove);
+                    returnIntent.putExtra(MOVE_POSITION_KEY, movePosition);
+                    setResult(Activity.RESULT_OK, returnIntent);
+                    finish();
+                }
             }
         });
 

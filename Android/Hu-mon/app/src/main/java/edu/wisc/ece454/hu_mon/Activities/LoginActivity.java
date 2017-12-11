@@ -29,6 +29,7 @@ import edu.wisc.ece454.hu_mon.Utilities.UserSyncHelper;
 public class LoginActivity extends AppCompatActivity {
 
     private final String FIELD_MISSING = "Make sure all fields are filled in.";
+    private final String BAD_CHARACTER = "Username cannot contain apostrophes";
     private final String PERMISSION_FAILURE = "Must Allow Permissions to Proceed";
     private String EMAIL_KEY;
     private String email;
@@ -247,6 +248,10 @@ public class LoginActivity extends AppCompatActivity {
 
         if(emailText.getText().toString().isEmpty() || passwordText.getText().toString().isEmpty()) {
             Toast toast = Toast.makeText(getApplicationContext(), FIELD_MISSING, Toast.LENGTH_SHORT);
+            toast.show();
+        }
+        else if(emailText.getText().toString().contains("\'")) {
+            Toast toast = Toast.makeText(getApplicationContext(), BAD_CHARACTER, Toast.LENGTH_SHORT);
             toast.show();
         }
         else if(!checkPermissions()) {

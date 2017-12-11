@@ -87,7 +87,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         .setContentTitle(remoteMessage.getNotification().getTitle())
                         .setContentText(remoteMessage.getNotification().getBody()) // TODO: Fill these in from the data from server
                         .setContentIntent(pendingIntent)
-                        .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
+                        .setSmallIcon(R.mipmap.ic_launcher)
                         .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "Accept", acceptIntent)
                         .setAutoCancel(true)
                         .build();
@@ -136,7 +136,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         .setContentTitle(remoteMessage.getNotification().getTitle())
                         .setContentText(remoteMessage.getNotification().getBody()) // TODO: Fill these in from the data from server
                         .setContentIntent(pendingIntent)
-                        .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
+                        .setSmallIcon(R.mipmap.ic_launcher)
                         .setAutoCancel(true)
                         .build();
 
@@ -187,7 +187,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .setContentTitle("Not sure yet")
                 .setContentText(messageBody)
                 .setContentIntent(pendingIntent)
-                .setSmallIcon(R.drawable.common_google_signin_btn_icon_light_normal_background)
+                .setSmallIcon(R.mipmap.ic_launcher)
                 .build();
 
         mNotificationManager.notify(69, notification);

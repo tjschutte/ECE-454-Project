@@ -11,35 +11,35 @@ public class Move extends Jsonable implements Parcelable {
 
     //chance of effect being applied
     @JsonIgnore
-    public static final int PARALYZE_APPLY_CHANCE = 40;
+    public static final int PARALYZE_APPLY_CHANCE = 15;
     @JsonIgnore
-    public static final int CONFUSE_APPLY_CHANCE = 40;
+    public static final int CONFUSE_APPLY_CHANCE = 30;
     @JsonIgnore
-    public static final int SLEEP_APPLY_CHANCE = 40;
+    public static final int SLEEP_APPLY_CHANCE = 50;
     @JsonIgnore
-    public static final int POISON_APPLY_CHANCE = 40;
+    public static final int POISON_APPLY_CHANCE = 15;
     @JsonIgnore
-    public static final int EMBARASS_APPLY_CHANCE = 40;
+    public static final int EMBARASS_APPLY_CHANCE = 75;
 
     //Chance of effect occuring
     @JsonIgnore
-    public static final int PARALYZE_EFFECT_CHANCE = 40;
+    public static final int PARALYZE_EFFECT_CHANCE = 50;
     @JsonIgnore
-    public static final int CONFUSE_EFFECT_CHANCE = 40;
+    public static final int CONFUSE_EFFECT_CHANCE = 50;
     @JsonIgnore
-    public static final int EMBARASS_EFFECT_CHANCE = 50;
+    public static final int EMBARASS_EFFECT_CHANCE = 75;
 
     //chance of effect being cured
     @JsonIgnore
     public static final int PARALYZE_CURE_CHANCE = 20;
     @JsonIgnore
-    public static final int CONFUSE_CURE_CHANCE = 20;
+    public static final int CONFUSE_CURE_CHANCE = 45;
     @JsonIgnore
-    public static final int SLEEP_CURE_CHANCE = 20;
+    public static final int SLEEP_CURE_CHANCE = 35;
     @JsonIgnore
-    public static final int POISON_CURE_CHANCE = 20;
+    public static final int POISON_CURE_CHANCE = 5;
     @JsonIgnore
-    public static final int EMBARASS_CURE_CHANCE = 20;
+    public static final int EMBARASS_CURE_CHANCE = 65;
 
     //chance of a critical attack
     @JsonIgnore

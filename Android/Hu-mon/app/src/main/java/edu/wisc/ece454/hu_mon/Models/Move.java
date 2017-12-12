@@ -21,6 +21,10 @@ public class Move extends Jsonable implements Parcelable {
     @JsonIgnore
     public static final int EMBARASS_APPLY_CHANCE = 75;
 
+    //increase in effect chance when healing an enemy
+    @JsonIgnore
+    public static final int HEAL_APPLY_CHANCE = 20;
+
     //Chance of effect occuring
     @JsonIgnore
     public static final int PARALYZE_EFFECT_CHANCE = 50;

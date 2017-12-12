@@ -1049,9 +1049,15 @@ public class WildBattleActivity extends SettingsActivity {
                         if(playerRng < Move.PARALYZE_APPLY_CHANCE) {
                             willEffect = true;
                         }
+                        else if(move.getDmg() < 1 && playerRng < Move.PARALYZE_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
                         break;
                     case CONFUSED:
                         if(playerRng < Move.CONFUSE_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        else if(move.getDmg() < 1 && playerRng < Move.CONFUSE_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
@@ -1059,14 +1065,23 @@ public class WildBattleActivity extends SettingsActivity {
                         if(playerRng < Move.SLEEP_APPLY_CHANCE) {
                             willEffect = true;
                         }
+                        else if(move.getDmg() < 1 && playerRng < Move.SLEEP_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
                         break;
                     case POISONED:
                         if(playerRng < Move.POISON_APPLY_CHANCE) {
                             willEffect = true;
                         }
+                        else if(move.getDmg() < 1 && playerRng < Move.POISON_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
                         break;
                     case EMBARRASSED:
                         if(playerRng < Move.EMBARASS_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        else if(move.getDmg() < 1 && playerRng < Move.EMBARASS_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
@@ -1113,9 +1128,15 @@ public class WildBattleActivity extends SettingsActivity {
                         if(enemyRng < Move.PARALYZE_APPLY_CHANCE) {
                             willEffect = true;
                         }
+                        else if(move.getDmg() < 1 && enemyRng < Move.PARALYZE_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
                         break;
                     case CONFUSED:
                         if(enemyRng < Move.CONFUSE_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        else if(move.getDmg() < 1 && enemyRng < Move.PARALYZE_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
@@ -1123,14 +1144,23 @@ public class WildBattleActivity extends SettingsActivity {
                         if(enemyRng < Move.SLEEP_APPLY_CHANCE) {
                             willEffect = true;
                         }
+                        else if(move.getDmg() < 1 && enemyRng < Move.PARALYZE_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
                         break;
                     case POISONED:
                         if(enemyRng < Move.POISON_APPLY_CHANCE) {
                             willEffect = true;
                         }
+                        else if(move.getDmg() < 1 && enemyRng < Move.PARALYZE_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
                         break;
                     case EMBARRASSED:
                         if(enemyRng < Move.EMBARASS_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        else if(move.getDmg() < 1 && enemyRng < Move.PARALYZE_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;

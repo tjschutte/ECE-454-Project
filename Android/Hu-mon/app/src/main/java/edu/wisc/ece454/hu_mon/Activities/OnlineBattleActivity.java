@@ -317,6 +317,11 @@ public class OnlineBattleActivity extends AppCompatActivity {
                     rawParty = rawParty.replaceAll("\\s+","");
                     Log.i(TAG, "Formatted Get-Party Payload: " + rawParty);
                     String [] partyArray = rawParty.split(",");
+                    if(partyArray.length == 0) {
+                        Toast toast = Toast.makeText(getApplicationContext(), "Opponent has no humons!", Toast.LENGTH_SHORT);
+                        toast.show();
+                        finish();
+                    }
                     for(int i = 0; i < partyArray.length; i++) {
                         enemyiIDs.add(partyArray[i]);
                     }
@@ -1321,9 +1326,15 @@ public class OnlineBattleActivity extends AppCompatActivity {
                         if(playerRng < Move.PARALYZE_APPLY_CHANCE) {
                             willEffect = true;
                         }
+                        else if(move.getDmg() < 1 && playerRng < Move.PARALYZE_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
                         break;
                     case CONFUSED:
                         if(playerRng < Move.CONFUSE_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        else if(move.getDmg() < 1 && playerRng < Move.CONFUSE_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
@@ -1331,14 +1342,23 @@ public class OnlineBattleActivity extends AppCompatActivity {
                         if(playerRng < Move.SLEEP_APPLY_CHANCE) {
                             willEffect = true;
                         }
+                        else if(move.getDmg() < 1 && playerRng < Move.SLEEP_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
                         break;
                     case POISONED:
                         if(playerRng < Move.POISON_APPLY_CHANCE) {
                             willEffect = true;
                         }
+                        else if(move.getDmg() < 1 && playerRng < Move.POISON_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
                         break;
                     case EMBARRASSED:
                         if(playerRng < Move.EMBARASS_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        else if(move.getDmg() < 1 && playerRng < Move.EMBARASS_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
@@ -1385,9 +1405,15 @@ public class OnlineBattleActivity extends AppCompatActivity {
                         if(enemyRng < Move.PARALYZE_APPLY_CHANCE) {
                             willEffect = true;
                         }
+                        else if(move.getDmg() < 1 && enemyRng < Move.PARALYZE_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
                         break;
                     case CONFUSED:
                         if(enemyRng < Move.CONFUSE_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        else if(move.getDmg() < 1 && enemyRng < Move.PARALYZE_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;
@@ -1395,14 +1421,23 @@ public class OnlineBattleActivity extends AppCompatActivity {
                         if(enemyRng < Move.SLEEP_APPLY_CHANCE) {
                             willEffect = true;
                         }
+                        else if(move.getDmg() < 1 && enemyRng < Move.PARALYZE_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
                         break;
                     case POISONED:
                         if(enemyRng < Move.POISON_APPLY_CHANCE) {
                             willEffect = true;
                         }
+                        else if(move.getDmg() < 1 && enemyRng < Move.PARALYZE_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
                         break;
                     case EMBARRASSED:
                         if(enemyRng < Move.EMBARASS_APPLY_CHANCE) {
+                            willEffect = true;
+                        }
+                        else if(move.getDmg() < 1 && enemyRng < Move.PARALYZE_APPLY_CHANCE + Move.HEAL_APPLY_CHANCE) {
                             willEffect = true;
                         }
                         break;

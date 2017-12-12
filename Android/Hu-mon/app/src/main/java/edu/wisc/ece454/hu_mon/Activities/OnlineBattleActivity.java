@@ -1612,6 +1612,8 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
         //save player's humon data to party
         partySaveTask.execute(playerHumon);
+
+        mServerConnection.sendMessage(getString(R.string.ServerCommandSaveInstance), playerHumon);
         gameSaved = true;
 
     }

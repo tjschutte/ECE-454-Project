@@ -555,6 +555,7 @@ public class CreateHumonActivity extends SettingsActivity {
 
                     //send humon object to server
                     mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), serverHumon);
+                    mServerConnection.sendMessage(getString(R.string.ServerCommandSaveInstance), saveHumon);
 
                     //return to the menu
                     finish();

@@ -1,12 +1,16 @@
 package edu.wisc.ece454.hu_mon.Activities;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,6 +24,9 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,6 +43,7 @@ import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.Models.Move;
 import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
+import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 import edu.wisc.ece454.hu_mon.Utilities.HumonPartySaver;
 import edu.wisc.ece454.hu_mon.Utilities.UserHelper;
 
@@ -61,6 +69,9 @@ public class WildBattleActivity extends SettingsActivity {
 
     private int playerRng;
     private int enemyRng;
+
+    ServerConnection mServerConnection;
+    boolean mBound;
 
     //Queue of messages to be displayed in console (front is 0)
     private ArrayList<String> consoleDisplayQueue;
@@ -120,7 +131,27 @@ public class WildBattleActivity extends SettingsActivity {
                     }
                 }
         );
+
+        // Attach to the server communication service
+        Intent intent = new Intent(this, ServerConnection.class);
+        startService(intent);
+        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
     }
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            ServerConnection.LocalBinder myBinder = (ServerConnection.LocalBinder) service;
+            mServerConnection = myBinder.getService();
+            mBound = true;
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            mServiceConnection = null;
+            mBound = false;
+        }
+    };
 
     @Override
     protected void onStart() {
@@ -167,7 +198,26 @@ public class WildBattleActivity extends SettingsActivity {
         editor.putBoolean(getString(R.string.gameRunningKey), false);
         editor.commit();
 
+        // make sure to unbind
+        if (mBound) {
+            //Intent intent = new Intent(this, ServerConnection.class);
+            //stopService(intent);
+            unbindService(mServiceConnection);
+            mBound = false;
+        }
+
         super.onDestroy();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!mBound) {
+            // Attach to the server communication service
+            Intent intent = new Intent(this, ServerConnection.class);
+            startService(intent);
+            bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+        }
     }
 
     @Override
@@ -1365,6 +1415,7 @@ public class WildBattleActivity extends SettingsActivity {
                 //Set instance id for new humon
                 enemyHumon.setIID(userEmail + "-" + user.getHcount());
                 user.incrementHCount();
+                user.addPartyMember(enemyHumon.getiID());
 
                 Log.i(TAG,"Saved new humon with IID: " + enemyHumon.getiID());
 
@@ -1430,10 +1481,19 @@ public class WildBattleActivity extends SettingsActivity {
         if(capturedHumon) {
             //save player's humon data and new humon to party
             partySaveTask.execute(new Humon[]{playerHumon, enemyHumon});
+            mServerConnection.sendMessage(getString(R.string.ServerCommandSaveInstance), playerHumon);
+            mServerConnection.sendMessage(getString(R.string.ServerCommandSaveInstance), enemyHumon);
+            try {
+                mServerConnection.sendMessage(getString(R.string.ServerCommandSaveUser) +
+                        ":" + user.toJson(new ObjectMapper()));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
         }
         else {
             //save player's humon data to party
             partySaveTask.execute(playerHumon);
+            mServerConnection.sendMessage(getString(R.string.ServerCommandSaveInstance), playerHumon);
         }
         gameSaved = true;
 

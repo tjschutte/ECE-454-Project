@@ -25,6 +25,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -431,6 +434,10 @@ public class CreateHumonActivity extends SettingsActivity {
                 userEmail, this, getString(R.string.humonsKey), false);
         indexSaveTask.execute(localHumon);
 
+        user = UserHelper.loadUser(this);
+        user.addEncounteredHumon("" + localHumon.gethID());
+        UserHelper.saveUser(this, user);
+
         //Create an instance if first humon
         //TODO:Add hCount to iID
         if(!hasHumons()) {
@@ -528,6 +535,7 @@ public class CreateHumonActivity extends SettingsActivity {
         user = UserHelper.loadUser(this);
         saveHumon.setIID(userEmail + "-" + user.getHcount());
         user.incrementHCount();
+        user.addPartyMember(saveHumon.getiID());
         UserHelper.saveUser(this, user);
 
         //Add Element to list
@@ -556,6 +564,12 @@ public class CreateHumonActivity extends SettingsActivity {
                     //send humon object to server
                     mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), serverHumon);
                     mServerConnection.sendMessage(getString(R.string.ServerCommandSaveInstance), saveHumon);
+                    try {
+                        mServerConnection.sendMessage(getString(R.string.ServerCommandSaveUser) +
+                                ":" + user.toJson(new ObjectMapper()));
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
 
                     //return to the menu
                     finish();

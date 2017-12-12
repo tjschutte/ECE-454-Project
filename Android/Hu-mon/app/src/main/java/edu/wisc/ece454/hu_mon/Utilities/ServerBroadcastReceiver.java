@@ -90,6 +90,9 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                 AsyncTask<String, Integer, Boolean> hidUpdateTask = new HumonIDUpdater(context,
                         hName, hDescription);
                 hidUpdateTask.execute(hID);
+                User user = UserHelper.loadUser(context);
+                user.addEncounteredHumon(hID);
+                UserHelper.saveUser(context, user);
             }
         }
 
@@ -255,6 +258,7 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
             Log.d(TAG, "Command: " + command);
             Log.d(TAG, "Data: " + data);
         }
-    }
 
+
+    }
 }

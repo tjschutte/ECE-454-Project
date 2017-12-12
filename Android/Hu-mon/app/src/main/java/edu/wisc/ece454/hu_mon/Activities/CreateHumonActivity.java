@@ -434,10 +434,6 @@ public class CreateHumonActivity extends SettingsActivity {
                 userEmail, this, getString(R.string.humonsKey), false);
         indexSaveTask.execute(localHumon);
 
-        user = UserHelper.loadUser(this);
-        user.addEncounteredHumon("" + localHumon.gethID());
-        UserHelper.saveUser(this, user);
-
         //Create an instance if first humon
         //TODO:Add hCount to iID
         if(!hasHumons()) {
@@ -563,7 +559,6 @@ public class CreateHumonActivity extends SettingsActivity {
 
                     //send humon object to server
                     mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), serverHumon);
-                    mServerConnection.sendMessage(getString(R.string.ServerCommandSaveInstance), saveHumon);
                     try {
                         mServerConnection.sendMessage(getString(R.string.ServerCommandSaveUser) +
                                 ":" + user.toJson(new ObjectMapper()));

@@ -93,8 +93,6 @@ public class HumonAction {
 		if (rows != 1) {
 			throw new SQLException();
 		}
-		humon.setImage();
-		Global.log(connection.clientNumber, humon.toJson(connection.mapper));
 	}
 	
 	static void saveInstance(ServerConnection connection, String data) throws JsonParseException, JsonMappingException, IOException, SQLException {
@@ -106,7 +104,7 @@ public class HumonAction {
 				+ humon.getiID() + "';");		
 		// If the entry was already in the table, then we are probably updating the table.
 		if (resultSet.next()) {
-			Global.log(connection.clientNumber, "Updating exsiting instance: " + data);
+			Global.log(connection.clientNumber, "Updating exsiting instance: " + humon.getiID());
 			
 			PreparedStatement ps = connection.databaseConnection.prepareStatement("update instance set " + humon.toSqlInstanceUpdateSyntax() + "where instanceID='"
 					+ humon.getiID() + "';");
@@ -119,7 +117,7 @@ public class HumonAction {
 			connection.sendResponse(Command.SAVE_INSTANCE, Command.SUCCESS);
 			return;
 		}	
-		Global.log(connection.clientNumber, "Creating new isntance: " + data);
+		Global.log(connection.clientNumber, "Creating new isntance: " + humon.getiID() + ", HumonID: " + humon.gethID());
 		// Update into instance Table
 		PreparedStatement ps = connection.databaseConnection.prepareStatement(
 				"insert into instance " + Global.INSTANCE_TABLE_COLUMNS + " values " + humon.toSqlInstanceValueString());	
@@ -132,7 +130,6 @@ public class HumonAction {
 	}
 
 	static void getInstance(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException {
-		Global.log(connection.clientNumber, Command.GET_INSTANCE + ": " + data);
 		String iID = "";
 
 		JsonFactory factory = new JsonFactory();
@@ -151,6 +148,7 @@ public class HumonAction {
 			} 
 
 		}
+		Global.log(connection.clientNumber, Command.GET_INSTANCE + ": " + iID);
 		
 		ResultSet resultSet = connection.databaseConnection
 				.executeSQL("select * from instance where instanceID='" + iID + "';");
@@ -177,14 +175,11 @@ public class HumonAction {
 		
 		// Combine moves onto the object
 		requestedInstance.setMoves(requestedHumon.getMoves());
-		
-		System.out.println(requestedInstance.toJson(new ObjectMapper()));
 
 		connection.sendResponse(Command.GET_INSTANCE, requestedInstance.toJson(new ObjectMapper()));
 	}
 
 	static void getHumon(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException {
-		Global.log(connection.clientNumber, Command.GET_HUMON + ": " + data);
 		int hID = 0;
 
 		JsonFactory factory = new JsonFactory();
@@ -225,6 +220,8 @@ public class HumonAction {
 			return;
 		}
 		
+		Global.log(connection.clientNumber, Command.GET_HUMON + ": " + hID);
+		
 		ResultSet resultSet = connection.databaseConnection
 				.executeSQL("select * from humon where humonID='" + hID + "';");
 
@@ -252,20 +249,12 @@ public class HumonAction {
 		
 	}
 	
-	// May choose to deprecate method / command. Just pass data when user call getHumon
-	static void getImage(ServerConnection connection, String data) {
-		// TODO Auto-generated method stub
-		// Need to know what the client will send...
-		Global.log(connection.clientNumber, Command.GET_IMAGE + ": " + data);
-		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
-	}
-	
 	static void battleStart(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException, JSONException {
 		// Expected data format: {"email":"email"}
 		// Get that person deviceID
 		
 		if (connection.inBattle) {
-			connection.sendResponse(Command.ERROR, Message.USER_ALREADY_IN_BATTLE);
+			//connection.sendResponse(Command.ERROR, Message.USER_ALREADY_IN_BATTLE);
 		}
 		
 		String email = "";
@@ -331,9 +320,6 @@ public class HumonAction {
 	}
 	
 	static void battleAction(ServerConnection connection, String data) throws JSONException, IOException {
-		if (!connection.inBattle) {
-			connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
-		}
 		// TODO Auto-generated method stub
 		// Need to know what the client will send...
 		Global.log(connection.clientNumber, Command.BATTLE_ACTION + ": " + data);
@@ -345,7 +331,7 @@ public class HumonAction {
 				connection.user.getEmail() + Message.BATTLE_ACCEPTED_BODY, notificationData);
 		
 		if (success) {
-			connection.sendResponse(Command.BATTLE_START, Command.SUCCESS);
+			connection.sendResponse(Command.BATTLE_ACTION, Command.SUCCESS);
 		} else {
 			connection.sendResponse(Command.ERROR, Message.SERVER_ERROR_RETRY);
 		}

@@ -90,6 +90,9 @@ public class WildBattleActivity extends SettingsActivity {
     private GridView playerMovesView;
     private TextView userConsole;
 
+    private int turns;
+    private int dmgMultiplier;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,6 +106,8 @@ public class WildBattleActivity extends SettingsActivity {
         partyHumonIndices = new ArrayList<Integer>();
         gameOver = true;
         gameSaved = false;
+        turns = 0;
+        dmgMultiplier = 1;
 
         //Setup Grid View and Adapter
         playerMoveList = new ArrayList<Move>();
@@ -651,6 +656,11 @@ public class WildBattleActivity extends SettingsActivity {
 
     private void startBattleSequence(Move move) {
 
+        turns++;
+        if(turns % 5 == 0) {
+            dmgMultiplier++;
+        }
+
         //choose enemy move
         Random rng = new Random();
         int enemyMove = rng.nextInt(enemyMoveList.size());
@@ -1043,6 +1053,9 @@ public class WildBattleActivity extends SettingsActivity {
             if(enemyRng < Move.CRITICAL_CHANCE) {
                 damage *= 2;
             }
+        }
+        if(damage > 0) {
+            damage *= dmgMultiplier;
         }
         return damage;
     }

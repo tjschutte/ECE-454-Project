@@ -105,6 +105,9 @@ public class OnlineBattleActivity extends AppCompatActivity {
     private GridView playerMovesView;
     private TextView userConsole;
 
+    private int turns;
+    private int dmgMultiplier;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,6 +131,8 @@ public class OnlineBattleActivity extends AppCompatActivity {
         partyHumonIndices = new ArrayList<Integer>();
         gameOver = true;
         gameSaved = false;
+        turns = 0;
+        dmgMultiplier = 1;
 
         //Setup Grid View and Adapter
         playerMoveList = new ArrayList<Move>();
@@ -164,6 +169,31 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+
+        if(!gameOver) {
+            if (!mBound) {
+                // Attach to the server communication service
+                Intent intent = new Intent(this, ServerConnection.class);
+                startService(intent);
+                bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+            }
+
+            Toast toast = Toast.makeText(getApplicationContext(), "Ran away!", Toast.LENGTH_SHORT);
+            toast.show();
+
+            //Save the humon's state
+            saveHumons();
+
+            //tell enemy you ran away
+            mServerConnection.sendMessage(getString(R.string.ServerCommandBattleAction) +
+                    ":{\"commandType\":"+ RUN_TYPE + "}");
+
+            mServerConnection.sendMessage(getString(R.string.ServerCommandBattleEnd) +
+                    ":{}");
+
+            //return to the menu
+            finish();
+        }
         // make sure to unbind
         if (mBound) {
             //Intent intent = new Intent(this, ServerConnection.class);
@@ -879,6 +909,11 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
     private void startBattleSequence() {
 
+        turns++;
+        if(turns % 5 == 0) {
+            dmgMultiplier++;
+        }
+
         if(playerFirst()) {
             cureEffect(true);
             useMove(playerMove, true);
@@ -1276,6 +1311,9 @@ public class OnlineBattleActivity extends AppCompatActivity {
             if(enemyRng < Move.CRITICAL_CHANCE) {
                 damage *= 2;
             }
+        }
+        if(damage > 0) {
+            damage *= dmgMultiplier;
         }
         return damage;
     }

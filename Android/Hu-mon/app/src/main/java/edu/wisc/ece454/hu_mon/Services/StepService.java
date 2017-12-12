@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.BitmapFactory;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -203,6 +204,7 @@ public class StepService extends Service implements SensorEventListener {
                 .setContentText("A Wild Hu-mon appeared")
                 .setContentIntent(pendingIntent)
                 .setSmallIcon(R.mipmap.ic_launcher)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
                 .setAutoCancel(true)
                 .build();
 

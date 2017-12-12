@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.BitmapFactory;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
@@ -111,6 +112,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         .setContentText(remoteMessage.getNotification().getBody()) // TODO: Fill these in from the data from server
                         .setContentIntent(pendingIntent)
                         .setSmallIcon(R.mipmap.ic_launcher)
+                        .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
                         .addAction(R.drawable.common_google_signin_btn_icon_dark_normal, "Accept", acceptIntent)
                         .setAutoCancel(true)
                         .build();
@@ -170,6 +172,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         .setContentText(remoteMessage.getNotification().getBody()) // TODO: Fill these in from the data from server
                         .setContentIntent(pendingIntent)
                         .setSmallIcon(R.mipmap.ic_launcher)
+                        .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
                         .setAutoCancel(true)
                         .build();
 
@@ -221,6 +224,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .setContentText(messageBody)
                 .setContentIntent(pendingIntent)
                 .setSmallIcon(R.mipmap.ic_launcher)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
                 .build();
 
         mNotificationManager.notify(69, notification);

@@ -171,6 +171,12 @@ public class OnlineBattleActivity extends AppCompatActivity {
             unbindService(mServiceConnection);
             mBound = false;
         }
+        //retrieve email of the user
+        SharedPreferences sharedPref = this.getSharedPreferences(
+                getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean(getString(R.string.gameRunningKey), false);
+        editor.commit();
 
         super.onDestroy();
     }

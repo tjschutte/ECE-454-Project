@@ -6,9 +6,6 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -18,7 +15,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
 
 /**
@@ -225,15 +221,7 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
             }
         }
 
-        String []saveHumons = saveParty(context);
-        User user = UserHelper.loadUser(context);
-        try {
-            String [] saveUser = new String[] { user.toJson(new ObjectMapper()) };
-            // Save user and party.
-            JobServiceScheduler.scheduleFastServerSaveJob(context, saveHumons, saveUser);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        UserHelper.saveToServer(context);
 
         return goodSave;
     }
@@ -247,78 +235,5 @@ public class HumonIDUpdater extends AsyncTask<String, Integer, Boolean> {
             Toast toast = Toast.makeText(context, "Hu-mon HID Update Failed", Toast.LENGTH_SHORT);
             toast.show();
         }
-    }
-
-    /*
-    * Reads all of the party humons and returns them.
-    * Updates the user object with iIDs.
-    *
-    * @param user      user object to be updated
-    * @return saveHumons   list of Humons in party saved as JSON strings
-    */
-    private String[] saveParty(Context context) {
-
-        Log.i(TAG, "In saveParty");
-        //read in current party(if it exists)
-        boolean hasPartyFile = true;
-        FileInputStream inputStream;
-        String oldParty = "";
-        //retrieve email of the user
-        SharedPreferences sharedPref = context.getSharedPreferences(
-                context.getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
-        String userEmail = sharedPref.getString(context.getString(R.string.emailKey), "");
-        File partyFile = new File(context.getFilesDir(), userEmail + context.getString(R.string.partyFile));
-        JSONObject partyJSON;
-        JSONArray humonsArray;
-        String[] saveHumons = null;
-
-        try {
-            inputStream = new FileInputStream(partyFile);
-            int inputBytes = inputStream.available();
-            byte[] buffer = new byte[inputBytes];
-            inputStream.read(buffer);
-            inputStream.close();
-            oldParty = new String(buffer, "UTF-8");
-        }
-        catch(FileNotFoundException e) {
-            e.printStackTrace();
-            Log.i(TAG, "No party currently exists for: " + userEmail);
-            hasPartyFile = false;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if(hasPartyFile) {
-            //update HID in party
-            try {
-                //append humon on to current object
-                if (oldParty.length() == 0) {
-                    Log.i(TAG, "Party is empty.");
-                    return saveHumons;
-                } else {
-                    partyJSON = new JSONObject(oldParty);
-                    humonsArray = partyJSON.getJSONArray(context.getString(R.string.humonsKey));
-                }
-
-                saveHumons = new String[humonsArray.length()];
-                Log.i(TAG, "Party humons in file: " + humonsArray.length());
-
-                //store all humons as JSON strings to pass to service
-                for (int j = 0; j < humonsArray.length(); j++) {
-                    JSONObject humonJSON = new JSONObject(humonsArray.getString(j));
-                    humonJSON.put("imagePath", "");
-                    saveHumons[j] = humonJSON.toString();
-                    Log.i(TAG, "Updated user");
-                    Log.i(TAG, humonJSON.getString("iID"));
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        else {
-            Log.i(TAG, "Unable to find party file");
-        }
-        return saveHumons;
     }
 }

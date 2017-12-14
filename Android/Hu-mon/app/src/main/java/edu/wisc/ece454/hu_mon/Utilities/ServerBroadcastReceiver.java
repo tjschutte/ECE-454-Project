@@ -184,7 +184,7 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
 
                         Log.d(TAG, "Saving " + partyHumonArray.length + " party humons");
 
-                        AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(context, false);
+                        AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(context, false, false);
                         partySaveTask.execute(partyHumonArray);
                     }
 
@@ -201,7 +201,7 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
 
                         Log.d(TAG, "Saving " + enemyHumonArray.length + " enemy humons");
 
-                        AsyncTask<Humon, Integer, Boolean> enemySaveTask = new HumonPartySaver(context, true);
+                        AsyncTask<Humon, Integer, Boolean> enemySaveTask = new HumonPartySaver(context, true, false);
                         enemySaveTask.execute(enemyHumonArray);
                     }
 

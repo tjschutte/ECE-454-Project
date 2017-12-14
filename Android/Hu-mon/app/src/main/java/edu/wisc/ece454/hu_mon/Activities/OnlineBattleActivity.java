@@ -121,6 +121,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
         isInitiaor = parentIntent.getBooleanExtra(getString(R.string.initiatorKey), false);
         Log.i(TAG, "Battle started with: " + enemyEmail);
         battleStarting = true;
+        UserHelper.saveToServer(getApplicationContext());
 
         // Attach to the server communication service
         Intent intent = new Intent(this, ServerConnection.class);
@@ -288,7 +289,6 @@ public class OnlineBattleActivity extends AppCompatActivity {
             mServerConnection = myBinder.getService();
             mBound = true;
             if(battleStarting) {
-                saveBack();
                 getEnemyParty();
                 notifyEnemyStart();
                 battleStarting = false;
@@ -302,22 +302,6 @@ public class OnlineBattleActivity extends AppCompatActivity {
             mBound = false;
         }
     };
-
-    private void saveBack() {
-        if(mBound) {
-            Log.i(TAG, "Attempting to save user");
-            User U = UserHelper.loadUser(this);
-            try {
-                mServerConnection.sendMessage(getString(R.string.ServerCommandSaveUser) +
-                        ":" + U.toJson(new ObjectMapper()));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-        }
-        else {
-            Log.i(TAG, "Error: Connection not bound, cannot get party");
-        }
-    }
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -1652,14 +1636,11 @@ public class OnlineBattleActivity extends AppCompatActivity {
      */
     private void saveHumons() {
 
-        AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(this, false);
+        AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(this, false, true);
 
         //save player's humon data to party
         partySaveTask.execute(playerHumon);
-
-        mServerConnection.sendMessage(getString(R.string.ServerCommandSaveInstance), playerHumon);
         gameSaved = true;
-
     }
 
     /*

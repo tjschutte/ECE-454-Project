@@ -6,30 +6,18 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Map;
 
 import edu.wisc.ece454.hu_mon.Activities.MenuActivity;
 import edu.wisc.ece454.hu_mon.Activities.OnlineBattleActivity;
-import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
-import edu.wisc.ece454.hu_mon.Utilities.JobServiceScheduler;
 import edu.wisc.ece454.hu_mon.Utilities.ServerBroadcastReceiver;
 import edu.wisc.ece454.hu_mon.Utilities.UserHelper;
 
@@ -87,15 +75,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     id = 1;
                 }
 
-                String []saveHumons = saveParty(this);
-                User user = UserHelper.loadUser(this);
-                try {
-                    String [] saveUser = new String[] { user.toJson(new ObjectMapper()) };
-                    // Save user and party.
-                    JobServiceScheduler.scheduleFastServerSaveJob(this, saveHumons, saveUser);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
+                //sync user and party with server
+                UserHelper.saveToServer(this);
 
                 //Intent notificationIntent = new Intent(this, MenuActivity.class);
                 Intent notificationIntent = new Intent(this, OnlineBattleActivity.class);
@@ -149,15 +130,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     id = 1;
                 }
 
-                String []saveHumons = saveParty(this);
-                User user = UserHelper.loadUser(this);
-                try {
-                    String [] saveUser = new String[] { user.toJson(new ObjectMapper()) };
-                    // Save user and party.
-                    JobServiceScheduler.scheduleFastServerSaveJob(this, saveHumons, saveUser);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
+                //sync user and party with server
+                UserHelper.saveToServer(this);
 
                 //Intent notificationIntent = new Intent(this, MenuActivity.class);
                 Intent notificationIntent = new Intent(this, OnlineBattleActivity.class);
@@ -228,78 +202,5 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .build();
 
         mNotificationManager.notify(69, notification);
-    }
-
-    /*
-   * Reads all of the party humons and returns them.
-   * Updates the user object with iIDs.
-   *
-   * @param user      user object to be updated
-   * @return saveHumons   list of Humons in party saved as JSON strings
-   */
-    private String[] saveParty(Context context) {
-
-        Log.i(TAG, "In saveParty");
-        //read in current party(if it exists)
-        boolean hasPartyFile = true;
-        FileInputStream inputStream;
-        String oldParty = "";
-        //retrieve email of the user
-        SharedPreferences sharedPref = context.getSharedPreferences(
-                context.getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
-        String userEmail = sharedPref.getString(context.getString(R.string.emailKey), "");
-        File partyFile = new File(context.getFilesDir(), userEmail + context.getString(R.string.partyFile));
-        JSONObject partyJSON;
-        JSONArray humonsArray;
-        String[] saveHumons = null;
-
-        try {
-            inputStream = new FileInputStream(partyFile);
-            int inputBytes = inputStream.available();
-            byte[] buffer = new byte[inputBytes];
-            inputStream.read(buffer);
-            inputStream.close();
-            oldParty = new String(buffer, "UTF-8");
-        }
-        catch(FileNotFoundException e) {
-            e.printStackTrace();
-            Log.i(TAG, "No party currently exists for: " + userEmail);
-            hasPartyFile = false;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if(hasPartyFile) {
-            //update HID in party
-            try {
-                //append humon on to current object
-                if (oldParty.length() == 0) {
-                    Log.i(TAG, "Party is empty.");
-                    return saveHumons;
-                } else {
-                    partyJSON = new JSONObject(oldParty);
-                    humonsArray = partyJSON.getJSONArray(context.getString(R.string.humonsKey));
-                }
-
-                saveHumons = new String[humonsArray.length()];
-                Log.i(TAG, "Party humons in file: " + humonsArray.length());
-
-                //store all humons as JSON strings to pass to service
-                for (int j = 0; j < humonsArray.length(); j++) {
-                    JSONObject humonJSON = new JSONObject(humonsArray.getString(j));
-                    humonJSON.put("imagePath", "");
-                    saveHumons[j] = humonJSON.toString();
-                    Log.i(TAG, "Updated user");
-                    Log.i(TAG, humonJSON.getString("iID"));
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        else {
-            Log.i(TAG, "Unable to find party file");
-        }
-        return saveHumons;
     }
 }

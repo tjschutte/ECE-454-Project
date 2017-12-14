@@ -22,7 +22,6 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -277,13 +276,7 @@ public class FriendsListActivity extends SettingsActivity {
                 UserHelper.saveUser(getApplicationContext(), user);
                 user = UserHelper.loadUser(getApplicationContext());
                 refreshContent();
-                if (mBound) {
-                    try {
-                        mServerConnection.sendMessage(getString(R.string.ServerCommandSaveUser) + ":" + user.toJson(new ObjectMapper()));
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
-                    }
-                }
+                UserHelper.saveToServer(getApplicationContext());
             }
         });
 
@@ -373,14 +366,8 @@ public class FriendsListActivity extends SettingsActivity {
 
     private void sendBattleInvite(String friendName) {
         if (mBound) {
-            try {
-                mServerConnection.sendMessage(getString(R.string.ServerCommandSaveUser) + ":" + user.toJson(new ObjectMapper()));
-                mServerConnection.sendMessage(getString(R.string.ServerCommandBattleRequest) + ":{\"email\":\"" + friendName + "\"}");
-            } catch (JsonProcessingException e) {
-                Toast toast = Toast.makeText(getApplicationContext(), "Error communicating with server. Try again.", Toast.LENGTH_SHORT);
-                toast.show();
-                e.printStackTrace();
-            }
+            UserHelper.saveToServer(this);
+            mServerConnection.sendMessage(getString(R.string.ServerCommandBattleRequest) + ":{\"email\":\"" + friendName + "\"}");
         }
     }
 

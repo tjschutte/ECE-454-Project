@@ -25,9 +25,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -546,25 +543,18 @@ public class CreateHumonActivity extends SettingsActivity {
                 else {
                     if (humonName.isEmpty()) {
                         //save humon data to party
-                        AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext(), false);
+                        AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext(), false, false);
                         partySaveTask.execute(saveHumon);
                     } else {
                         //save humon data to index
                         saveHumon.setName(humonName);
-                        AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext(), false);
+                        AsyncTask<Humon, Integer, Boolean> partySaveTask = new HumonPartySaver(getApplicationContext(), false, false);
                         partySaveTask.execute(saveHumon);
-
-
                     }
 
                     //send humon object to server
                     mServerConnection.sendMessage(getString(R.string.ServerCommandCreateHumon), serverHumon);
-                    try {
-                        mServerConnection.sendMessage(getString(R.string.ServerCommandSaveUser) +
-                                ":" + user.toJson(new ObjectMapper()));
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
-                    }
+                   UserHelper.saveToServer(getApplicationContext());
 
                     //return to the menu
                     finish();

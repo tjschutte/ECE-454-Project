@@ -29,10 +29,12 @@ public class HumonPartySaver extends AsyncTask<Humon, Integer, Boolean> {
     private final String TAG = "HPARTYSAVER";
     private Context context;
     private boolean isEnemy;
+    private boolean serverSave;
 
-    public HumonPartySaver(Context context, boolean isEnemy) {
+    public HumonPartySaver(Context context, boolean isEnemy, boolean serverSave) {
         this.context = context;
         this.isEnemy = isEnemy;
+        this.serverSave = serverSave;
     }
 
     @Override
@@ -124,6 +126,9 @@ public class HumonPartySaver extends AsyncTask<Humon, Integer, Boolean> {
             outputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        if(serverSave) {
+            UserHelper.saveToServer(context);
         }
 
         return goodSave;

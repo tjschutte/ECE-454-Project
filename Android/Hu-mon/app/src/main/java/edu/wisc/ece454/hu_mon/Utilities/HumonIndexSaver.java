@@ -1,6 +1,7 @@
 package edu.wisc.ece454.hu_mon.Utilities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
@@ -17,6 +18,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import edu.wisc.ece454.hu_mon.Models.Humon;
+import edu.wisc.ece454.hu_mon.R;
 
 /**
  * Created by Michael on 10/30/2017.
@@ -34,13 +36,15 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
     private Context context;
     private String HUMONS_KEY = "";
     private boolean isSync;
+    private boolean startGame;
 
-    public HumonIndexSaver(String filename, String email, Context context, String key, boolean isSync) {
+    public HumonIndexSaver(String filename, String email, Context context, String key, boolean isSync, boolean startGame) {
         this.filename = filename;
         this.email = email;
         this.context = context;
         HUMONS_KEY = key;
         this.isSync = isSync;
+        this.startGame = startGame;
     }
 
     @Override
@@ -147,6 +151,15 @@ public class HumonIndexSaver extends AsyncTask<Humon, Integer, Boolean> {
         if(result) {
             Toast toast = Toast.makeText(context, "Hu-mon Index Successfully Updated", Toast.LENGTH_SHORT);
             toast.show();
+            if(startGame) {
+                String command = context.getString(R.string.humonReady) + ": " + " ";
+
+                Log.d(TAG, "Faking a server message to start battle");
+                Intent intent = new Intent();
+                intent.setAction(context.getString(R.string.serverBroadCastEvent));
+                intent.putExtra(context.getString(R.string.serverBroadCastResponseKey),command);
+                context.sendBroadcast(intent);
+            }
         }
         else {
             Toast toast = Toast.makeText(context, "Hu-mon Index Update Failed", Toast.LENGTH_SHORT);

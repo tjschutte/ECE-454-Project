@@ -242,7 +242,7 @@ public class ServerBroadcastReceiver extends BroadcastReceiver {
                             Log.d(TAG, "Saving " + indexHumonArray.length + " encountered humons");
 
                             AsyncTask<Humon, Integer, Boolean> indexSaveTask = new HumonIndexSaver(userEmail + saveContext.getString(R.string.indexFile),
-                                userEmail, saveContext, saveContext.getString(R.string.humonsKey), true);
+                                userEmail, saveContext, saveContext.getString(R.string.humonsKey), true, true);
                             indexSaveTask.execute(indexHumonArray);
                         }
 

@@ -45,7 +45,6 @@ import java.util.Random;
 
 import edu.wisc.ece454.hu_mon.Models.Humon;
 import edu.wisc.ece454.hu_mon.Models.Move;
-import edu.wisc.ece454.hu_mon.Models.User;
 import edu.wisc.ece454.hu_mon.R;
 import edu.wisc.ece454.hu_mon.Services.ServerConnection;
 import edu.wisc.ece454.hu_mon.Utilities.HumonPartySaver;
@@ -71,9 +70,12 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
     private Humon enemyHumon;
     private Humon playerHumon;
+
+
     private int playerHumonIndex;
+    private String enemyIID;
+
     private String userEmail;
-    private User user;
 
     private Move playerMove;
     private Move enemyMove;
@@ -82,6 +84,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
     private int enemyRng;
 
     private boolean gameOver;
+    private boolean battleStarted;
     private boolean gameSaved;
 
     private Move.Effect playerStatus;
@@ -116,6 +119,8 @@ public class OnlineBattleActivity extends AppCompatActivity {
         setTitle(ACTIVITY_TITLE);
         HUMONS_KEY = getString(R.string.humonsKey);
 
+        checkGameRunning();
+
         Intent parentIntent = getIntent();
         enemyEmail = parentIntent.getStringExtra(getString(R.string.emailKey));
         isInitiaor = parentIntent.getBooleanExtra(getString(R.string.initiatorKey), false);
@@ -131,6 +136,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
         partyHumons = new ArrayList<String>();
         partyHumonIndices = new ArrayList<Integer>();
         gameOver = true;
+        battleStarted = false;
         gameSaved = false;
         turns = 0;
         dmgMultiplier = 1;
@@ -283,6 +289,21 @@ public class OnlineBattleActivity extends AppCompatActivity {
         }
     }
 
+    /*
+    * Determines if a battle is already happening.
+    * Limited to one battle at a time.
+     */
+    private void checkGameRunning() {
+
+        SharedPreferences sharedPref = this.getSharedPreferences(
+                getString(R.string.sharedPreferencesFile), Context.MODE_PRIVATE);
+        if(sharedPref.getBoolean(getString(R.string.gameRunningKey), false)) {
+            Toast toast = Toast.makeText(getApplicationContext(), "Only one battle allowed at a time!", Toast.LENGTH_SHORT);
+            toast.show();
+            finish();
+        }
+    }
+
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName name, IBinder service) {
             ServerConnection.LocalBinder myBinder = (ServerConnection.LocalBinder) service;
@@ -324,7 +345,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
             //Receiving iIDs of all enemy Hu-mons, must use hIDs to add to index,
             //iIDs to add to enemy party
-            if (command.equals(getString(R.string.ServerCommandGetParty))) {
+            /*if (command.equals(getString(R.string.ServerCommandGetParty))) {
                 Log.i(TAG, "ServerCommandGetPartySuccess");
 
                 //Parse data to get iIDs
@@ -362,14 +383,14 @@ public class OnlineBattleActivity extends AppCompatActivity {
                     mServerConnection.sendMessage(context.getString(R.string.ServerCommandGetInstance) +
                             ":{\"iID\":\"" + enemyiIDs.get(i) + "\"}");
                 }
-            }
-            else if(command.equals(getString(R.string.ServerCommandGetInstance))) {
+            }*/
+            if(command.equals(getString(R.string.ServerCommandGetInstance))) {
                 ObjectMapper mapper = new ObjectMapper();
                 try {
                     //create Humon object from payload
                     Humon enemyHumon = mapper.readValue(data, Humon.class);
 
-                    //determine ownere of humon
+                    //determine owner of humon
                     String humonOwner = enemyHumon.getiID().substring(0, enemyHumon.getiID().indexOf("-"));
                     Log.i(TAG, "Owner of humon: " + humonOwner);
 
@@ -380,8 +401,17 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
                     //Fetch humon objects of enemy party
                     if(!userEmail.equals(humonOwner)) {
-                        mServerConnection.sendMessage(context.getString(R.string.ServerCommandGetHumon) + ":{\"hID\":\"" +
-                                enemyHumon.gethID() + "\"}");
+
+                        //determine if humon should be downloaded
+                        String []downloadHumon = {""+ enemyHumon.gethID()};
+                        downloadHumon = UserHelper.findMissingHumons(downloadHumon, getApplicationContext());
+                        if(downloadHumon[0].length() > 0) {
+                            mServerConnection.sendMessage(context.getString(R.string.ServerCommandGetHumon) + ":{\"hID\":\"" +
+                                    enemyHumon.gethID() + "\"}");
+                        }
+                        else {
+                            startBattle();
+                        }
                     }
 
                 } catch (JsonParseException e) {
@@ -398,15 +428,9 @@ public class OnlineBattleActivity extends AppCompatActivity {
                     JSONObject battleJson = new JSONObject(data);
 
                     if(battleJson.getInt(COMMAND_TYPE) == INSTANCE_TYPE) {
-                        String enemyIID = battleJson.getString("iID");
-                        loadEnemy(enemyIID);
-                        //load humons into battle
-                        if(isInitiaor) {
-                            loadPartyHumons();
-                            choosePlayerHumon();
-                        }
-                        waitingForEnemy = false;
-                        endWaitingMessage();
+                        enemyIID = battleJson.getString("iID");
+                        mServerConnection.sendMessage(context.getString(R.string.ServerCommandGetInstance) +
+                                ":{\"iID\":\"" + enemyIID + "\"}");
                     }
                     else if(battleJson.getInt(COMMAND_TYPE) == MOVE_TYPE) {
                         enemyMove = new ObjectMapper().readValue(battleJson.getString("move"), Move.class);
@@ -435,6 +459,9 @@ public class OnlineBattleActivity extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
+            else if(command.equals(getString(R.string.humonReady))) {
+                startBattle();
             }
 
         }
@@ -468,6 +495,26 @@ public class OnlineBattleActivity extends AppCompatActivity {
         }
         else {
             Log.i(TAG, "Error: Connection not bound, cannot get notify enemy");
+        }
+    }
+
+    /*
+    * Called to begin battle for user after enemy Humon has been received
+    *
+    *
+     */
+    private void startBattle() {
+        if(!battleStarted) {
+            loadEnemy(enemyIID);
+
+            //load humons into battle
+            if(isInitiaor) {
+                loadPartyHumons();
+                choosePlayerHumon();
+            }
+            waitingForEnemy = false;
+            endWaitingMessage();
+            battleStarted = true;
         }
     }
 

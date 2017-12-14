@@ -428,11 +428,10 @@ public class CreateHumonActivity extends SettingsActivity {
 
         //save humon data to index
         AsyncTask<Humon, Integer, Boolean> indexSaveTask = new HumonIndexSaver(userEmail + getString(R.string.indexFile),
-                userEmail, this, getString(R.string.humonsKey), false);
+                userEmail, this, getString(R.string.humonsKey), false, false);
         indexSaveTask.execute(localHumon);
 
-        //Create an instance if first humon
-        //TODO:Add hCount to iID
+        //Create an instance of first humon
         if(!hasHumons()) {
             Humon partyHumon = new Humon(humonName, humonDescription, null, 1, 1, 0, userEmail, userEmail + "-0",
                     movesArrayList, health*10, luck, attack, speed, defense, localHumon.getImagePath(), health*10);

@@ -30,10 +30,14 @@ public class UserSyncHelper extends AsyncTask<User, Integer, Boolean> {
         missingHumons = UserHelper.findMissingHumons(missingHumons, context);
 
 
-        for(int i = 0; i < missingHumons.length; i++) {
-            if(missingHumons[i].length() > 0) {
-                downloadingHumons = true;
-                serverConnection.sendMessage(context.getString(R.string.ServerCommandGetHumon) + ":{\"hID\":\"" + missingHumons[i] + "\"}");
+        if(missingHumons != null) {
+            for (int i = 0; i < missingHumons.length; i++) {
+                if(missingHumons[i] != null) {
+                    if (missingHumons[i].length() > 0) {
+                        downloadingHumons = true;
+                        serverConnection.sendMessage(context.getString(R.string.ServerCommandGetHumon) + ":{\"hID\":\"" + missingHumons[i] + "\"}");
+                    }
+                }
             }
         }
 

@@ -165,6 +165,7 @@ public class LoginActivity extends AppCompatActivity {
                 editor.putInt(getString(R.string.expectedHumonsKey), user.getEncounteredHumons().size());
                 editor.putInt(getString(R.string.expectedPartyKey), user.getParty().size());
                 editor.commit();
+                UserHelper.saveUser(getApplicationContext(), user);
 
                 UserSyncHelper syncer = new UserSyncHelper(context, user, mServerConnection);
                 syncer.execute(user);

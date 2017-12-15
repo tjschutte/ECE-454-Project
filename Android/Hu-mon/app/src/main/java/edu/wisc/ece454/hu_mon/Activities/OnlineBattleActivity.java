@@ -198,8 +198,6 @@ public class OnlineBattleActivity extends AppCompatActivity {
             mServerConnection.sendMessage(getString(R.string.ServerCommandBattleEnd) +
                     ":{}");
 
-            //return to the menu
-            finish();
         }
         // make sure to unbind
         if (mBound) {
@@ -310,7 +308,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
             mServerConnection = myBinder.getService();
             mBound = true;
             if(battleStarting) {
-                getEnemyParty();
+                //getEnemyParty();
                 notifyEnemyStart();
                 battleStarting = false;
             }
@@ -406,6 +404,11 @@ public class OnlineBattleActivity extends AppCompatActivity {
                         String []downloadHumon = {""+ enemyHumon.gethID()};
                         downloadHumon = UserHelper.findMissingHumons(downloadHumon, getApplicationContext());
                         if(downloadHumon[0].length() > 0) {
+                            //Save how many humons should be received
+                            SharedPreferences.Editor editor = sharedPref.edit();
+                            editor.putInt(getString(R.string.expectedHumonsKey), 1);
+                            editor.commit();
+
                             mServerConnection.sendMessage(context.getString(R.string.ServerCommandGetHumon) + ":{\"hID\":\"" +
                                     enemyHumon.gethID() + "\"}");
                         }

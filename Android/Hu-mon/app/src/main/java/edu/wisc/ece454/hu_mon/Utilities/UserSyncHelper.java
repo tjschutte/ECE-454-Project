@@ -1,6 +1,7 @@
 package edu.wisc.ece454.hu_mon.Utilities;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
@@ -29,6 +30,12 @@ public class UserSyncHelper extends AsyncTask<User, Integer, Boolean> {
         String []missingHumons = user.getEncounteredHumons().toArray(new String[user.getEncounteredHumons().size()]);
         missingHumons = UserHelper.findMissingHumons(missingHumons, context);
 
+        //Save how many humons should be received
+        SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.sharedPreferencesFile),
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putInt(context.getString(R.string.expectedHumonsKey), missingHumons.length);
+        editor.commit();
 
         if(missingHumons != null) {
             for (int i = 0; i < missingHumons.length; i++) {

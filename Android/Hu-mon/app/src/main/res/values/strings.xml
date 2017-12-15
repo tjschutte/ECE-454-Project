@@ -18,7 +18,7 @@
     <string name="enemyPartyFile">enemyParty.json</string>
     <string name="humonKey">humon</string>
     <string name="humonsKey">humons</string>
-    <string name="humonReady">humon ready</string>
+    <string name="humonReady">HUMON READY</string>
     <string name="userKey">user</string>
     <string name="initiatorKey">initiator</string>
     <string name="userObjectKey">userObjectKey</string>

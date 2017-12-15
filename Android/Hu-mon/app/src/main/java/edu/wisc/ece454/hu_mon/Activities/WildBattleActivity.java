@@ -443,7 +443,7 @@ public class WildBattleActivity extends SettingsActivity {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                             chooseHumonDialog.dismiss();
-                            playerHumonIndex = position;
+                            playerHumonIndex = partyHumonIndices.get(position);
                             loadBattleHumons();
                         }
                     }

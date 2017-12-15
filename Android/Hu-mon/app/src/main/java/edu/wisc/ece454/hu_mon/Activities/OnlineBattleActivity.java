@@ -634,7 +634,7 @@ public class OnlineBattleActivity extends AppCompatActivity {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                             chooseHumonDialog.dismiss();
-                            playerHumonIndex = position;
+                            playerHumonIndex = partyHumonIndices.get(position);
                             loadPlayer();
                             loadPlayerMoves();
                             consoleDisplayQueue.add(WAITING_MESSAGE);
@@ -1663,29 +1663,30 @@ public class OnlineBattleActivity extends AppCompatActivity {
 
     //Called when a humon is defeated, gives option to capture if player wins and notifies user
     private void finishBattle() {
-        String displayText;
+        String displayText = "Battle Over ";
         gameOver = true;
 
         if(playerHumon.getHp() == 0) {
-            displayText = playerHumon.getName() + " defeated!";
+            displayText += playerHumon.getName() + " defeated!";
             Toast toast = Toast.makeText(this, displayText, Toast.LENGTH_SHORT);
             toast.show();
         }
         else {
-            displayText = enemyHumon.getName() + " defeated, gained "
-                    + enemyHumon.getLevel() + " experience!";
-            Toast toast = Toast.makeText(this, enemyHumon.getName() + " defeated, gained "
-                    + enemyHumon.getLevel() + " experience!", Toast.LENGTH_SHORT);
-            toast.show();
+            if(enemyHumon != null) {
+                displayText += enemyHumon.getName() + " defeated, gained "
+                        + enemyHumon.getLevel() + " experience!";
+                Toast toast = Toast.makeText(this, enemyHumon.getName() + " defeated, gained "
+                        + enemyHumon.getLevel() + " experience!", Toast.LENGTH_SHORT);
+                toast.show();
 
-            //Give player experience points
-            playerHumon.addXp(enemyHumon.getLevel());
-            ProgressBar experienceBar = (ProgressBar) findViewById(R.id.playerXpBar);
-            experienceBar.setProgress(playerHumon.getXp());
+                //Give player experience points
+                playerHumon.addXp(enemyHumon.getLevel());
+                ProgressBar experienceBar = (ProgressBar) findViewById(R.id.playerXpBar);
+                experienceBar.setProgress(playerHumon.getXp());
 
-            TextView levelTextView = (TextView) findViewById(R.id.playerLevelTextView);
-            levelTextView.setText("Lvl " + playerHumon.getLevel());
-
+                TextView levelTextView = (TextView) findViewById(R.id.playerLevelTextView);
+                levelTextView.setText("Lvl " + playerHumon.getLevel());
+            }
         }
 
         //Update the console

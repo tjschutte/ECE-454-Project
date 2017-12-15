@@ -1,6 +1,7 @@
 package edu.wisc.ece454.hu_mon.Utilities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -138,6 +139,15 @@ public class HumonPartySaver extends AsyncTask<Humon, Integer, Boolean> {
         if(result) {
             Toast toast = Toast.makeText(context, "Party Successfully Updated", Toast.LENGTH_SHORT);
             toast.show();
+            if(isEnemy) {
+                String command = context.getString(R.string.partyReady) + ": " + " ";
+
+                Log.d(TAG, "Faking a server message to start battle");
+                Intent intent = new Intent();
+                intent.setAction(context.getString(R.string.serverBroadCastEvent));
+                intent.putExtra(context.getString(R.string.serverBroadCastResponseKey),command);
+                context.sendBroadcast(intent);
+            }
         }
         else {
             Toast toast = Toast.makeText(context, "Party Update Failed", Toast.LENGTH_SHORT);

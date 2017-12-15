@@ -71,6 +71,8 @@ public class OnlineBattleActivity extends AppCompatActivity {
     private Humon enemyHumon;
     private Humon playerHumon;
 
+    private boolean enemyHumonReady;
+    private boolean enemyPartyReady;
 
     private int playerHumonIndex;
     private String enemyIID;
@@ -140,6 +142,8 @@ public class OnlineBattleActivity extends AppCompatActivity {
         gameSaved = false;
         turns = 0;
         dmgMultiplier = 1;
+        enemyHumonReady = false;
+        enemyPartyReady = false;
 
         //Setup Grid View and Adapter
         playerMoveList = new ArrayList<Move>();
@@ -413,7 +417,10 @@ public class OnlineBattleActivity extends AppCompatActivity {
                                     enemyHumon.gethID() + "\"}");
                         }
                         else {
-                            startBattle();
+                            enemyHumonReady = true;
+                            if(enemyPartyReady) {
+                                startBattle();
+                            }
                         }
                     }
 
@@ -439,7 +446,9 @@ public class OnlineBattleActivity extends AppCompatActivity {
                         enemyMove = new ObjectMapper().readValue(battleJson.getString("move"), Move.class);
                         enemyRng = battleJson.getInt("rng");
                         waitingForEnemy = false;
-                        endWaitingMessage();
+                        if(enemyHumonReady && enemyPartyReady) {
+                            endWaitingMessage();
+                        }
 
                         if(playerMove != null) {
                             startBattleSequence();
@@ -464,7 +473,16 @@ public class OnlineBattleActivity extends AppCompatActivity {
                 }
             }
             else if(command.equals(getString(R.string.humonReady))) {
-                startBattle();
+                enemyHumonReady = true;
+                if(enemyPartyReady) {
+                    startBattle();
+                }
+            }
+            else if(command.equals(getString(R.string.partyReady))) {
+                enemyPartyReady = true;
+                if(enemyHumonReady) {
+                    startBattle();
+                }
             }
 
         }

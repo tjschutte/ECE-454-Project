@@ -19,6 +19,7 @@
     <string name="humonKey">humon</string>
     <string name="humonsKey">humons</string>
     <string name="humonReady">HUMON READY</string>
+    <string name="partyReady">PARTY READY</string>
     <string name="userKey">user</string>
     <string name="initiatorKey">initiator</string>
     <string name="userObjectKey">userObjectKey</string>

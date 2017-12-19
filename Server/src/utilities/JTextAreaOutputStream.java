@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
+import main.Global;
+
 public class JTextAreaOutputStream extends OutputStream
 {
     private final JTextArea destination;
@@ -38,6 +40,9 @@ public class JTextAreaOutputStream extends OutputStream
                 {
                     try {
                     	destination.append(text);
+                    	if (destination.getLineCount() > Global.SCREEN_LOG_SIZE) {
+                    		destination.replaceRange("", 0, destination.getLineCount() - Global.SCREEN_LOG_SIZE);
+                    	}
 						writer.write(text);
 						writer.flush();
 					} catch (IOException e) {

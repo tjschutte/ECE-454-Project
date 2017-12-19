@@ -25,8 +25,9 @@ To-Do: How to work on the app and be productive
 ## Server Development:
 Requirements:
 * Eclipse IDE for java developers. (Other IDES may work, but have not been tested).
-* mySQL (version 5.7).  Note: Nothing but a connection is established presently.  SQL scripts for DB creation will be added soon.
+* mySQL (version 5.7).  
 * Internet connection if testing server / client relationships non locally.
+* The server runs on port 9898 for Humon, and 80 for http access.
 
 
 Steps to import:

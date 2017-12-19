@@ -42,7 +42,7 @@ public class UserAction {
 			PreparedStatement ps;
 			try {
 				ps = connection.databaseConnection.prepareStatement("update users set " + connection.user.updateSyntax() + "where email='"
-						+ connection.user.getEmail() + ";");//' and password='" + connection.user.getPassword() + "';");
+						+ connection.user.getEmail() + "';");//' and password='" + connection.user.getPassword() + "';");
 				int rows = ps.executeUpdate();
 				// Should only get 1 row was affected.
 				if (rows != 1) {
@@ -91,7 +91,7 @@ public class UserAction {
 
 			// Send success, and the user JSON string so client has it as well.
 			connection.sendResponse(Command.REGISTER, connection.user.toJson(connection.mapper));
-			Global.log(connection.clientNumber, "New user registered - " + connection.user.toJson(connection.mapper));
+			Global.log(connection.clientNumber, "New user registered - " + connection.user.getEmail());
 
 		} catch (JsonParseException e) {
 			Global.log(connection.clientNumber, "Recieved malformed data packet");
@@ -113,10 +113,9 @@ public class UserAction {
 	 * @param data
 	 */
 	static void login(ServerConnection connection, String data) {
-		Global.log(connection.clientNumber, "Trying to Login with ");
-
 		try {
 			User u = connection.mapper.readValue(data, User.class);
+			Global.log(connection.clientNumber, "Trying to Login with: " + u.getEmail());
 			ResultSet resultSet = connection.databaseConnection.executeSQL(
 					"select * from users where email='" + u.getEmail() + "' and password='" + DigestUtils.sha512Hex(u.getPassword()) + "';");
 
@@ -139,7 +138,7 @@ public class UserAction {
 			}
 
 			connection.sendResponse(Command.LOGIN, connection.user.toJson(connection.mapper));
-			Global.log(connection.clientNumber, "User logged in - " + connection.user.toJson(connection.mapper));
+			Global.log(connection.clientNumber, "User logged in - " + connection.user.getEmail());
 
 		} catch (JsonParseException e) {
 			Global.log(connection.clientNumber, "Recieved malformed data packet");
@@ -155,9 +154,6 @@ public class UserAction {
 	}
 
 	static void friendRequest(ServerConnection connection, String data) throws JsonParseException, IOException, JSONException, SQLException {
-		Global.log(connection.clientNumber, "Sending friend Request");
-		Global.log(connection.clientNumber, data);
-
 		// Check if issuing user is logged in
 		if (connection.user == null || connection.user.getEmail().isEmpty()) {
 			connection.error(Message.NOT_LOGGEDIN);
@@ -185,8 +181,13 @@ public class UserAction {
 		if (email == null || email.isEmpty()) {
 			connection.error(Message.MALFORMED_DATA_PACKET);
 			return;
+		} else if (email.equalsIgnoreCase(connection.user.getEmail())) {
+			connection.sendResponse(Command.ERROR, Message.USER_CANNOT_FRIEND_SELF);
+			return;
 		}
 
+		Global.log(connection.clientNumber, "Sending friend Request to :" + email);
+		
 		ResultSet resultSet = connection.databaseConnection
 				.executeSQL("select * from users where email='" + email + "';");
 
@@ -240,7 +241,6 @@ public class UserAction {
 	
 	// We accepted someone elses friend request. make sure they are in our friends list (on server) so we can battle.
 	static void friendAdded(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException {
-		
 		if (connection.user == null || connection.user.getEmail().isEmpty()) {
 			connection.error(Message.NOT_LOGGEDIN);
 			return;
@@ -259,7 +259,7 @@ public class UserAction {
 
 			if (JsonToken.FIELD_NAME.equals(token) && "email".equals(parser.getCurrentName())) {
 				token = parser.nextToken();
-				email = parser.getText();
+				email = parser.getValueAsString();
 			}
 		}
 
@@ -291,9 +291,6 @@ public class UserAction {
 	}
 
 	static void battleRequest(ServerConnection connection, String data) throws JsonParseException, IOException, JSONException, SQLException {
-		Global.log(connection.clientNumber, "Sending battle Request");
-		Global.log(connection.clientNumber, data);
-
 		if (connection.user == null || connection.user.getEmail().isEmpty()) {
 			connection.error(Message.NOT_LOGGEDIN);
 			return;
@@ -320,6 +317,8 @@ public class UserAction {
 			connection.error(Message.MALFORMED_DATA_PACKET);
 			return;
 		}
+		
+		Global.log(connection.clientNumber, "Sending battle Request to: " + email);
 
 		ResultSet resultSet = connection.databaseConnection
 				.executeSQL("select * from users where email='" + email + "';");
@@ -360,63 +359,10 @@ public class UserAction {
 			connection.sendResponse(Command.ERROR, Message.SERVER_ERROR_RETRY);
 		}
 	}
-	
-	static void battleAccepted(ServerConnection connection, String data) throws JsonParseException, IOException, SQLException, JSONException {
-		// TODO Auto-generated method stub
-		// Need to know what the client will send...
-		Global.log(connection.clientNumber, Command.BATTLE_ACCEPTED + ": " + data);
-		connection.sendResponse(Command.ERROR, Message.COMMAND_NOT_SUPPORTED);
-		return;
-		/*
-		String email = null;
-
-		JsonFactory factory = new JsonFactory();
-		JsonParser parser = factory.createParser(data);
-
-		while (!parser.isClosed()) {
-			JsonToken token = parser.nextToken();
-			if (token == null) {
-				break;
-			}
-
-			if (JsonToken.FIELD_NAME.equals(token) && "email".equals(parser.getCurrentName())) {
-				token = parser.nextToken();
-				email = parser.getText();
-			}
-		}
-
-		if (email == null || email.isEmpty()) {
-			connection.error(Message.MALFORMED_DATA_PACKET);
-			return;
-		}
-
-		ResultSet resultSet = connection.databaseConnection
-				.executeSQL("select * from users where email='" + email + "';");
-
-		if (!resultSet.next()) {
-			connection.sendResponse(Command.ERROR, Message.USER_DOES_NOT_EXIST);
-			return;
-		}
-		
-		User requested = new User(resultSet);
-		
-		JSONObject notificationData = new JSONObject();
-		notificationData.put(Command.BATTLE_ACCEPTED, connection.user.getEmail());
-
-		boolean success = NotificationHandler.sendPushNotification(requested.getDeviceToken(), Message.BATTLE_ACCEPTED,
-				connection.user.getEmail() + Message.BATTLE_ACCEPTED_BODY, notificationData);
-		
-		if (success) {
-			connection.sendResponse(Command.BATTLE_ACCEPTED, Command.SUCCESS);
-		} else {
-			connection.sendResponse(Command.ERROR, Message.SERVER_ERROR_RETRY);
-		}
-		*/
-	}
 
 	static void saveAccount(ServerConnection connection, String data) throws JsonParseException, JsonMappingException, IOException {	
-		Global.log(connection.clientNumber, data);
 		User user = connection.mapper.readValue(data, User.class);
+		user.dataCleaner();
 		
 		Global.log(connection.clientNumber, "Saving client account data back to server for: " + user.getEmail());
 

@@ -3,6 +3,8 @@ package models;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import utilities.SQLHelper;
+
 public class Move {
 	
 	public enum Effect {
@@ -39,7 +41,7 @@ public class Move {
     }
 
     public String getName() {
-        return name;
+        return SQLHelper.sqlString(name);
     }
 
     public boolean getSelfCast() {
@@ -63,7 +65,7 @@ public class Move {
     }
 
     public String getDescription() {
-        return description;
+        return SQLHelper.sqlString(description);
     }
     
     @Override

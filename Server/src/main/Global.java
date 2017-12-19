@@ -10,6 +10,8 @@ public class Global {
 	public static final int HUMON_SERVER_PORT = 			9898;
 	public static final int HUMON_HTTP_PORT = 				80;
 	
+	public static final int SCREEN_LOG_SIZE = 				100;
+	
 	public static final String DATABASE_NAME = 				"jdbc:mysql://localhost:3306/";
 	public static final String TABLE_NAME = 				"humon_test?useSSL=false&max_allowed_packet=8388608";
 	public static final String DATABASE_USER_NAME = 		"ece454";

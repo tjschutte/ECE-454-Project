@@ -136,9 +136,6 @@ public class ServerConnection extends Thread {
 					case Command.GET_INSTANCE:
 						HumonAction.getInstance(this, data);
 						break;
-					case Command.GET_IMAGE:
-						HumonAction.getImage(this, data);
-						break;
 					// They sent baaaad data
 					default:
 						error(Message.BAD_COMMAND);

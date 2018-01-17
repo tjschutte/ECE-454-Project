@@ -1,85 +1,42 @@
 package main;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Scanner;
 
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-
-import http.HttpConnectionListener;
+import models.UserHistory;
 import server.ServerConnectionListener;
-import utilities.JTextAreaOutputStream;
 
 public class Main {
+	
+	public static volatile ArrayList<UserHistory> online;
 
 	public static void main(String[] args) throws IOException, SQLException  {
-		JFrame frame = new JFrame("Humon Server");
-		frame.setSize(50, 80);
-		final JTextArea messageArea = new JTextArea(30, 80);
-		// Layout GUI
-		messageArea.setEditable(false);
-		frame.getContentPane().add(new JScrollPane(messageArea), "North");
-
-		JPanel config = new JPanel();
-
-		config.setSize(20, 80);
+		online = new ArrayList<UserHistory>();
 		
-		final JCheckBox dropTablesCheckBox = new JCheckBox("Drop existing database tables?");
-		final JCheckBox testDataCheckBox = new JCheckBox("Insert test data into database tables?");
-		final JCheckBox appendToLogCheckBox = new JCheckBox("Append to exisitng log file if exists?");
-		final JCheckBox startHttpServer = new JCheckBox("Start Http server as well?");
-		startHttpServer.setSelected(true);
-		final JButton start = new JButton("Start");
-		config.add(dropTablesCheckBox);
-		config.add(testDataCheckBox);
-		config.add(appendToLogCheckBox);
-		config.add(startHttpServer);
-		config.add(start);
+		new ServerConnectionListener(false, false, online).start();
 		
-		frame.getContentPane().add(config, "Center");
-		
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.pack();
-		frame.setVisible(true);
-		
-		start.addActionListener(new ActionListener() {
+		/**
+		 * Some sort of loop here to check who is logged in / server stats etc.
+		 */
+		String input = "";
+		Scanner scanner = new Scanner(System.in);
+		while (!input.equals("end")) {
+			input = scanner.nextLine();
 			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				boolean dropTables;
-				boolean testData;
-				boolean appendToLog;
-				
-				dropTables = dropTablesCheckBox.isSelected();
-				testData = testDataCheckBox.isSelected();
-				appendToLog = appendToLogCheckBox.isSelected();
-				start.setEnabled(false);
-				
-				JTextAreaOutputStream out = new JTextAreaOutputStream(messageArea, appendToLog);
-				System.setOut(new PrintStream(out));
-				System.setErr(new PrintStream(out));
-
-				new ServerConnectionListener(dropTables, testData).start();
-				
-				
-				if (startHttpServer.isSelected()) {
-					new HttpConnectionListener().start();
+			if (input.equals("online")) {
+				if (online.size() != 0) {
+					System.out.println("Number of players online: " + online.size());
+					for (UserHistory userHistory : online) {
+						System.out.println("User: " + userHistory.who().getEmail() + " | Logged in at: " + userHistory.loggedInAt() + " | Last action at: " + userHistory.lastActionAt() + "");
+					}
+				} else {
+					System.out.println("No users currently online.");
 				}
 			}
-		});
-		
+				
+			
+		}
 	}
 }
-
-
-
-
-
-

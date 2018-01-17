@@ -39,8 +39,7 @@ public class Global {
 	 * applications standard output.
 	 */
 	public static void log(int clientNumber, String message) {
-		System.out.println(
-				"Client " + clientNumber + ": " + dateFormat.format(Calendar.getInstance().getTime()) + " " + message);
+		System.out.println("Client " + clientNumber + ": " + dateFormat.format(Calendar.getInstance().getTime()) + " " + message);
 	}
 	
 }

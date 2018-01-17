@@ -70,7 +70,7 @@ public class Client {
 	public void connectToServer() throws IOException {
 
 		// Get the server address from a dialog box.
-		String serverAddress = "humon.ddns.net";
+		String serverAddress = "localhost";
 
 		// Make connection and initialize streams
 		Socket socket = new Socket(serverAddress, 9898);

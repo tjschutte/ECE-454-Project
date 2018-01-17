@@ -6,12 +6,14 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import org.json.JSONException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import main.Global;
 import models.User;
+import models.UserHistory;
 import utilities.Connector;
 
 public class ServerConnection extends Thread {
@@ -28,11 +30,12 @@ public class ServerConnection extends Thread {
 	public BufferedReader clientIn;
 	public PrintWriter clientOut;
 	public User user;
+	public volatile ArrayList<UserHistory> online;
 	
 	public boolean inBattle = false;
 	public String enemyDeviceId = "";
 
-	public ServerConnection(Socket socket, int clientNumber) throws IOException {
+	public ServerConnection(Socket socket, int clientNumber, ArrayList<UserHistory> online) throws IOException {
 		this.socket = socket;
 		this.clientNumber = clientNumber;
 		Global.log(clientNumber, "connected at " + socket);
@@ -44,6 +47,7 @@ public class ServerConnection extends Thread {
 
 		clientIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		clientOut = new PrintWriter(socket.getOutputStream());
+		this.online = online;
 	}
 
 	/**
@@ -53,9 +57,11 @@ public class ServerConnection extends Thread {
 	 */
 	public void run() {
 		try {
-			String input;
-			String command;
-			String data;
+			String input; // The raw command string
+			
+			String command; // The command being issued
+			String data; // The data that goes with the command
+			String who; // The user issuing the command
 
 			while (true) {
 
@@ -64,7 +70,7 @@ public class ServerConnection extends Thread {
 				// Fast input checking. Error on bad command, check to see if they
 				// wanted to close the connection otherwise
 				if (input == null || input.length() == 0 || input.equals(".")) {
-					Global.log(clientNumber, "Saving any dirty data and disconnecting from server.");
+					Global.log(clientNumber, "Closed connection to server");
 					UserAction.save(this);
 					break;
 				} else if (input.indexOf(':') == -1) {
@@ -80,7 +86,7 @@ public class ServerConnection extends Thread {
 				command = command.toUpperCase();
 				data = input.substring(input.indexOf(':') + 1, input.length());
 
-				Global.log(clientNumber, command);
+				//Global.log(clientNumber, command);
 
 				switch (command) {
 					// Register a new account

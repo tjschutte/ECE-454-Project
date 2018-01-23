@@ -88,11 +88,11 @@ public class Database {
 			ps = connection.prepareStatement("insert into image (imageid, image) values ('2', '" + image + "');");
 			ps.executeUpdate();
 			
-			User user = new User("user1@testemail.com", "Password", 0, "", false);
+			User user = new User("user1@testemail.com", "Password", 0, "", false, false);
 			ps = connection.prepareStatement("insert into users " + Global.USERS_TABLE_COLUMNS + " values " + user.toSqlValueString() + ";");
 			ps.executeUpdate();
 			
-			user = new User("user2@testemail.com", "Password", 0, "", false);
+			user = new User("user2@testemail.com", "Password", 0, "", false, false);
 			ps = connection.prepareStatement("insert into users " + Global.USERS_TABLE_COLUMNS + " values " + user.toSqlValueString() + ";");
 			ps.executeUpdate();
 			
@@ -126,6 +126,7 @@ public class Database {
 				"friendRequests blob," + 
 				"hcount int," +
 				"deviceToken text," + 
+				"locked text," +
 				"PRIMARY KEY (userid)" + 
 			");");
 		ps.executeUpdate();

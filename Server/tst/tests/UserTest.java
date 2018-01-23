@@ -15,7 +15,7 @@ public class UserTest {
 
 	@Test
 	public void test() {
-		User test = new User("Email@email.com", "myPassword", 0, "", false);
+		User test = new User("Email@email.com", "myPassword", 0, "", false, false);
         try {
         String testJSON = test.toJson(new ObjectMapper());
         
@@ -31,7 +31,7 @@ public class UserTest {
 	
 	@Test
 	public void testAddAndGetParty() {
-		User test = new User("Email@email.com", "myPassword", 0, "", false);
+		User test = new User("Email@email.com", "myPassword", 0, "", false, false);
 		//assert(test.getParty() == null);
 		test.addPartyMember("SomeHumon");
 		assert(test.getParty() != null);
@@ -39,7 +39,7 @@ public class UserTest {
 	
 	@Test
 	public void testAddAndGetFriends() {
-		User test = new User("Email@email.com", "myPassword", 0, "", false);
+		User test = new User("Email@email.com", "myPassword", 0, "", false, false);
 		//assert(test.getFriends() == null);
 		test.addPartyMember("SomeHumon");
 		assert(test.getFriends() != null);
@@ -47,7 +47,7 @@ public class UserTest {
 	
 	@Test
 	public void testAddAndGetEncounteredHumons() {
-		User test = new User("Email@email.com", "myPassword", 0, "", false);
+		User test = new User("Email@email.com", "myPassword", 0, "", false, false);
 		//assert(test.getEncounteredHumons() == null);
 		test.addPartyMember("SomeHumon");
 		assert(test.getEncounteredHumons() != null);
@@ -55,7 +55,7 @@ public class UserTest {
 	
 	@Test
 	public void testArrayCleaner() throws JsonParseException, JsonMappingException, IOException {
-		User test = new User("Email@email.com", "myPassword", null, null, "\"[[test_email2\" , \"gggg\"]", null, 0, "", false);
+		User test = new User("Email@email.com", "myPassword", null, null, "\"[[test_email2\" , \"gggg\"]", null, 0, "", false, false);
 		System.out.println(test.toJson(new ObjectMapper()));
 		assert(test != null);
 	}

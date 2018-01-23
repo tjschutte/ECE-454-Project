@@ -24,7 +24,7 @@ public class Global {
 	public static final int MAX_INSTANCEID_LENGTH = 50;
 	
 	// Table columns
-	public static final String USERS_TABLE_COLUMNS = "(email, password, party, encountered_humons, friends, friendRequests, hcount, deviceToken)";
+	public static final String USERS_TABLE_COLUMNS = "(email, password, party, encountered_humons, friends, friendRequests, hcount, deviceToken, locked)";
 	
 	public static final String IMAGE_TABLE_COLUMNS = "(imageid, image)";	
 	
@@ -39,7 +39,8 @@ public class Global {
 	 * applications standard output.
 	 */
 	public static void log(int clientNumber, String message) {
-		System.out.println("Client " + clientNumber + ": " + dateFormat.format(Calendar.getInstance().getTime()) + " " + message);
+		// TODO: redirect this to a log
+		//System.out.println("Client " + clientNumber + ": " + dateFormat.format(Calendar.getInstance().getTime()) + " " + message);
 	}
 	
 }

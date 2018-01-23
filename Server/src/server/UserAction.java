@@ -77,7 +77,7 @@ public class UserAction {
 			}
 
 			// Unique email, create a new user
-			User newUser = new User(u.getEmail(), DigestUtils.sha512Hex(u.getPassword()), 0, u.getDeviceToken(), false);
+			User newUser = new User(u.getEmail(), DigestUtils.sha512Hex(u.getPassword()), 0, u.getDeviceToken(), false, false);
 			// Insert into the database.
 			PreparedStatement ps = connection.databaseConnection.prepareStatement(
 					"insert into users " + Global.USERS_TABLE_COLUMNS + " values " + newUser.toSqlValueString());

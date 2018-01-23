@@ -92,10 +92,18 @@ public class ServerConnection extends Thread {
 					// Register a new account
 					case Command.REGISTER:
 						UserAction.register(this, data);
+						if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+							if (!online.contains(user.getEmail()))
+								online.add(new UserHistory(user));
+						}
 						break;
 					// Login to existing account
 					case Command.LOGIN:
 						UserAction.login(this, data);
+						if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+							if (!online.contains(user.getEmail()))
+								online.add(new UserHistory(user));
+						}
 						break;
 					// Send a friend request
 					case Command.FRIEND_REQUEST:

@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -24,6 +25,7 @@ public class User {
 	private ArrayList<String> friendRequests;
 	private int hcount;
 	private boolean isDirty;
+	private boolean isLocked;
 	private String deviceToken;
 
 	/**
@@ -40,7 +42,7 @@ public class User {
 	 * @param password - password
 	 * @param hcount - number of humons encountered
 	 */
-	public User(String email, String password, int hcount, String deviceToken, boolean isDirty) {
+	public User(String email, String password, int hcount, String deviceToken, boolean isDirty, boolean isLocked) {
 		this.email = email;
 		this.password = password;
 		this.party = new ArrayList<String>(); 
@@ -50,6 +52,7 @@ public class User {
 		this.hcount = hcount;
 		this.deviceToken = deviceToken;
 		this.isDirty = isDirty;
+		this.isLocked = isLocked;
 	}
 	
 	/**
@@ -66,7 +69,7 @@ public class User {
 	 * @throws JsonMappingException 
 	 * @throws JsonParseException 
 	 */
-	public User(String email, String password, String party, String encounteredHumons, String friends, String friendRequests, int hcount, String deviceToken, boolean isDirty) throws JsonParseException, JsonMappingException, IOException {
+	public User(String email, String password, String party, String encounteredHumons, String friends, String friendRequests, int hcount, String deviceToken, boolean isDirty, boolean isLocked) throws JsonParseException, JsonMappingException, IOException {
 		this.email = email;
 		this.password = password;
 		this.party = (party == null) ? new ArrayList<String>() : arrayCleaner(new ArrayList<String>(Arrays.asList(party.substring(party.indexOf('[') + 1, party.indexOf(']')).split(","))));
@@ -76,12 +79,13 @@ public class User {
 		this.hcount = hcount;
 		this.deviceToken = deviceToken;
 		this.isDirty = isDirty;
+		this.isLocked = isLocked;
 	}
 	
 	public User(ResultSet resultSet) throws SQLException, JsonParseException, JsonMappingException, IOException {
 		//String email, String password, String party, String encounteredHumons, String friends, String friendRequests, int hcount, String deviceToken, boolean isDirty
 		this(resultSet.getString(2), resultSet.getString(3), resultSet.getString(4),
-				resultSet.getString(5), resultSet.getString(6), resultSet.getString(7), resultSet.getInt(8), resultSet.getString(9), false);
+				resultSet.getString(5), resultSet.getString(6), resultSet.getString(7), resultSet.getInt(8), resultSet.getString(9), false, resultSet.getBoolean(10));
 	}
 	
 	// Remove any empty entries and all whitespace characters
@@ -101,6 +105,11 @@ public class User {
 
 	public boolean getIsDirty() {
 		return isDirty;
+	}
+	
+	@JsonIgnore
+	public boolean getIsLocked() {
+		return isLocked;
 	}
 	
 	public String getDeviceToken(){
@@ -230,7 +239,8 @@ public class User {
 		obj += "'" + friends + "',";
 		obj += "'" + friendRequests + "',";
 		obj += "'" + hcount + "',";
-		obj += "'" + deviceToken + "')";
+		obj += "'" + deviceToken + "',";
+		obj += "'" + isLocked +	"')";
 		
 		return obj;
 	}
@@ -248,7 +258,8 @@ public class User {
 		update += "friends = '" + friends + "',";
 		update += "friendRequests = '" + friendRequests + "',";
 		update += "hcount = '" + hcount + "',";
-		update += "deviceToken = '" + deviceToken + "' ";
+		update += "deviceToken = '" + deviceToken + "',";
+		update += "locked = '" + isLocked + "' ";
 		return update;
 	}
 
